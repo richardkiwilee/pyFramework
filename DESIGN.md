@@ -1,0 +1,280 @@
+# PyConsole Framework — 设计文档 (DESIGN)
+
+> 面向 Python 控制台游戏的框架原型：手搓双缓冲渲染、动作名按键抽象、场景栈、实时模糊搜索百科、按住 Tab 状态总览 overlay。
+
+---
+
+## 1. 目标与非目标
+
+**目标**
+- 提供一个可复用的控制台游戏框架底座：渲染、输入、场景管理、键绑定。
+- 用样例场景（主菜单 + 百科 + 提示）演示全部交互能力。
+- 零第三方依赖，仅用 Python 标准库（msvcrt / ctypes / json / unicodedata / unittest）。
+
+**非目标**
+- 不做运行时改键 UI（键绑定可通过 `keybindings.json` 覆盖，手动编辑）。
+- 不实现真正的游戏主循环（"开始游戏" 仅弹出演示提示）。
+- 不跨平台（专注 Windows + msvcrt；其他平台需替换 io 层）。
+- 不做窗口 resize 自适应（固定 100×30 逻辑分辨率）。
+
+---
+
+## 2. 技术选型（grilling 结论）
+
+| 决策点 | 选择 |
+|---|---|
+| 渲染/输入栈 | 手搓 ANSI 帧缓冲 + msvcrt，零依赖 |
+| 双缓冲 diff 粒度 | 单元格级 diff（首帧整屏，后续 diff） |
+| 输出方式 | 每帧拼接后一次 `sys.stdout.write` + flush |
+| 逻辑分辨率 | 固定 100×30，窗口不足不处理 |
+| 颜色模型 | 256 色 ANSI |
+| 主题 | 深色主题，颜色常量集中在 `theme.py` |
+| 主循环 | 事件驱动 + 轻休眠（无键时 `time.sleep(0.015)`） |
+| 按键抽象 | 动作名（Action）抽象层 |
+| 键绑定存储 | 代码默认 + `keybindings.json` 覆盖 |
+| Tab overlay | 全局 overlay 组件，按住显示 / 松开消失 |
+| Tab 释放检测 | `ctypes` 调 `GetAsyncKeyState(VK_TAB)` 轮询 |
+| 场景架构 | 场景栈（Scene 基类 + 钩子方法） |
+| 场景背景 | 只渲染栈顶 |
+| 场景间数据 | 支持参数进栈 / 返回值出栈 |
+| Python | C:\.env311（Python 3.11.8） |
+| 编码 | 启用 VT 处理 + `stdout.reconfigure(utf-8)`，失败有 fallback |
+| 字符宽度 | 处理 CJK 双宽（`unicodedata.east_asian_width`） |
+| 装饰 | box-drawing 边框 + ASCII 标题 |
+| 测试 | unittest，仅测纯逻辑 |
+| 启动 | `python main.py` |
+
+---
+
+## 3. 架构分层
+
+```
+pyconsole/
+├── __init__.py
+├── io/
+│   ├── __init__.py
+│   ├── width.py        # CJK 双宽计算
+│   ├── theme.py        # 256 色主题常量
+│   ├── buffer.py       # Cell + FrameBuffer（后缓冲）
+│   ├── display.py      # Display：diff 渲染、VT/UTF-8 启用、清理
+│   ├── input.py        # Input：msvcrt 读键 → Action 映射；Tab 轮询
+│   └── widgets.py      # 画边框、文本、列表、输入框、提示栏等
+├── core/
+│   ├── __init__.py
+│   ├── actions.py      # Action 枚举
+│   ├── keys.py        # 原始键码 → Action 默认绑定 + json 加载
+│   ├── scene.py        # Scene 基类 + 场景栈 SceneStack
+│   ├── overlay.py      # 全局 overlay 组件（Tab 状态总览）
+│   ├── app.py          # App：主循环、渲染调度、Tab overlay 注入
+│   └── game_state.py   # 示例游戏状态（供 Tab overlay 显示）
+├── scenes/
+│   ├── __init__.py
+│   ├── main_menu.py    # 主菜单场景
+│   ├── wiki.py         # 百科场景（输入框 + 列表 + 详情 + 模糊搜索）
+│   └── message.py      # MessageScene（演示提示）
+├── data/
+│   ├── __init__.py
+│   ├── wiki.json       # 约 30 条奇幻 RPG 百科样例数据
+│   └── wiki_data.py    # JSON 加载 + WikiEntry 数据类 + 模糊搜索
+└── tests/
+    ├── __init__.py
+    ├── test_width.py
+    ├── test_search.py
+    ├── test_buffer.py
+    └── test_keys.py
+main.py                 # 入口
+README.md
+DESIGN.md
+PLAN.md
+requirements.txt       # 空（零依赖）
+```
+
+依赖方向：`main → core.app → scenes → io + data`；`io` 与 `core` 不反向依赖 `scenes`。
+
+---
+
+## 4. 渲染管线（双缓冲）
+
+### 4.1 Cell 与 FrameBuffer
+- `Cell(char, fg, bg)`：一个单元格。`char` 为单字符（双宽字符占两个 Cell，第二个为 `""` 占位）。
+- `FrameBuffer(w, h)`：二维 `list[list[Cell]]`，外加 `dirty` 集合。提供 `set_char(x,y,ch,fg,bg)`、`put_text(x,y,text,fg,bg)`（自动处理双宽）、`fill(ch,fg,bg)`、`clear()`。
+
+### 4.2 Display
+- `Display(w, h)`：
+  - `enable_vt()`：`ctypes.windll.kernel32.SetConsoleMode` 启用 `ENABLE_VIRTUAL_TERMINAL_PROCESSING`；`stdout.reconfigure(encoding="utf-8")`；`stdout.reconfigure` 失败则 try `os.environ['PYTHONIOENCODING']` 已生效即可。失败有 fallback（不启用 VT 仍能跑，颜色/光标可能异常）。
+  - `hide_cursor()` / `show_cursor()`：ANSI `?25l` / `?25h`。
+  - `begin_frame()`：清空后缓冲（`fill`）。
+  - `present(front)`：将后缓冲与上一帧（`front`）diff；首帧或尺寸变化时整屏重画（光标归位 `ESC[H` + 全部单元格）；否则仅输出变化单元格（`ESC[y;xH` 定位 + 颜色 + 字符）。拼接成一个大字符串一次 `write` + `flush`。然后后缓冲 → front 快照。
+  - `cleanup()`：恢复光标、重置颜色 `\x1b[0m`、可选清屏。
+
+### 4.3 双宽处理（`width.py`）
+- `char_width(ch)`：`unicodedata.east_asian_width(ch)` 返回 `W/F` → 2，否则 1；控制字符视为 0/1。
+- `put_text` 按宽度逐字写入，双宽字符后补占位 Cell，超出边界截断。
+
+---
+
+## 5. 输入与按键抽象（`input.py` / `keys.py` / `actions.py`）
+
+### 5.1 Action
+```
+UP, DOWN, LEFT, RIGHT, SELECT, CONFIRM, BACK,        # 通用
+TOGGLE_HELP, OPEN_WIKI,                              # 自定义示例
+SCROLL_UP, SCROLL_DOWN,                              # 详情滚动（PgUp/PgDn）
+CHAR                                  # 可打印字符输入（百科用），携带 ch
+```
+
+### 5.2 默认绑定（`keys.py`）
+| 原始键 | Action |
+|---|---|
+| 方向键 ↑/↓/←/→ | UP/DOWN/LEFT/RIGHT |
+| 空格 | SELECT |
+| 回车 | CONFIRM |
+| Esc | BACK |
+| H / h | OPEN_WIKI |
+| Tab | TOGGLE_HELP（由 overlay 直接消费，见 5.4） |
+| PgUp / PgDn | SCROLL_UP / SCROLL_DOWN |
+| 可打印 ASCII | CHAR（携带字符） |
+
+方向键在 msvcrt 下是多字节序列（`0xe0` / `0x00` 前缀 + 码）：`H/P/K/M`（↑↓←→）。
+
+### 5.3 键绑定覆盖
+- `DEFAULT_BINDINGS: dict[str, Action]`（键名为可读名，如 `"up"`, `"space"`, `"h"`）。
+- `load_bindings(path)`：若 `keybindings.json` 存在则读，按键名覆盖默认；文件缺失或损坏用默认，不崩溃。
+- `KeyResolver`：把 msvcrt 读到的原始字节解析成 (键名, char)，再查绑定得到 Action。
+
+### 5.4 Tab overlay 的特殊处理
+- `Input.poll_tab_held()`：`ctypes.windll.user32.GetAsyncKeyState(VK_TAB=0x09)`，最高位为 1 表示按下。
+- 主循环每帧先轮询 Tab：若当前栈顶场景 `allow_status_overlay=True` 且 Tab 按下 → 显示 overlay 并拦截该帧其他输入（模态）。
+
+---
+
+## 6. 场景架构（`scene.py` / `app.py`）
+
+### 6.1 Scene 基类
+```
+class Scene:
+    allow_status_overlay: bool = False     # 主菜单 True，百科 False
+    def on_enter(self, ctx, params): ...
+    def on_exit(self): ...
+    def handle_action(self, action) -> SceneResult | None: ...
+    def render(self, buf: FrameBuffer): ...
+    def get_hints(self) -> list[str]: ...  # 底部键提示栏
+```
+- `handle_action` 返回 `SceneResult`：`PUSH(scene, params)` / `POP` / `QUIT` / `None`（留在当前场景）。
+
+### 6.2 SceneStack
+- `push(scene, params)` / `pop() -> (scene, return_value)` / `top()`。
+- `on_enter` 在 push 时调用；`on_exit` 在 pop 时调用。
+- 只渲染栈顶；下层不渲染。
+
+### 6.3 App 主循环
+```
+while running:
+    # 1. Tab overlay 轮询（模态拦截）
+    show_overlay = stack.top().allow_status_overlay and input.poll_tab_held()
+    # 2. 读一个键（若 overlay 显示则不读，或读后丢弃）
+    action = input.read_action() if not show_overlay else None
+    # 3. 派发动作 → 栈顶 handle_action → 处理 PUSH/POP/QUIT
+    # 4. 渲染：display.begin_frame(); stack.top().render(buf); 
+    #          if show_overlay: overlay.render(buf); draw_hints(buf)
+    # 5. display.present()
+    # 6. 无键时 sleep(0.015)
+```
+
+### 6.4 底部键提示栏
+- 框架在每帧渲染末尾，用 `stack.top().get_hints()` 画底部一行提示（统一位置/样式）。
+
+---
+
+## 7. 主菜单场景（`main_menu.py`）
+
+- `allow_status_overlay = True`。
+- 内容：ASCII 标题 "PyConsole Framework" + 副标题 "控制台游戏框架 · 双缓冲演示"。
+- 菜单项（3 项精简）：
+  1. `开始游戏` → CONFIRM 时 `PUSH(MessageScene, "游戏主循环尚未实现 · 框架原型")`
+  2. `百科全书` → CONFIRM 时 `PUSH(WikiScene)`
+  3. `退出游戏` → CONFIRM 时 `QUIT`
+- 交互：
+  - UP/DOWN 切换焦点项。
+  - SELECT（空格）= 选中/反选当前项（多选高亮标记 `[x]`/`[ ]`；与"空格选中/反选 + 回车确认"需求一致）。
+  - CONFIRM（回车）= 对焦点项执行操作。
+  - OPEN_WIKI（H）= PUSH WikiScene（与菜单项"百科全书"等效）。
+  - BACK（Esc）= 不响应（主菜单是栈底）。
+- 布局：标题居中、菜单居中、底部键提示栏。
+
+---
+
+## 8. 百科场景（`wiki.py`）
+
+### 8.1 布局（上输入 + 左右分栏）
+```
+┌─ 百科全书 ──────────────────────────────────────────────────────┐  (标题)
+│ 搜索: [输入框____________________________________]               │  (输入框)
+├──────────────────────────────┬─────────────────────────────────┤
+│ 列表区（名称 + [分类]）       │ 详情区                          │
+│   可滚动                       │   name / category / summary /    │
+│                               │   detail（可滚动 PgUp/PgDn）       │
+├──────────────────────────────┴─────────────────────────────────┤
+│ ↑↓切换 · PgUp/PgDn滚详情 · Backspace删字 · Esc退出              │  (提示)
+└────────────────────────────────────────────────────────────────┘
+```
+
+### 8.2 交互规则
+- 输入框：末尾追加式。可打印字符追加（限制长度 30），Backspace 删末尾，空格**不响应**（搜索无需空格）。
+- 搜索：每次输入即时重新过滤，子串包含（大小写不敏感），匹配 `name+summary+category`，结果按 name 升序。
+- 空输入：列表区空，提示"请输入关键字"；详情区提示"请输入关键字，然后选择条目查看详情"。
+- 输入后：列表显示结果，默认选中第一项，详情区同步显示其详情。
+- 无结果：列表区"未找到匹配条目"，详情区清空提示。
+- 选中：UP/DOWN 切换条目（列表自动滚动跟随）；详情区同步刷新。
+- 详情滚动：PgUp/PgDn 滚动详情文本。
+- 高亮：列表条目命中子串高亮；详情区命中子串高亮。
+- Esc：POP 回主菜单。
+
+### 8.3 数据（`data/wiki.json` + `wiki_data.py`）
+- `WikiEntry`：`id, name, category, summary, detail, attrs(dict)`。
+- 约 30 条奇幻 RPG 条目，分类：武器 / 防具 / 消耗品 / 怪物 / 技能。
+- `load_entries(path)`：读 JSON，缺失文件返回空列表（不崩）。
+- `search(entries, query)`：纯函数，返回排序后的匹配列表 + 命中位置信息（供高亮）。
+
+---
+
+## 9. Tab overlay（`overlay.py`）
+
+- 全局组件，不入场景栈。
+- 触发条件：栈顶 `allow_status_overlay=True` 且 Tab 物理按下（`GetAsyncKeyState`）。
+- 模态：显示期间拦截其他输入。
+- 渲染：在当前场景渲染后，于缓冲上叠加一个居中面板（box-drawing 边框 + 半透明背景色）。
+- 内容（状态 + 调试二合一）：
+  - 上半：示例游戏状态（角色名/等级、HP/MP 条、金币、位置、背包数、任务进度）—— 来自 `game_state.py`。
+  - 下半：框架调试信息（当前场景名、栈深度、逻辑分辨率、活跃键绑定计数）。
+- 松开 Tab 立即消失。
+
+---
+
+## 10. 终端生命周期
+
+- 启动：`enable_vt()` → `hide_cursor()`。
+- 运行：主循环。
+- 退出（正常 QUIT / KeyboardInterrupt / 异常）：`finally` 中 `show_cursor()` + `\x1b[0m` 重置颜色 + 恢复模式。
+
+---
+
+## 11. 测试（`tests/`，unittest）
+
+仅测纯逻辑：
+- `test_width.py`：CJK 双宽、ASCII 单宽、控制字符、组合截断。
+- `test_search.py`：子串命中、大小写不敏感、多字段匹配、排序、空查询、无结果、命中位置。
+- `test_buffer.py`：`put_text` 双宽写入、越界截断、`set_char`、`fill`。
+- `test_keys.py`：默认绑定、json 覆盖、文件缺失用默认、方向键序列解析。
+
+IO 渲染 / 输入轮询不测。
+
+---
+
+## 12. 关键不变量与风险
+
+- **双宽对齐**：所有文本必须经 `put_text`，禁止直接 `buf[y][x] = ...` 写字符串。
+- **首帧整屏**：`present` 在 front 为 None 时整屏重画。
+- **Tab 模态**：overlay 显示时不派发其他 action。
+- **Esc 分层**：每个场景自己定义 BACK 语义（主菜单忽略、百科 POP）。
+- **风险**：msvcrt / GetAsyncKeyState 仅 Windows；老 conhost 不支持 VT → fallback 路径需保证不崩。

@@ -1,0 +1,3 @@
+# PyConsole Framework 依赖
+# 零第三方依赖，仅使用 Python 标准库（msvcrt / ctypes / json / unicodedata / unittest）。
+# 运行：C:\.env311\Scripts\python.exe main.py  (Python 3.11.8)

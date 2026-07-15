@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:/.env311/Scripts/cmake.exe -S . -B build -DCMAKE_PREFIX_PATH=U:/third_party/nlohmann_json-3.11.3)",
+      "Bash(ls \"U:/third_party/nlohmann_json-3.11.3/\" 2>&1)",
+      "Read(//u/third_party/**)",
+      "Bash(C:/.env311/Scripts/cmake.exe -S \"U:/third_party/json\" -B \"U:/third_party/json/build\" -DJSON_BuildTests=OFF -DCMAKE_INSTALL_PREFIX=\"U:/third_party/nlohmann_json-3.11.3\")",
+      "Bash(C:/.env311/Scripts/cmake.exe --build \"U:/third_party/json/build\" --config Release --target install)",
+      "Bash(C:/.env311/Scripts/cmake.exe --build build --config Release)"
+    ]
+  }
+}
