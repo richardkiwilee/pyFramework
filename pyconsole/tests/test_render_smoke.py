@@ -10,6 +10,7 @@ from pyconsole.io import theme
 from pyconsole.scenes.main_menu import MainMenuScene
 from pyconsole.scenes.wiki import WikiScene
 from pyconsole.scenes.message import MessageScene
+from pyconsole.scenes.game21 import Game21Scene
 from pyconsole.core import overlay as overlay_mod
 from pyconsole.core.game_state import get_state
 
@@ -89,6 +90,91 @@ class TestRenderSmoke(unittest.TestCase):
         w = WikiScene()
         w.on_enter(None)
         self.assertTrue(len(w.get_hints()) > 0)
+
+    def test_main_menu_space_is_noop(self):
+        # 主菜单空格无效：选中项不变化、不切场景
+        from pyconsole.core.actions import InputEvent
+        from pyconsole.core import actions
+        s = MainMenuScene()
+        s.on_enter(None)
+        before = s.focus
+        res = s.handle_action(InputEvent(actions.SELECT))
+        self.assertEqual(res.kind, "none")
+        self.assertEqual(s.focus, before)
+
+    # ---- 21 点游戏场景冒烟 ----
+    def _game(self, first_player="player"):
+        # 用注入 rng，并直接设定先后手（绕开 rng 的随机选择），保证测试稳定
+        import random
+        g = Game21Scene(rng=random.Random(42))
+        g.on_enter(None)
+        g._tasks.clear()
+        g._ai_turn_pending = False
+        g.turn = first_player
+        if first_player == "ai":
+            g._start_ai_turn()
+        else:
+            g.phase = "menu"
+        return g
+
+    def test_game21_menu_renders(self):
+        g = self._game("player")
+        g.render(new_buf())  # 初始菜单态不抛
+
+    def test_game21_holding_renders(self):
+        from pyconsole.core.actions import InputEvent
+        from pyconsole.core import actions
+        g = self._game("player")
+        # 抽牌 → holding
+        g.handle_action(InputEvent(actions.CONFIRM))  # 聚焦"抽牌"
+        self.assertEqual(g.phase, "holding")
+        g.render(new_buf())
+
+    def test_game21_sleeve_select_renders(self):
+        from pyconsole.core.actions import InputEvent
+        from pyconsole.core import actions
+        from pyconsole.game.cards import Card
+        g = self._game("player")
+        # 塞两张牌进袖子，让"从袖子打出"进入 sleeve_select
+        g.player.sleeve = [Card(3, "♠"), Card(5, "♥")]
+        # 菜单项现在是 [抽牌, 从袖子打出, Pass 停牌] → 索引 1
+        g.menu_focus = 1
+        g.handle_action(InputEvent(actions.CONFIRM))
+        self.assertEqual(g.phase, "sleeve_select")
+        g.render(new_buf())
+
+    def test_game21_ai_turn_renders(self):
+        g = self._game("ai")
+        # AI 回合：on_tick 推进一步
+        import time
+        g.on_tick(1.0)  # 触发 _ai_turn_pending 排程
+        g.render(new_buf())
+
+    def test_game21_advance_ai_to_settled(self):
+        # 让 AI 持续行动直到局面推进（不卡死、最终能到 settled）
+        g = self._game("ai")
+        # 玩家先 pass，使对局只取决于 AI 的动作收敛
+        g.player.passed = True
+        now = 1.0
+        for _ in range(200):
+            g.on_tick(now)
+            now += 1.0
+            if g.phase == "settled":
+                break
+        g.render(new_buf())
+        self.assertEqual(g.phase, "settled")
+
+    def test_game21_settled_renders(self):
+        # 直接构造一个已结算状态
+        from pyconsole.game.cards import Card
+        g = self._game("player")
+        g.player.table = [Card(10, "♠"), Card(9, "♥")]
+        g.ai.table = [Card(5, "♦"), Card(6, "♣")]
+        g.player.passed = True
+        g.ai.passed = True
+        g.settle()
+        self.assertEqual(g.phase, "settled")
+        g.render(new_buf())
 
 
 if __name__ == "__main__":

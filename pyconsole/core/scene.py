@@ -57,6 +57,13 @@ class Scene:
     def handle_action(self, event: InputEvent) -> SceneResult:
         return NONE()
 
+    def on_tick(self, now: float) -> None:
+        """每帧调用一次（now 为 time.time()），用于场景内部定时推进。
+
+        默认空实现。子类可在此驱动 AI 动画/定时任务，只改内部状态，不返回结果。
+        """
+        return None
+
     def render(self, buf: FrameBuffer) -> None:
         pass
 

@@ -1,9 +1,9 @@
-"""主菜单场景：ASCII 标题 + 3 项菜单 + 选中/反选 + 回车确认。
+"""主菜单场景：ASCII 标题 + 4 项菜单 + 回车确认。
 
 - ↑↓ 切换焦点
-- 空格 选中/反选当前项（多选高亮 [x]/[ ]）
-- 回车 对焦点项执行（开始游戏→提示 / 百科→百科 / 退出→退出）
-- H 进入百科（与"百科全书"等效）
+- 回车 对焦点项执行（空格无效，沿用本菜单约定）
+- 单人游戏 → 21 点人机对战；多人游戏 → 未实现提示；百科 → 百科；退出游戏 → 退出
+- H 进入百科（与"百科"等效）
 - Tab 按住可显示状态总览 overlay
 - Esc 不响应（主菜单是栈底）
 """
@@ -15,7 +15,8 @@ from ..core import actions
 from ..core.scene import Scene, SceneResult, PUSH, POP, QUIT, NONE
 from ..io.buffer import FrameBuffer
 from ..io import theme
-from ..io.widgets import draw_box, put_centered, draw_hints
+from ..io.widgets import draw_box, put_centered
+from ..io.width import text_width
 
 # ASCII 标题
 TITLE = r"""
@@ -34,9 +35,8 @@ class MainMenuScene(Scene):
 
     def __init__(self) -> None:
         super().__init__()
-        self.items = ["开始游戏", "百科全书", "退出游戏"]
+        self.items = ["单人游戏", "多人游戏", "百科", "退出游戏"]
         self.focus = 0
-        self.selected: set[int] = set()
 
     def on_enter(self, params: Any = None) -> None:
         self.params = params
@@ -50,11 +50,7 @@ class MainMenuScene(Scene):
             self.focus = (self.focus + 1) % len(self.items)
             return NONE()
         if a == actions.SELECT:
-            # 空格：选中/反选当前项
-            if self.focus in self.selected:
-                self.selected.remove(self.focus)
-            else:
-                self.selected.add(self.focus)
+            # 空格无效（本菜单用回车选择）
             return NONE()
         if a == actions.CONFIRM:
             return self._activate(self.focus)
@@ -68,10 +64,13 @@ class MainMenuScene(Scene):
 
     def _activate(self, index: int) -> SceneResult:
         label = self.items[index]
-        if label == "开始游戏":
+        if label == "单人游戏":
+            from .game21 import Game21Scene
+            return PUSH(Game21Scene())
+        if label == "多人游戏":
             from .message import MessageScene
-            return PUSH(MessageScene("游戏主循环尚未实现\n\n这是框架原型：双缓冲渲染、场景栈、\n键绑定、百科模糊搜索均已就绪。\n真正的游戏内容由你接入。"))
-        if label == "百科全书":
+            return PUSH(MessageScene("多人游戏尚未实现\n\n敬请期待。"))
+        if label == "百科":
             from .wiki import WikiScene
             return PUSH(WikiScene())
         if label == "退出游戏":
@@ -94,23 +93,20 @@ class MainMenuScene(Scene):
         mx = (w - menu_w) // 2
         for i, label in enumerate(self.items):
             y = menu_y + i
-            checked = "x" if i in self.selected else " "
             marker = ">" if i == self.focus else " "
             if i == self.focus:
-                # 焦点项：反色背景
-                text = f" {marker} [{checked}] {label} "
-                pad = menu_w - len(text) * 0  # 中文双宽，用 put_text 居中
+                text = f" {marker}  {label} "
                 buf.fill_rect(mx, y, menu_w, 1, " ", theme.SELECTED_FG, theme.SELECTED_BG)
                 tx = mx + (menu_w - self._disp_width(text)) // 2
                 buf.put_text(tx, y, text, theme.SELECTED_FG, theme.SELECTED_BG)
             else:
-                text = f" {marker} [{checked}] {label}"
+                text = f" {marker}  {label}"
                 tx = mx + (menu_w - self._disp_width(text)) // 2
                 buf.put_text(tx, y, text, theme.FG, theme.BG)
 
         # 说明
         note_y = menu_y + len(self.items) + 2
-        put_centered(buf, note_y, "空格 选中/反选 · 回车 确认 · H 百科 · 按住 Tab 状态总览", w, theme.DIM, theme.BG)
+        put_centered(buf, note_y, "回车 选择 · H 百科 · 按住 Tab 状态总览", w, theme.DIM, theme.BG)
 
     @staticmethod
     def _disp_width(s: str) -> int:
@@ -118,4 +114,4 @@ class MainMenuScene(Scene):
         return text_width(s)
 
     def get_hints(self) -> list[str]:
-        return ["↑↓ 移动", "空格 选中/反选", "回车 确认", "H 百科", "Tab 状态总览", "Esc 不响应"]
+        return ["↑↓ 移动", "回车 选择", "H 百科", "Tab 状态总览"]

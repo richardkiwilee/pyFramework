@@ -57,6 +57,9 @@ class App:
             # 1. Tab overlay 轮询（模态）
             show_overlay = (top.allow_status_overlay and input_mod.poll_tab_held())
 
+            # 1b. 推进场景内部定时状态（AI 动画等），不返回结果
+            top.on_tick(time.time())
+
             # 2. 读一个按键（overlay 显示时不派发）
             had_input = False
             if not show_overlay:

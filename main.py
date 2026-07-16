@@ -28,6 +28,12 @@ def main() -> int:
         pass
     finally:
         app.shutdown()
+        # 退出时强制清屏一次，确保无渲染残留（Windows Terminal 会自动恢复，
+        # 传统 conhost / VSCode 终端可能残留最后一帧画面）。
+        try:
+            os.system("cls")
+        except Exception:
+            pass
     return 0
 
 

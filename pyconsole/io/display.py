@@ -75,11 +75,16 @@ class Display:
         self.hide_cursor()
 
     def cleanup(self) -> None:
-        """恢复终端状态：重置颜色、显示光标、切回主缓冲。"""
+        """恢复终端状态：重置颜色、显示光标、清屏、切回主缓冲。
+
+        先清屏再切回主缓冲：在不支持备用屏幕缓冲的终端（conhost 传统模式）上，
+        ``?1049l`` 会被忽略，渲染内容会残留在主缓冲，故显式清一次屏（等效 cls）。
+        """
         try:
             sys.stdout.write(theme.RESET)
             self.show_cursor()
-            sys.stdout.write("\x1b[?1049l")  # 切回主缓冲
+            sys.stdout.write("\x1b[2J\x1b[H")  # 清屏 + 光标归位（等效 cls）
+            sys.stdout.write("\x1b[?1049l")    # 切回主缓冲
             sys.stdout.flush()
         except Exception:
             pass

@@ -70,8 +70,12 @@ pyconsole/
 ├── scenes/
 │   ├── __init__.py
 │   ├── main_menu.py    # 主菜单场景
+│   ├── game21.py       # 21 点人机对战（状态机 + AI 启发式 + tick 延迟动画）
 │   ├── wiki.py         # 百科场景（输入框 + 列表 + 详情 + 模糊搜索）
-│   └── message.py      # MessageScene（演示提示）
+│   └── message.py     # MessageScene（演示提示）
+├── game/
+│   ├── __init__.py
+│   └── cards.py       # Card / 牌堆 / 21 点点数（纯逻辑，无 IO）
 ├── data/
 │   ├── __init__.py
 │   ├── wiki.json       # 约 30 条奇幻 RPG 百科样例数据
@@ -81,7 +85,9 @@ pyconsole/
     ├── test_width.py
     ├── test_search.py
     ├── test_buffer.py
-    └── test_keys.py
+    ├── test_keys.py
+    ├── test_cards.py
+    └── test_render_smoke.py
 main.py                 # 入口
 README.md
 DESIGN.md
@@ -172,6 +178,8 @@ class Scene:
 while running:
     # 1. Tab overlay 轮询（模态拦截）
     show_overlay = stack.top().allow_status_overlay and input.poll_tab_held()
+    # 1b. 推进场景内部定时状态（tick 钩子，驱动 AI 动画等）
+    stack.top().on_tick(time.time())
     # 2. 读一个键（若 overlay 显示则不读，或读后丢弃）
     action = input.read_action() if not show_overlay else None
     # 3. 派发动作 → 栈顶 handle_action → 处理 PUSH/POP/QUIT
@@ -180,6 +188,7 @@ while running:
     # 5. display.present()
     # 6. 无键时 sleep(0.015)
 ```
+- `on_tick(now)`：`Scene` 基类钩子，每帧调用一次（`now = time.time()`）。默认空实现；子类可用它驱动定时状态（如 21 点 AI 延迟动画），只改内部状态、不返回结果。
 
 ### 6.4 底部键提示栏
 - 框架在每帧渲染末尾，用 `stack.top().get_hints()` 画底部一行提示（统一位置/样式）。
@@ -189,18 +198,53 @@ while running:
 ## 7. 主菜单场景（`main_menu.py`）
 
 - `allow_status_overlay = True`。
-- 内容：ASCII 标题 "PyConsole Framework" + 副标题 "控制台游戏框架 · 双缓冲演示"。
-- 菜单项（3 项精简）：
-  1. `开始游戏` → CONFIRM 时 `PUSH(MessageScene, "游戏主循环尚未实现 · 框架原型")`
-  2. `百科全书` → CONFIRM 时 `PUSH(WikiScene)`
-  3. `退出游戏` → CONFIRM 时 `QUIT`
+- 内容：ASCII 标题 "PyConsole Framework" + 副标题 "控制台游戏框架 · 双缓冲渲染演示"。
+- 菜单项（4 项）：
+  1. `单人游戏` → CONFIRM 时 `PUSH(Game21Scene)`（21 点人机对战，见第 8 节）
+  2. `多人游戏` → CONFIRM 时 `PUSH(MessageScene, "多人游戏尚未实现 · 敬请期待")`
+  3. `百科` → CONFIRM 时 `PUSH(WikiScene)`
+  4. `退出游戏` → CONFIRM 时 `QUIT`
 - 交互：
   - UP/DOWN 切换焦点项。
-  - SELECT（空格）= 选中/反选当前项（多选高亮标记 `[x]`/`[ ]`；与"空格选中/反选 + 回车确认"需求一致）。
+  - SELECT（空格）= **无效**（本菜单用回车选择，空格不做任何事）。
   - CONFIRM（回车）= 对焦点项执行操作。
-  - OPEN_WIKI（H）= PUSH WikiScene（与菜单项"百科全书"等效）。
+  - OPEN_WIKI（H）= PUSH WikiScene（与菜单项"百科"等效）。
   - BACK（Esc）= 不响应（主菜单是栈底）。
-- 布局：标题居中、菜单居中、底部键提示栏。
+- 布局：标题居中、菜单居中（`> 焦点标记 + 文字`）、底部键提示栏。
+
+---
+
+## 8. 21 点人机对战（`game21.py` / `game/cards.py`）
+
+### 8.1 纯逻辑（`game/cards.py`，无 IO 依赖，可单测）
+- `Card(rank, suit)`：rank 1=A,2-10 面值,11=J,12=Q,13=K；suit ∈ ♠♥♦♣。
+- `new_deck()`：52 张（无大小王）。
+- `shuffle(deck, rng)`：原地洗牌，可注入 `random.Random` 便于测试。
+- `hand_score(cards) -> (score, busted)`：A 取 1/11 最优（先按 11 算，超 21 时逐张 A 减 10），JQK=10，busted=score>21。
+- `rank_label(rank)`、`suit_color(suit)`（红♥♦→WARN，黑♠♣→FG）。
+
+### 8.2 场景状态机（`game21.py`）
+- `Side(table, sleeve, passed, busted)`：一方的桌面牌 / 袖子 / 状态。
+- `phase`：`menu`（玩家回合主菜单）→ `holding`（刚抽到牌，待决定打出/藏袖子）→ `sleeve_select`（选袖子牌打出）→ `ai_turn`（AI 行动，忽略玩家输入）→ `settled`（结算，任意键 POP）。
+- 规则：袖子满 2 再藏弃最左；桌面满 5 自动 pass；爆牌（>21）当场结算；先后手随机；牌堆抽空重洗。
+- 结算：一方爆→对方胜；双爆比小；双方停→比点数（高胜、等平）。
+
+### 8.3 tick 钩子 + 时间队列（AI 延迟动画）
+- 事件驱动主循环无内置定时器；用 `on_tick(now)` 每帧驱动场景内 `_tasks: list[(due, fn)]`。
+- `schedule(delay, fn)` 追加任务；`on_tick` 取出到期任务执行，任务可再 `schedule` 下一步（AI 每 ~0.7s 一步）。
+- 任务只修改场景内部状态，不返回 SceneResult（结算面板的"任意键返回"仍由按键 POP）。
+- POP 后场景实例不再被 tick，残留任务自然失效。
+
+### 8.4 AI 启发式
+- 点数 ≥17 大概率（85%）停牌；≤11 必抽；12-16 按距 21 缺口与玩家可见点数概率抽牌，玩家已停且点数更高时被迫追。
+- 偶尔从袖子出牌（若有且打出不爆）。抽到牌后：不爆则多数打出（小概率藏入袖子）；会爆则优先藏入袖子，袖子满则被迫打出爆牌。
+
+### 8.5 渲染（100×30）
+- 上：AI 区（点数、桌面明牌、袖子暗牌 ▓）。
+- 中：状态/回合提示 + 握牌区（holding 时居中大张显示）。
+- 下：玩家区（桌面明牌、袖子明牌、点数）。
+- 操作面板（菜单/holding/sleeve_select/ai_turn 各自布局，焦点高亮）+ 最近 2 条日志。
+- 结算：居中 overlay 面板，揭晓 AI 袖子、显示双方点数与胜负，任意键返回。
 
 ---
 
