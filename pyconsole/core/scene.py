@@ -40,7 +40,7 @@ def QUIT() -> SceneResult:
 class Scene:
     """场景基类。子类重写钩子方法。"""
 
-    #: 是否允许按住 Tab 显示状态总览 overlay
+    #: 是否允许按住 Tab 显示 overlay。栈顶为 False 时 Tab 无效（不读取也不渲染）。
     allow_status_overlay: bool = False
 
     def __init__(self) -> None:
@@ -66,6 +66,15 @@ class Scene:
 
     def render(self, buf: FrameBuffer) -> None:
         pass
+
+    def render_overlay(self, buf: FrameBuffer, w: int, h: int) -> bool:
+        """按住 Tab 时在场景画面之上叠加的内容（仅当 allow_status_overlay=True）。
+
+        返回 True 表示场景已自行绘制 overlay（App 跳过通用"状态总览"面板）；
+        返回 False / None 则 App 回退到通用面板。子类（如 21 点）可重写以画
+        自己的 Tab 视图（牌堆总览 + 隐写卡背等）。
+        """
+        return False
 
     def get_hints(self) -> list[str]:
         return []

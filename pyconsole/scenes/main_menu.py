@@ -4,8 +4,8 @@
 - 回车 对焦点项执行（空格无效，沿用本菜单约定）
 - 单人游戏 → 21 点人机对战；多人游戏 → 未实现提示；百科 → 百科；退出游戏 → 退出
 - H 进入百科（与"百科"等效）
-- Tab 按住可显示状态总览 overlay
 - Esc 不响应（主菜单是栈底）
+- Tab 无效（状态总览仅在游戏内可用）
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ SUBTITLE = "控制台游戏框架 · 双缓冲渲染演示"
 
 
 class MainMenuScene(Scene):
-    allow_status_overlay = True
+    allow_status_overlay = False  # 主菜单不响应 Tab（状态总览仅在游戏内可用）
 
     def __init__(self) -> None:
         super().__init__()
@@ -106,7 +106,7 @@ class MainMenuScene(Scene):
 
         # 说明
         note_y = menu_y + len(self.items) + 2
-        put_centered(buf, note_y, "回车 选择 · H 百科 · 按住 Tab 状态总览", w, theme.DIM, theme.BG)
+        put_centered(buf, note_y, "回车 选择 · H 百科 · 单人游戏中按住 Tab 查看牌堆", w, theme.DIM, theme.BG)
 
     @staticmethod
     def _disp_width(s: str) -> int:
@@ -114,4 +114,4 @@ class MainMenuScene(Scene):
         return text_width(s)
 
     def get_hints(self) -> list[str]:
-        return ["↑↓ 移动", "回车 选择", "H 百科", "Tab 状态总览"]
+        return ["↑↓ 移动", "回车 选择", "H 百科"]

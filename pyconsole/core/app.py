@@ -76,13 +76,16 @@ class App:
             buf = self.display.begin_frame()
             top.render(buf)
             if show_overlay:
-                overlay_mod.render(
-                    buf, self.w, self.h,
-                    scene_name=top.name,
-                    stack_depth=len(self.stack),
-                    state=state,
-                    bindings_count=len(self.resolver.bindings),
-                )
+                # 场景自定义 overlay 优先；返回 False 则用通用"状态总览"面板
+                custom = top.render_overlay(buf, self.w, self.h)
+                if not custom:
+                    overlay_mod.render(
+                        buf, self.w, self.h,
+                        scene_name=top.name,
+                        stack_depth=len(self.stack),
+                        state=state,
+                        bindings_count=len(self.resolver.bindings),
+                    )
             # 底部键提示栏（overlay 显示时不画，避免干扰）
             if not show_overlay:
                 draw_hints(buf, self.h - 1, self.w, top.get_hints())

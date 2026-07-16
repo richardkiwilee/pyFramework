@@ -75,7 +75,8 @@ pyconsole/
 │   └── message.py     # MessageScene（演示提示）
 ├── game/
 │   ├── __init__.py
-│   └── cards.py       # Card / 牌堆 / 21 点点数（纯逻辑，无 IO）
+│   ├── cards.py       # Card / 牌堆 / 21 点点数（纯逻辑，无 IO）
+│   └── card_back.py   # 隐写卡背：统一纹理里编码花色/点数（可逆解码 + 缓冲渲染）
 ├── data/
 │   ├── __init__.py
 │   ├── wiki.json       # 约 30 条奇幻 RPG 百科样例数据
@@ -87,7 +88,8 @@ pyconsole/
     ├── test_buffer.py
     ├── test_keys.py
     ├── test_cards.py
-    └── test_render_smoke.py
+    ├── test_card_back.py    # 隐写卡背编码/解码可逆 + 缓冲渲染
+    └── test_render_smoke.py # 各场景渲染冒烟 + 21 点新规则行为
 main.py                 # 入口
 README.md
 DESIGN.md
@@ -197,7 +199,7 @@ while running:
 
 ## 7. 主菜单场景（`main_menu.py`）
 
-- `allow_status_overlay = True`。
+- `allow_status_overlay = False`（主菜单不响应 Tab；状态总览仅在游戏内可用）。
 - 内容：ASCII 标题 "PyConsole Framework" + 副标题 "控制台游戏框架 · 双缓冲渲染演示"。
 - 菜单项（4 项）：
   1. `单人游戏` → CONFIRM 时 `PUSH(Game21Scene)`（21 点人机对战，见第 8 节）
@@ -224,9 +226,13 @@ while running:
 - `rank_label(rank)`、`suit_color(suit)`（红♥♦→WARN，黑♠♣→FG）。
 
 ### 8.2 场景状态机（`game21.py`）
-- `Side(table, sleeve, passed, busted)`：一方的桌面牌 / 袖子 / 状态。
-- `phase`：`menu`（玩家回合主菜单）→ `holding`（刚抽到牌，待决定打出/藏袖子）→ `sleeve_select`（选袖子牌打出）→ `ai_turn`（AI 行动，忽略玩家输入）→ `settled`（结算，任意键 POP）。
-- 规则：袖子满 2 再藏弃最左；桌面满 5 自动 pass；爆牌（>21）当场结算；先后手随机；牌堆抽空重洗。
+- `Side(slots, sleeve, passed, busted)`：一方的 **5 个固定卡槽**（`slots: list[Card|None]`，`None`=空，只读 `table` 视图派生自非空槽）/ 袖子 / 状态。
+- `phase`：`menu`（玩家回合主菜单）→ `holding`（刚抽到牌，待决定打出/藏袖子）→ `discard`（袖子已满藏牌时，手动选一张丢弃）→ `sleeve_select`（选袖子牌打出）→ `slot_select`（选目标卡槽放牌，←→ 切换、回车确认；占用槽放置失败停留重选）→ `ai_turn`（AI 行动，忽略玩家输入）→ `settled`（结算，任意键 POP）。
+- 规则要点：
+  - **5 固定卡槽**：打出牌必须手动选放到哪个卡槽；选中已被占用的卡槽 → 放置失败，停留重选。5 槽放满即无处可放（须 pass）。
+  - **抽牌锁定**：本回合一旦抽牌（`_drawn_this_turn=True`），唯一结束方式是打出一张牌到桌面空卡槽；期间可"抽→藏→抽→…"，但**不能 pass、不能从袖子打出**来结束回合（这两项在抽过牌时被禁用）。藏牌不结束回合。
+  - **袖子满手动弃**：袖子已满 2 张再藏入时，不再自动丢弃最旧，而是进入 `discard` 阶段手动选一张丢弃，再藏入新牌。
+  - 爆牌（>21）上桌即判、当场结算。A=1/11 取最优，JQK=10。先后手随机；牌堆抽空重洗。
 - 结算：一方爆→对方胜；双爆比小；双方停→比点数（高胜、等平）。
 
 ### 8.3 tick 钩子 + 时间队列（AI 延迟动画）
@@ -236,21 +242,23 @@ while running:
 - POP 后场景实例不再被 tick，残留任务自然失效。
 
 ### 8.4 AI 启发式
+- 遵循与玩家完全相同的规则约束：抽牌后必须打出一张牌（不能 pass / 不能从袖子打出）；袖子满再藏时丢弃最小点数牌；桌满无处放则强制 pass。
 - 点数 ≥17 大概率（85%）停牌；≤11 必抽；12-16 按距 21 缺口与玩家可见点数概率抽牌，玩家已停且点数更高时被迫追。
-- 偶尔从袖子出牌（若有且打出不爆）。抽到牌后：不爆则多数打出（小概率藏入袖子）；会爆则优先藏入袖子，袖子满则被迫打出爆牌。
+- 偶尔从袖子出牌（若有且打出不爆，仅本回合未抽牌时）。抽到牌后：不爆则多数打出（小概率藏入袖子）；会爆则优先藏入袖子，袖子满则丢弃一张再藏；藏入后仍须打出一张牌（继续抽，直到抽到不爆的牌打出）。
 
 ### 8.5 渲染（100×30）
-- 上：AI 区（点数、桌面明牌、袖子暗牌 ▓）。
-- 中：状态/回合提示 + 握牌区（holding 时居中大张显示）。
-- 下：玩家区（桌面明牌、袖子明牌、点数）。
-- 操作面板（菜单/holding/sleeve_select/ai_turn 各自布局，焦点高亮）+ 最近 2 条日志。
+- 上：AI 区（点数、5 个卡槽明牌、袖子暗牌 ▓）。
+- 中：状态/回合提示 + 握牌区（holding/slot_select/discard/sleeve_select 时居中显示当前持有牌）。
+- 下：玩家区（5 个卡槽明牌、袖子明牌、点数）。
+- 卡槽焦点颜色（`slot_select` 且 owner=player）：**金色边框=空槽可放置**，**红色边框=已占用（放置会失败）**；非选择阶段不高亮。←→ 切换焦点，1-5 直选。
+- 操作面板（menu/holding/discard/sleeve_select/slot_select/ai_turn 各自布局，焦点高亮）+ 最近 2 条日志。
 - 结算：居中 overlay 面板，揭晓 AI 袖子、显示双方点数与胜负，任意键返回。
 
 ---
 
-## 8. 百科场景（`wiki.py`）
+## 9. 百科场景（`wiki.py`）
 
-### 8.1 布局（上输入 + 左右分栏）
+### 9.1 布局（上输入 + 左右分栏）
 ```
 ┌─ 百科全书 ──────────────────────────────────────────────────────┐  (标题)
 │ 搜索: [输入框____________________________________]               │  (输入框)
@@ -263,7 +271,7 @@ while running:
 └────────────────────────────────────────────────────────────────┘
 ```
 
-### 8.2 交互规则
+### 9.2 交互规则
 - 输入框：末尾追加式。可打印字符追加（限制长度 30），Backspace 删末尾，空格**不响应**（搜索无需空格）。
 - 搜索：每次输入即时重新过滤，子串包含（大小写不敏感），匹配 `name+summary+category`，结果按 name 升序。
 - 空输入：列表区空，提示"请输入关键字"；详情区提示"请输入关键字，然后选择条目查看详情"。
@@ -274,7 +282,7 @@ while running:
 - 高亮：列表条目命中子串高亮；详情区命中子串高亮。
 - Esc：POP 回主菜单。
 
-### 8.3 数据（`data/wiki.json` + `wiki_data.py`）
+### 9.3 数据（`data/wiki.json` + `wiki_data.py`）
 - `WikiEntry`：`id, name, category, summary, detail, attrs(dict)`。
 - 约 30 条奇幻 RPG 条目，分类：武器 / 防具 / 消耗品 / 怪物 / 技能。
 - `load_entries(path)`：读 JSON，缺失文件返回空列表（不崩）。
@@ -282,20 +290,27 @@ while running:
 
 ---
 
-## 9. Tab overlay（`overlay.py`）
+## 10. Tab overlay（`overlay.py` + `Scene.render_overlay`）
 
 - 全局组件，不入场景栈。
 - 触发条件：栈顶 `allow_status_overlay=True` 且 Tab 物理按下（`GetAsyncKeyState`）。
+  栈顶为 `False`（如主菜单、百科）时 Tab 完全无效——不读取也不渲染。
 - 模态：显示期间拦截其他输入。
-- 渲染：在当前场景渲染后，于缓冲上叠加一个居中面板（box-drawing 边框 + 半透明背景色）。
-- 内容（状态 + 调试二合一）：
+- 渲染：在当前场景渲染后，先调用 `top.render_overlay(buf, w, h)`：
+  - 返回 `True` → 场景已自绘 overlay（如 21 点的牌堆总览 + 隐写卡背），App 跳过通用面板。
+  - 返回 `False`（默认实现）→ App 回退到 `overlay.render` 的通用"状态总览"面板。
+- 通用面板内容（状态 + 调试二合一）：
   - 上半：示例游戏状态（角色名/等级、HP/MP 条、金币、位置、背包数、任务进度）—— 来自 `game_state.py`。
   - 下半：框架调试信息（当前场景名、栈深度、逻辑分辨率、活跃键绑定计数）。
+- 21 点场景（`Game21Scene`）自定义 overlay：
+  - 左上角：抽牌堆顶牌的**隐写卡背**（`game/card_back.py`：统一纹理里用 `┆`/`┈` 字符变体编码花色/点数，可逆解码）。
+  - 右上角：编码说明 + 位置图例。
+  - 下方：完整牌堆 4×13 网格，按牌当前归属（抽牌堆 / 你-桌面 / 你-袖子 / AI-桌面 / AI-袖子）着色。
 - 松开 Tab 立即消失。
 
 ---
 
-## 10. 终端生命周期
+## 11. 终端生命周期
 
 - 启动：`enable_vt()` → `hide_cursor()`。
 - 运行：主循环。
@@ -303,22 +318,26 @@ while running:
 
 ---
 
-## 11. 测试（`tests/`，unittest）
+## 12. 测试（`tests/`，unittest）
 
-仅测纯逻辑：
+仅测纯逻辑 / 渲染冒烟（不输出到终端）：
 - `test_width.py`：CJK 双宽、ASCII 单宽、控制字符、组合截断。
 - `test_search.py`：子串命中、大小写不敏感、多字段匹配、排序、空查询、无结果、命中位置。
 - `test_buffer.py`：`put_text` 双宽写入、越界截断、`set_char`、`fill`。
+- `test_card_back.py`：隐写卡背 52 张编码→解码可逆、缓冲渲染可解码、花色映射覆盖。
 - `test_keys.py`：默认绑定、json 覆盖、文件缺失用默认、方向键序列解析。
+- `test_render_smoke.py`：主菜单/百科/Message/21 点各阶段渲染不抛；Tab overlay 渲染与隐写解码；以及 21 点新规则行为：5 卡槽默认空、`table` 只读视图、抽牌锁定（pass/出袖子被禁、藏牌不结束回合、打出才结束）、占用槽放置失败重选、←→ 焦点循环、袖子满手动弃、袖子牌打出进卡槽、AI 能推进到结算。
 
 IO 渲染 / 输入轮询不测。
 
 ---
 
-## 12. 关键不变量与风险
+## 13. 关键不变量与风险
 
 - **双宽对齐**：所有文本必须经 `put_text`，禁止直接 `buf[y][x] = ...` 写字符串。
 - **首帧整屏**：`present` 在 front 为 None 时整屏重画。
 - **Tab 模态**：overlay 显示时不派发其他 action。
+- **`table` 只读**：`Side.table` 是 `slots` 非空项的只读派生视图，外部不得赋值（测试亦改写 `slots[i]`）。
+- **抽牌锁定不可绕过**：`_drawn_this_turn` 一旦为 True，pass 与从袖子打出均被 `_can_pass`/`_can_play_sleeve` 拒绝；只有 `_try_place` 成功才会 `_after_play` 清零并交回合。
 - **Esc 分层**：每个场景自己定义 BACK 语义（主菜单忽略、百科 POP）。
 - **风险**：msvcrt / GetAsyncKeyState 仅 Windows；老 conhost 不支持 VT → fallback 路径需保证不崩。

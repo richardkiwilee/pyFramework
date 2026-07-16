@@ -29,7 +29,7 @@ C:\.env311\Scripts\python.exe main.py
 | Backspace | 删一个字符 | 百科输入框 |
 | PgUp / PgDn | 滚动详情 | 百科详情区 |
 | Esc | 退出当前场景 | 百科、21 点（→主菜单） |
-| **按住 Tab** | 显示状态总览 overlay | 主菜单（松开消失） |
+| **按住 Tab** | 显示牌堆总览 overlay | 21 点（主菜单无效，松开消失） |
 
 ---
 
@@ -40,8 +40,9 @@ C:\.env311\Scripts\python.exe main.py
    - "多人游戏" → 弹出"尚未实现"提示，任意键返回。
    - "百科"（或按 H）→ 进入百科。
    - "退出游戏" → 退出程序。
-   - **按住 Tab** → 居中显示"角色状态 + 框架调试"二合一面板，松开消失。
+   - Tab 在主菜单无效（状态总览仅在游戏内可用）。
 2. **21 点人机对战**：与 AI 对战的 21 点（详见下方"21 点玩法"）。
+   - **按住 Tab** → 显示完整牌堆总览：左上角绘制抽牌堆顶牌的**隐写卡背**（花色/点数藏在统一纹理里，正面看似普通背面，可逆解码），下方 4×13 网格列出全套 52 张牌当前归属（抽牌堆 / 你-桌面 / 你-袖子 / AI-桌面 / AI-袖子，按位置着色）。松开消失。
 3. **百科**：上输入框 + 左右分栏。
    - 输入即时模糊搜索（子串包含、大小写不敏感，匹配 name/summary/category）。
    - 左列表显示 `名称 [分类]`，命中子串高亮；↑↓ 切换，详情区同步刷新。
@@ -61,8 +62,9 @@ C:\.env311\Scripts\python.exe main.py
   1. **抽牌**：从牌堆抽一张，然后选择 **打出上桌** 或 **藏入袖子**。
   2. **从袖子打出**：把袖子里的一张牌打到桌面（袖子有牌时才出现该选项）。
   3. **Pass 停牌**：本方不再操作。
-- **袖子**：最多藏 2 张。袖子已满时再藏入，会**丢弃最左边（最旧）**那张。
-- **桌面**：每方最多打出 5 张，满 5 张自动停牌。
+- **抽牌锁定**：一旦本回合选择了抽牌，**必须打出一张牌到桌上才算回合结束**。可连续"抽牌→藏牌→抽牌→…"，但只要抽过牌，就不能再用 pass / 从袖子打出来结束本回合——唯一结束方式是打出一张牌到桌面的空卡槽。
+- **5 个卡槽**：每位玩家面前固定绘制 5 个卡槽。打出牌时必须**手动选择放到哪个卡槽**：选空卡槽 → 牌放上；选已被占用的卡槽 → **放置失败，停留重选**。5 槽放满即无处可放（须 pass）。
+- **袖子**：最多藏 2 张。袖子已满再藏入时，**不再自动丢弃最旧**，而是**手动选择丢弃哪一张**（选好后丢弃旧牌、藏入新牌）。
 - **爆牌**：打出后点数 > 21，立即爆牌、当场结算。
 - **回合**：每次一个动作后交给对方；若对方已停牌则本方继续；双方都停或任一方爆牌即结算。
 - **结算**：一方爆 → 对方胜；双方都爆 → 点数小者胜；双方停牌 → 比点数，高者胜、相等为平局。
@@ -71,6 +73,7 @@ C:\.env311\Scripts\python.exe main.py
 ### 视觉与节奏
 
 - AI 桌面牌**明牌**、袖子**暗牌**（▓）；玩家桌面与袖子均为**明牌**。
+- 每位玩家面前固定绘制 **5 个卡槽**；选卡槽放牌时用 **←→ 切换**焦点：**金色边框 = 空槽可放置**，**红色边框 = 已占用（放置会失败）**。也可用数字键 1-5 直选。
 - AI 的每个动作（抽/打/藏/停）有约 0.7 秒的延迟动画，让对局可读。
 - 结算时居中弹出结算面板，揭晓 AI 袖子，显示双方点数与胜负，**按任意键返回主菜单**。
 - 任意时刻按 **Esc** 可放弃当前对局、返回主菜单。
@@ -82,7 +85,9 @@ C:\.env311\Scripts\python.exe main.py
 | ↑ / ↓ | 切换菜单/选项焦点 |
 | 回车 | 确认当前选项 |
 | 1 / 2 / 3 | 快捷选择对应菜单项；holding 阶段 `1`=打出、`2`=藏入袖子 |
-| Esc | 放弃对局 / sleeve_select 取消回菜单 / 结算后返回主菜单 |
+| ← / → | 选卡槽/选丢弃/选袖子牌时切换焦点 |
+| 1 - 5 | 选卡槽时直选对应卡槽 |
+| Esc | 放弃对局 / sleeve_select 取消回菜单 / slot_select·discard 退回上一步 / 结算后返回主菜单 |
 
 ---
 
@@ -100,17 +105,18 @@ pyconsole/
 ├── core/          动作、键绑定、场景栈、主循环、overlay
 │   ├── actions.py    Action 抽象
 │   ├── keys.py       默认绑定 + keybindings.json 覆盖 + KeyResolver
-│   ├── scene.py      Scene 基类 + SceneStack
+│   ├── scene.py      Scene 基类 + SceneStack（含 render_overlay 钩子）
 │   ├── game_state.py 示例游戏状态
-│   ├── overlay.py    Tab 状态总览面板
+│   ├── overlay.py    Tab 状态总览面板（场景未自定义 overlay 时回退用）
 │   └── app.py        主循环、渲染调度
 ├── scenes/        具体场景
 │   ├── main_menu.py  主菜单
-│   ├── game21.py     21 点人机对战（状态机 + AI 启发式 + tick 延迟动画）
+│   ├── game21.py     21 点人机对战（状态机 + AI 启发式 + tick 延迟动画 + Tab 牌堆总览）
 │   ├── wiki.py       百科（输入+搜索+列表+详情）
 │   └── message.py    提示场景
 ├── game/          游戏纯逻辑（无 IO 依赖，可单测）
-│   └── cards.py      Card / 牌堆 / 21 点点数
+│   ├── cards.py      Card / 牌堆 / 21 点点数
+│   └── card_back.py  隐写卡背：统一纹理里编码花色/点数（可逆解码 + 缓冲渲染）
 ├── data/          数据
 │   ├── wiki.json     30 条奇幻 RPG 百科样例
 │   └── wiki_data.py  加载 + 模糊搜索
@@ -146,7 +152,7 @@ from pyconsole.core import actions
 from pyconsole.io.buffer import FrameBuffer
 
 class MyScene(Scene):
-    allow_status_overlay = False  # 想让 Tab 能在此显示就设 True
+    allow_status_overlay = False  # 想让按住 Tab 能在此显示 overlay 就设 True
 
     def handle_action(self, event) -> SceneResult:
         if event.action == actions.BACK:   # Esc
@@ -155,6 +161,11 @@ class MyScene(Scene):
 
     def render(self, buf: FrameBuffer) -> None:
         buf.put_text(2, 2, "我的场景", 213)  # 颜色码见 theme.py
+
+    def render_overlay(self, buf: FrameBuffer, w: int, h: int) -> bool:
+        # 可选：按住 Tab 时自定义 overlay。返回 True 表示已自绘（App 跳过
+        # 通用"状态总览"面板）；返回 False / 不实现则回退通用面板。
+        return False
 
     def get_hints(self) -> list[str]:
         return ["Esc 返回"]
@@ -200,7 +211,7 @@ class MyScene(Scene):
 C:\.env311\Scripts\python.exe -m unittest discover -s pyconsole/tests -v
 ```
 
-覆盖：CJK 双宽、缓冲写入/截断、模糊搜索/命中区间、键绑定加载与解析、21 点牌堆与点数（A=1/11 取最优、多 A、JQK=10、爆牌）、21 点游戏场景各阶段渲染（不输出到终端，只验证渲染不抛异常、AI 能推进到结算）。共 82 个用例。
+覆盖：CJK 双宽、缓冲写入/截断、模糊搜索/命中区间、键绑定加载与解析、21 点牌堆与点数（A=1/11 取最优、多 A、JQK=10、爆牌）、隐写卡背 52 张编码→解码可逆、21 点游戏场景各阶段渲染（不输出到终端，只验证渲染不抛异常、AI 能推进到结算），以及 21 点新规则行为（5 固定卡槽、`table` 只读视图、抽牌锁定、占用槽放置失败重选、←→ 焦点循环、袖子满手动弃、袖子牌进卡槽）。共 105 个用例。
 
 ---
 

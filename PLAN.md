@@ -1,5 +1,8 @@
 # PyConsole Framework — 实施计划 (PLAN)
 
+> **状态**：阶段 0–4 已完成并测试通过（105 个 unittest 全绿）。阶段 5 为实跑验证。
+> 本文件既是原始自底向上施工顺序，也是后续迭代的索引——**阶段 6+ 记录已完成的功能演进**（按时间追加），方便回溯每项改动落在了哪里。
+
 执行顺序自底向上：io → core → data → scenes → main → tests → docs → 验证。
 每步可独立运行/验证，避免大爆炸式集成。
 
@@ -111,6 +114,17 @@
 **3.3 `scenes/message.py`**
 - `MessageScene(text)`：居中显示文本，按任意键 POP。
 
+**3.4 `scenes/game21.py`**（21 点人机对战，见 DESIGN §8）
+- 状态机阶段：menu / holding / discard / sleeve_select / slot_select / ai_turn / settled。
+- `Side`：5 固定卡槽 `slots: list[Card|None]`（`table` 只读派生视图）、袖子（≤2）、passed、busted。
+- 规则：抽牌锁定（`_drawn_this_turn` 阻断 pass/出袖子，唯打出结束）、占用槽放置失败重选、袖子满手动弃。
+- tick 钩子 + 时间队列驱动 AI 延迟动画；AI 遵循与玩家相同约束。
+- `render_overlay` 自绘 Tab 牌堆总览（左上隐写卡背 + 4×13 归属网格）。
+
+**3.5 `game/card_back.py`**
+- 隐写卡背：`embed_stealth`/`decode_card_back` 可逆、`draw_card_back_buf` 渲染进 FrameBuffer。
+- `SUIT_TO_CODE` 显式映射（`card_back.SUITS` 与 `cards.SUITS` 花色顺序不同，禁用下标互转）。
+
 ---
 
 ## 阶段 4：入口与收尾
@@ -127,9 +141,34 @@
 
 ## 阶段 5：验证
 
-- `python -m unittest discover -s pyconsole/tests -v` 全绿。
+- `python -m unittest discover -s pyconsole/tests -v` 全绿（当前 105 个用例）。
 - `python main.py` 实跑：主菜单、H 进百科、输入实时搜索、↑↓ 切详情、PgUp/PgDn 滚详情、Esc 退、按住 Tab 看状态总览、Esc/正常退出无残留。
+- 21 点实跑：抽牌→holding→打出选卡槽（金色/红色焦点）→藏入袖子→袖子满手动弃→AI 延迟动画→结算面板。
 - （实跑需真实终端交互，main 跑起来会阻塞，验证以 unittest + 静态走查为主，必要时后台启动数秒后 kill 观察无崩溃。）
+
+---
+
+## 阶段 6：功能演进记录（按时间追加）
+
+> 初始 5 阶段之外的功能改动追加于此，每条标注落点文件与测试，便于回溯。
+
+**6.1 Tab 行为分区化 + 牌堆总览 + 隐写卡背**
+- `main_menu.py`：`allow_status_overlay=False`（主菜单 Tab 完全无效）；移除 Tab 相关提示文本。
+- `scene.py`：新增 `render_overlay(buf, w, h) -> bool` 钩子；`app.py` 渲染时先调栈顶 `render_overlay`，返回 True 跳过通用面板。
+- `game/card_back.py`（新增）：从 `stealth_marked_card_back.py` 移植隐写逻辑，`SUIT_TO_CODE` 显式映射花色。
+- `game21.py`：`render_overlay` 自绘——左上角抽牌堆顶隐写卡背、右上编码说明+图例、下方 4×13 网格按归属着色。
+- `stealth_marked_card_back.py`：瘦身为从包内导入，`__main__` 加 UTF-8 stdout 重配。
+- 测试：`test_card_back.py`（新增 52 张往返）、`test_render_smoke.py` 新增 overlay 渲染/隐写解码/位置追踪/空牌堆/Tab 开关。
+
+**6.2 21 点规则改造：5 卡槽 / 手动选槽 / 袖子满手动弃 / 抽牌锁定**
+- `game21.py`：
+  - `Side.slots` 改为 5 个固定卡槽，`table` 变只读派生视图；新增 `first_free_slot()`。
+  - 新阶段 `slot_select`（←→ 切焦点、1-5 直选、回车确认；占用槽放置失败停留重选）、`discard`（袖子满手动选弃）。
+  - `_drawn_this_turn` 锁定：抽过牌后 pass/出袖子被禁，唯打出结束；藏牌不结束回合。
+  - 焦点颜色：金色=空槽可放、红色=占用（放置会失败）；非选择阶段不高亮。
+  - AI 重写遵循相同约束（抽后必打、会爆优先藏、袖子满弃最小点数、桌满强制 pass）。
+- `test_render_smoke.py`：旧 `table=` 赋值改 `slots[i]=`；新增 8 个用例（5 槽默认空、table 只读、抽牌锁定、抽→藏→抽→打、占用槽失败重选、←→ 循环、袖子满手动弃、袖子牌进卡槽）。
+- 文档：`DESIGN.md` §7/§8/§10/§12/§13 与 `README.md` 规则/视觉/键位同步更新。
 
 ---
 
@@ -141,3 +180,6 @@
 | Tab 按住检测不准 | GetAsyncKeyState 最高位；首帧轮询节奏 0.015s |
 | VT 启用失败 | fallback 路径不崩 |
 | 百科输入闪烁 | 单元格 diff + 一次 write |
+| 隐写花色映射错位 | `card_back.SUITS` 与 `cards.SUITS` 顺序不同，强制 `SUIT_TO_CODE` dict；单测覆盖 52 张 |
+| 抽牌锁定被绕过 | `_can_pass`/`_can_play_sleeve` 守卫 + `_after_play` 唯一清零点；行为单测覆盖 |
+| AI 死循环（抽后无处放/一直会爆） | 桌满强制 pass；抽到不爆即打出；`test_game21_advance_ai_to_settled` 守底 |
