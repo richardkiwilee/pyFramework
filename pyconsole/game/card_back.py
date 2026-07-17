@@ -176,8 +176,12 @@ def draw_card_back_buf(buf: FrameBuffer, x: int, y: int, card: Card,
                        width: int = 19, height: int = 11,
                        border_fg: int = theme.BORDER, tex_fg: int = theme.DIM,
                        bg: int = theme.BG) -> None:
-    """画一张带隐写编码的卡背进缓冲（牌面信息藏在纹理里，正面看是统一背面）。"""
-    rank = rank_label(card.rank)          # "A".."K"
+    """画一张带隐写编码的卡背进缓冲（牌面信息藏在纹理里，正面看是统一背面）。
+
+    用 card.tag 作为点数标签（阶段 7 起 tag 取代 rank_label(rank)）。
+    怪套牌 tag 可能非标准（如 "8|0"），此时隐写点数编码取 tag 的可打印形式。
+    """
+    rank = card.tag if card.tag else (rank_label(card.rank) if card.rank else "?")
     code = SUIT_TO_CODE[card.suit]        # "S"/"H"/"C"/"D"
     g = make_base_back(width, height)
     embed_stealth(g, rank, code)

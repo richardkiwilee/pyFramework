@@ -6,7 +6,7 @@ from pyconsole.game.card_back import (
     RANKS, SUITS, draw_card_back, decode_card_back, draw_card_back_buf,
     SUIT_TO_CODE,
 )
-from pyconsole.game.cards import Card, SUITS as CARD_SUITS, rank_label
+from pyconsole.game.cards import Card, SUITS as CARD_SUITS, rank_label, make_standard_card
 from pyconsole.io.buffer import FrameBuffer
 
 
@@ -49,7 +49,7 @@ class TestCardIntegration(unittest.TestCase):
 class TestBufferRender(unittest.TestCase):
     def test_draw_card_back_buf_renders_without_error(self):
         buf = FrameBuffer(80, 30)
-        draw_card_back_buf(buf, 5, 5, Card(1, "♠"))
+        draw_card_back_buf(buf, 5, 5, make_standard_card(1, "♠"))
         # 卡背区域不应全空白
         drew = False
         for y in range(5, 5 + 11):
@@ -64,7 +64,7 @@ class TestBufferRender(unittest.TestCase):
     def test_draw_card_back_buf_encodes_top_card(self):
         # 抽牌堆顶是 A♠ 时，overlay 左上角卡背应可被解码回 A♠
         buf = FrameBuffer(80, 30)
-        draw_card_back_buf(buf, 0, 0, Card(1, "♠"), width=19, height=11)
+        draw_card_back_buf(buf, 0, 0, make_standard_card(1, "♠"), width=19, height=11)
         # 从缓冲读回 ASCII
         lines = []
         for y in range(11):
@@ -77,7 +77,7 @@ class TestBufferRender(unittest.TestCase):
         for r in range(1, 14):
             for s in CARD_SUITS:
                 buf = FrameBuffer(25, 15)
-                draw_card_back_buf(buf, 2, 2, Card(r, s), width=19, height=11)
+                draw_card_back_buf(buf, 2, 2, make_standard_card(r, s), width=19, height=11)
                 lines = []
                 for y in range(2, 2 + 11):
                     lines.append("".join(buf.cells[y][x].char or " " for x in range(2, 2 + 19)))

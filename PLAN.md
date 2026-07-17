@@ -1,6 +1,6 @@
 # PyConsole Framework — 实施计划 (PLAN)
 
-> **状态**：阶段 0–4 已完成并测试通过（105 个 unittest 全绿）。阶段 5 为实跑验证。
+> **状态**：阶段 0–7 已完成并测试通过（149 个 unittest 全绿）。阶段 5 + 7.7 实跑待用户在交互终端验证。
 > 本文件既是原始自底向上施工顺序，也是后续迭代的索引——**阶段 6+ 记录已完成的功能演进**（按时间追加），方便回溯每项改动落在了哪里。
 
 执行顺序自底向上：io → core → data → scenes → main → tests → docs → 验证。
@@ -170,6 +170,68 @@
 - `test_render_smoke.py`：旧 `table=` 赋值改 `slots[i]=`；新增 8 个用例（5 槽默认空、table 只读、抽牌锁定、抽→藏→抽→打、占用槽失败重选、←→ 循环、袖子满手动弃、袖子牌进卡槽）。
 - 文档：`DESIGN.md` §7/§8/§10/§12/§13 与 `README.md` 规则/视觉/键位同步更新。
 
+> **阶段 7 取代 6.2 的部分规则**：抽牌锁定语义、爆牌当场结算、pass 永久停已被 §7 重写。
+> 6.2 的「占用即失败」被 §7 栈模型「栈顶非空壳才不可放」取代；`first_free_slot` 改为 `first_playable_slot`（含空壳判定）。
+
+---
+
+## 阶段 7：经济 + 效果 + 多轮系统（grilling 决议落地）✅ 已完成
+
+> 文档先行（DESIGN.md §8/§14/§15/§16/§17 + 本节 + README）原为施工契约；现代码已落地并复核，149 个单测全绿。
+> 代码自底向上分 7 步，每步可独立单测。下述各步已全部完成，并标注与施工契约的差异点。
+
+### 7.1 数据契约层（`game/cards.py` + `game/effects.py` + `game/deck_defs/`）✅
+- `Card`：加 `tag`、`points: tuple[int,...]`（多值）、`on_play/on_activate/on_end: Effect|None`；`rank` 改可选。保持 frozen dataclass。`make_standard_card(rank, suit)` 工厂替代旧位置构造。
+- `Suit(symbol, name, cards, archetype)`、`DeckDef(suits).sample_for(n_players, rng)`：抽 N 套合并成单一共享牌组。
+- `hand_score` 泛化：枚举每张牌 `points` 候选笛卡尔积，≤21 取最大，否则取最小并标 busted。
+- `Effect(kind, level, params)` / `SlotEffect(kind, cost, params)` + `EFFECT_REGISTRY` 注册表执行器（签名含 scene/actor_idx/slot_idx/card/effect）。
+- `game/deck_defs/`：`base.py`、`exploit.py`（2/3/4/5 on_play=剥削1）、`broken.py`（6/7/8/9 on_end=损坏）。每文件导出一个 `Suit`。`__init__.py` 汇总 `DECK_DEF`。
+- `effects.py` 另增 `slot_is_open`（与具体牌无关的「还能否放牌」，双重检查自动 pass 与 AI 选槽用）与 `_reset_registry_for_tests` 测试钩子。
+- 测试：`test_cards.py`（31）、`test_effects.py`（17）全绿。
+
+### 7.2 经济与多轮（`game21.py`）✅
+- `self.players: list[Side]`（`[human, ai]`，`player`/`ai` 为只读属性别名）、`self.pool: int`、`self.round_num: int`、`self.current: int`（当前玩家索引）、`self.deck: list[Card]`、`self.discard: list[Card]`（弃牌堆）。
+- `Side` 加 `gold: int`（软上限 20，可超）、`passed: bool`（软 pass）、`pass_score: int|None`（取消比对基准）。
+- 经济方法：`_pay(who, amt)->int`（不足全交）、`_settle_pool(winners)`（平分向下取整余数丢弃）、`_clamp_gold()`（轮末 >20 丢弃）。底注在 `_begin_round` 内直接 `_pay`（`ante = round_num * 2`），未单独建 `_ante()`。
+- 抽牌堆抽空 → 洗弃牌堆为新抽牌堆；袖子牌不进弃牌堆（`_draw_from_deck` 改写）。**R2 兜底已落地**：抽牌堆与弃牌堆双空时重建共享牌组保证不卡死。
+- 轮末事件顺序 `_round_end`（§14.3，不可变）：21 结算 → 终局效果（按卡槽号横向触发，损坏移除）→ 分池 → 轮末整理（桌面→弃牌堆，清槽/重置 passed）→ 丢弃超额 → 0 检查（→ 游戏结束 / 进下一轮交底注）。
+- 先手每轮随机（`_rng.random() < 0.5`）。
+
+### 7.3 回合模型重写（`game21.py`）✅
+- `Side.slots` 升级为 `list[Slot]`；`Slot.cards: list[Card]` + `slot_effect: SlotEffect|None`。`Side.table` 改为扁平所有牌。`first_playable_slot`（空槽/栈顶空壳/空壳效果槽，用 `slot_is_open`）、`is_table_full`（用 `slot_is_occupied`）。
+- 软 pass：出牌/pass 二选一、抽牌与 pass 互斥（抽了必打）、藏牌不结束 turn、出牌自动结束 turn。
+- pass 取消：`_after_effect_cancel_pass` 在每次效果结算后扫描所有 passed 玩家，`score()[0] != pass_score` → 自动 `passed=False`；不插队，等当前行动方结束。
+- 结算触发 = 所有人 pass，仅在 `_end_turn` 入口检查一次。
+- 双重检查自动 pass：抽牌前 + 回合开始时，无可用槽且非 pass → 自动 pass。
+- 单人开局第4、5槽随机分配卡槽效果。**实现现状**：`_random_slot_effect()` v1 返回 None（无效果表），等效果表来逐条注册。
+
+### 7.4 效果执行（`game21.py` + `game/effects.py`）✅
+- 放牌时序 `_try_place`（§16.4）：选槽→校验可放→付卡槽费用→消耗来源牌→入栈→卡槽效果→打出效果（+软 pass 取消扫描）→重算点数（不立即结算，仅记日志）→激活询问（强制牌直接激活 / 爆牌跳过 / 玩家进 activate_prompt Y/N / AI 走 _ai_resolve_activate）→结束 turn。
+- 已知三效果执行器（`_register_known_effects` 注册，幂等）：剥削（on_play）、损坏（on_end，记日志；移除由 `_trigger_on_end` 收集）、空壳（无操作）。
+- `activate_prompt` 阶段：Y/N，回车=激活，Esc=不激活，免费，强制牌必须激活。
+- 终局按卡槽号横向触发（`_trigger_on_end`：卡槽1全员→…→卡槽5，多牌按叠放顺序），损坏牌收集后统一从牌池移除。
+
+### 7.5 渲染（`game21.py`）✅
+- `CARD_W=8`（容纳 `1|11` 多值标签+卡槽效果缩写）。多值牌牌面显示 `tag`。
+- 顶部状态栏：标题含 `第N轮`，AI 区标签补 AI 金币/点数/爆牌/停牌，右侧补 `牌堆/弃牌/公共池` 计数。
+- 槽下标卡槽效果+费用（金色，空槽显 `[n]`）；空壳叠放显示栈顶牌 + `×N` 计数。
+- 卡槽焦点颜色：金色=空槽/空壳顶可放，红色=栈顶非空壳不可放。
+- `round_settled` 结算面板补双方点数/金币明细 + 胜负；`game_over` 面板按最终金币判胜负。
+- Tab overlay：本局牌组构成网格按 `DECK_DEF.suits` 顺序排成行（实际套牌数）、rank 排成列，位置含弃牌堆/已出；隐写卡背保持。
+
+### 7.6 AI（`game21.py`）✅
+- 点数层（≥17 倾向 pass 85% / ≤11 必抽 / 12-16 概率，玩家已停且更高时被迫追）+ 经济层（`_ai_find_affordable_slot` 换可放且付得起槽、藏牌 gold<2 不藏）+ 软 pass 重决策 + 激活选择。
+- 效果按 `kind` 硬编码启发式（每机制一函数，参数化 level 与选择对象）。**v1 尚无已知 on_activate 执行器，`_ai_resolve_activate` 默认不激活（保守），强制牌已在放牌时序直接激活。**
+- 多轮意识（`gold ≤ 2 且 score < 12` 无望 pass 省金）。
+- AI 走与玩家相同的放牌时序（`_ai_try_place`），但不进 slot_select/activate_prompt 阶段。
+
+### 7.7 验证 ✅
+- `python -m unittest discover -s pyconsole/tests` 全绿，**149 个用例**（cards 31 + effects 17 + card_back 9 + render_smoke 45 + 其余 47）。
+- 种子模拟：25/25（玩家先手）+ 40/40（AI 先手）均到达 game_over，最多 7 轮。
+- 效果端到端验证：剥削（打出 2♥ → AI 付 1 进池，pool 4→5、AI gold 18→17）、损坏（6♦ 轮末移除，确认不进弃牌堆/不回抽牌堆）。
+- **`python main.py` 实跑待用户在交互终端验证**（沙箱无 TTY）。
+- 不变量重点测：轮末事件顺序、软 pass 收敛、栈模型可放牌判定、损坏移除、底注抽 0、21 决胜链。
+
 ---
 
 ## 风险与对策
@@ -181,5 +243,8 @@
 | VT 启用失败 | fallback 路径不崩 |
 | 百科输入闪烁 | 单元格 diff + 一次 write |
 | 隐写花色映射错位 | `card_back.SUITS` 与 `cards.SUITS` 顺序不同，强制 `SUIT_TO_CODE` dict；单测覆盖 52 张 |
-| 抽牌锁定被绕过 | `_can_pass`/`_can_play_sleeve` 守卫 + `_after_play` 唯一清零点；行为单测覆盖 |
-| AI 死循环（抽后无处放/一直会爆） | 桌满强制 pass；抽到不爆即打出；`test_game21_advance_ai_to_settled` 守底 |
+| 软 pass 死循环（R1） | 靠效果设计规避；系统不加 pass 取消上限。若实测出现，加每轮每玩家 pass 取消次数上限→硬 pass |
+| 抽牌堆+弃牌堆双空（R2） | 袖子跨轮保留+损坏移除致总量递减；极端态兜底留待实测定义 |
+| 多值 hand_score 选优错 | 单测覆盖 A=(1,11)、8|0、非正点数、多 A |
+| 放牌时序错乱（效果在错误阶段触发） | 时序写进 §16.4 + 单测逐步断言 |
+| 轮末事件顺序错 | 顺序写进 §14.3 + 单测逐步断言 |
