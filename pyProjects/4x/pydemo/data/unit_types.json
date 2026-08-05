@@ -1,0 +1,12 @@
+{
+  "infantry": {"name": "步兵", "tags": ["melee", "human"], "recruit_cost": {"gold": 10},
+    "base": {"size": 1, "hp": 100, "ap": 3, "mana": 0, "speed": 70, "p_atk": 25, "m_atk": 0, "p_def": 15, "m_def": 5, "acc": 90, "eva": 5, "block": 30, "crit": 5, "luck": 0, "will": 0}, "desc": "基础近战"},
+  "cavalry":  {"name": "骑兵", "tags": ["melee", "human", "cavalry"], "recruit_cost": {"gold": 20},
+    "base": {"size": 2, "hp": 120, "ap": 3, "mana": 0, "speed": 100, "p_atk": 35, "m_atk": 0, "p_def": 12, "m_def": 5, "acc": 95, "eva": 15, "block": 10, "crit": 10, "luck": 0, "will": 0}, "desc": "近战骑兵,高机动"},
+  "archer":  {"name": "弓兵", "tags": ["ranged", "human"], "recruit_cost": {"gold": 15, "wood": 5},
+    "base": {"size": 1, "hp": 70, "ap": 3, "mana": 0, "speed": 75, "p_atk": 30, "m_atk": 0, "p_def": 8, "m_def": 5, "acc": 95, "eva": 10, "block": 0, "crit": 15, "luck": 0, "will": 0}, "desc": "远程,可越排"},
+  "mage":    {"name": "魔法师", "tags": ["magic", "human"], "recruit_cost": {"mana_stone": 5},
+    "base": {"size": 1, "hp": 60, "ap": 3, "mana": 10, "speed": 65, "p_atk": 5, "m_atk": 40, "p_def": 5, "m_def": 15, "acc": 90, "eva": 10, "block": 0, "crit": 10, "luck": 0, "will": 0}, "desc": "魔法,耗魔石招"},
+  "monk":    {"name": "僧侣", "tags": ["magic", "human"], "recruit_cost": {"faith": 5},
+    "base": {"size": 1, "hp": 80, "ap": 3, "mana": 8, "speed": 60, "p_atk": 5, "m_atk": 25, "p_def": 8, "m_def": 20, "acc": 90, "eva": 5, "block": 0, "crit": 5, "luck": 0, "will": 0}, "desc": "魔法,耗信仰招"}
+}

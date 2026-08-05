@@ -1,0 +1,12 @@
+{
+  "refugees": {"title": "流民", "text": "一批流民来到你的领地,请求安置。",
+    "options": [
+      {"label": "安置(道德+8, 食物-10)", "effects": {"belief": {"morality": 8}, "resources": {"food": -10}}},
+      {"label": "驱赶(功利+5)", "effects": {"belief": {"utility": 5}}}
+    ]},
+  "caravan":  {"title": "商队", "text": "一支外国商队途经此地,如何处置?",
+    "options": [
+      {"label": "高税(功利+6, 金币+15)", "effects": {"belief": {"utility": 6}, "resources": {"gold": 15}}},
+      {"label": "免税(自由+6, 文化+3)", "effects": {"belief": {"liberty": 6}, "resources": {"culture": 3}}}
+    ]}
+}

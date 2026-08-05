@@ -1,0 +1,3 @@
+{
+  "market":     {"name": "市场(强化版)", "kind": "produce", "cost": {"wood": 8}, "build_turns": 1, "produces": {"gold": 8}}
+}

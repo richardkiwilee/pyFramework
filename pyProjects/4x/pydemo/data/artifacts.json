@@ -1,0 +1,8 @@
+{
+  "sword_of_might": {"name": "力量之剑", "effects": [
+    {"type": "flat_attr", "params": {"attr": "p_atk", "value": 10}}
+  ]},
+  "cavalry_banner": {"name": "骑兵战旗", "effects": [
+    {"type": "tag_grant", "params": {"tag": "cavalry"}}
+  ]}
+}

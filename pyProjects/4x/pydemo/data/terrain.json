@@ -1,0 +1,5 @@
+{
+  "plains":  {"name": "平原", "mods": {}},
+  "mountain": {"name": "山地", "mods": {"p_def": 5}},
+  "forest":  {"name": "森林", "mods": {"eva": 5}}
+}

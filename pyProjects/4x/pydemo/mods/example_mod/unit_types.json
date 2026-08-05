@@ -1,0 +1,4 @@
+{
+  "berserker": {"name": "狂战士", "tags": ["melee", "human"], "recruit_cost": {"gold": 18, "iron": 5},
+    "base": {"size": 1, "hp": 110, "ap": 3, "mana": 0, "speed": 85, "p_atk": 40, "m_atk": 0, "p_def": 10, "m_def": 5, "acc": 85, "eva": 10, "block": 0, "crit": 25, "luck": 0, "will": 0}, "desc": "mod 新增:高暴击近战"}
+}
