@@ -1,11 +1,17 @@
 {
   "knight":   {"name": "骑士王", "tags": ["melee", "human", "cavalry"], "skills": ["cavalry_charge", "commander_aura", "iron_body"],
     "recruit_cost": {"gold": 40, "iron": 10}, "belief_req": {"morality": 20},
-    "base": {"size": 2, "hp": 200, "ap": 4, "mana": 0, "speed": 110, "p_atk": 45, "m_atk": 0, "p_def": 25, "m_def": 10, "acc": 95, "eva": 15, "block": 20, "crit": 15, "luck": 5, "will": 8}, "desc": "信念门槛:道德>=20"},
+    "base": {"occupy": 60, "hp": 200, "ap": 4, "mana": 0, "speed": 110, "p_atk": 45, "m_atk": 0, "p_def": 25, "m_def": 10, "acc": 95, "eva": 15, "block": 20, "crit": 15, "luck": 5, "will": 0, "leadership": 150},
+    "growth": {"hp": 7.0, "ap": 0.1, "mana": 0, "speed": 0.3, "p_atk": 0.7, "m_atk": 0, "p_def": 0.5, "m_def": 0.3, "acc": 0.2, "eva": 0.1, "block": 0.2, "crit": 0.1, "luck": 0.1, "will": 0.3, "leadership": 0.7},
+    "desc": "信念门槛:道德>=20,天生队长(leadership高,盈余90带6兵)"},
   "archmage": {"name": "大法师", "tags": ["magic", "human"], "skills": ["moon_mage", "fireball", "night_stalker"],
     "recruit_cost": {"mana_stone": 15, "gold": 20}, "belief_req": {"utility": 20},
-    "base": {"size": 1, "hp": 120, "ap": 4, "mana": 20, "speed": 70, "p_atk": 5, "m_atk": 55, "p_def": 8, "m_def": 25, "acc": 95, "eva": 10, "block": 0, "crit": 15, "luck": 5, "will": 7}, "desc": "信念门槛:功利>=20"},
+    "base": {"occupy": 50, "hp": 120, "ap": 4, "mana": 20, "speed": 70, "p_atk": 5, "m_atk": 55, "p_def": 8, "m_def": 25, "acc": 95, "eva": 10, "block": 0, "crit": 15, "luck": 5, "will": 0, "leadership": 120},
+    "growth": {"hp": 4.0, "ap": 0.1, "mana": 0.2, "speed": 0.3, "p_atk": 0.1, "m_atk": 0.7, "p_def": 0.3, "m_def": 0.5, "acc": 0.2, "eva": 0.1, "block": 0, "crit": 0.1, "luck": 0.1, "will": 0.3, "leadership": 0.7},
+    "desc": "信念门槛:功利>=20,盈余70带4兵"},
   "priest":   {"name": "祭司", "tags": ["magic", "human"], "skills": ["moon_mage"],
     "recruit_cost": {"faith": 20}, "belief_req": {"liberty": 10},
-    "base": {"size": 1, "hp": 130, "ap": 4, "mana": 18, "speed": 65, "p_atk": 5, "m_atk": 30, "p_def": 10, "m_def": 30, "acc": 90, "eva": 5, "block": 5, "crit": 5, "luck": 10, "will": 6}, "desc": "信念门槛:自由>=10"}
+    "base": {"occupy": 50, "hp": 130, "ap": 4, "mana": 18, "speed": 65, "p_atk": 5, "m_atk": 30, "p_def": 10, "m_def": 30, "acc": 90, "eva": 5, "block": 5, "crit": 5, "luck": 10, "will": 0, "leadership": 120},
+    "growth": {"hp": 5.0, "ap": 0.1, "mana": 0.2, "speed": 0.3, "p_atk": 0.1, "m_atk": 0.7, "p_def": 0.3, "m_def": 0.5, "acc": 0.2, "eva": 0.1, "block": 0.2, "crit": 0.1, "luck": 0.1, "will": 0.3, "leadership": 0.7},
+    "desc": "信念门槛:自由>=10,盈余70带4兵"}
 }

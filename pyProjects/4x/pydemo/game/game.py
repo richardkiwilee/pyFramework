@@ -13,8 +13,10 @@ from typing import Any
 
 from .data_loader import load_definitions
 from .time_system import Calendar
-from .economy import Resources, Belief, RESOURCE_TYPES, RESOURCE_CN, BELIEF_DIMS, BELIEF_CN
-from .map_system import GameMap, Stronghold, MinorLocation, Building, SIZE_SLOTS
+from .economy import (Resources, Belief, RESOURCE_TYPES, RESOURCE_CN, BELIEF_DIMS,
+                      BELIEF_CN, SOURCE_BUILD, SOURCE_MAINT, SOURCE_RECRUIT,
+                      SOURCE_TRAIN, SOURCE_SUPPLY, SOURCE_INIT)
+from .map_system import GameMap, Stronghold, MinorLocation, Building
 from .unit import (Unit, UnitType, Artifact, load_unit_types, load_artifacts,
                    ATTR_BOUNDS, ATTR_CN, TAG_CN, MAJOR_TAGS)
 from .hero import (HeroDef, load_hero_defs, make_hero_unit, meets_belief_req,
@@ -90,6 +92,7 @@ class Game:
             id=self.new_id("u"),
             type_id=type_id, name=ut.name, tags=set(ut.tags),
             base=dict(ut.base),
+            growth=dict(ut.growth),
         )
         u.grant_tags_from_artifacts(self.artifact_defs)
         self.unit_index[u.id] = u
@@ -120,24 +123,47 @@ class Game:
                 old.remove(hero_unit.id)
                 old.captain_id = None
                 self._try_fill_captain(old)
+        # 记录是否在待命池;出池推迟到 can_add 通过之后,避免"加入失败却已出池"
+        # 导致单位既不在待命也不在部队(孤儿)。
+        f = self.factions.get(army.owner)
+        in_standby = f is not None and hero_unit.id in f.standby
+        # 先设队长,使 max_leadership 计入该英雄的领导力(队长领导力即部队上限)
         army.captain_id = hero_unit.id
         if hero_unit.army_id != army.id:
-            # 加入部队(若有空位)
+            # 加入部队(若有空位且不超领导力)
             if not army.can_add(hero_unit, self.unit_index):
-                # 强制放第一个空位即使超规模?不,放不下则失败
+                army.captain_id = None   # 回滚:加入失败,复原队长空缺
                 return False
+            if in_standby:
+                self._pull_from_standby(f, hero_unit)   # can_add 已通过,安全出池
             army.add(hero_unit, self.unit_index)
+            # 单位位置随部队(部队所在据点)
+            hero_unit.node_id = army.node_id
+        elif in_standby:
+            # 英雄已在部队但仍在待命池(理论上不会发生):一并出池
+            self._pull_from_standby(f, hero_unit)
         return True
 
     def _try_fill_captain(self, army: Army) -> bool:
-        """队长空缺时,从同据点英雄指派接任;无则解散。"""
+        """队长空缺时,从待命·可用英雄指派接任;无则解散。
+
+        待命为阵营级、无位置(ADR-0005):候选来自 owner 阵营的 standby 池中
+        冷却已归零的英雄,不再限"同据点无部队英雄"。
+        """
         if army.captain_id and army.captain_id in self.unit_index:
             return True
-        # 同据点的无部队英雄
-        for u in self.unit_index.values():
-            if u.is_hero and u.alive and u.node_id == army.node_id and u.army_id is None:
-                if self.set_captain(army, u):
-                    return True
+        f = self.factions.get(army.owner)
+        if not f:
+            self.disband_army(army)
+            return False
+        # 阵营级待命·可用英雄(优先取 leadership 高的,便于承接大部队)
+        cands = [self.unit_index[uid] for uid in f.standby_available_ids()
+                 if uid in self.unit_index and self.unit_index[uid].is_hero
+                 and self.unit_index[uid].alive]
+        cands.sort(key=lambda u: u.leadership(), reverse=True)
+        for u in cands:
+            if self.set_captain(army, u):   # set_captain 内部在 can_add 通过后出池
+                return True
         # 无可用英雄:解散
         self.disband_army(army)
         return False
@@ -155,6 +181,144 @@ class Game:
                 if army.id in f.army_ids:
                     f.army_ids.remove(army.id)
             del self.armies[army.id]
+
+    # ---------- 待命池(ADR-0005) ----------
+    STANDBY_COOLDOWN = 5
+
+    def _to_standby(self, faction: Faction, unit: Unit, cooldown: int) -> None:
+        """单位进待命池:清 army_id、node_id,记冷却。"""
+        unit.army_id = None
+        unit.node_id = None
+        faction.standby[unit.id] = cooldown
+
+    def _pull_from_standby(self, faction: Faction, unit: Unit) -> None:
+        """单位出待命池:从池中移除(node_id 由调用方按部队所在据点补设)。"""
+        faction.standby.pop(unit.id, None)
+
+    def _tick_standby(self, faction: Faction) -> None:
+        """回合开始:所有不可用待命单位冷却 -1,到 0 转为可用。"""
+        for uid in list(faction.standby.keys()):
+            if faction.standby[uid] > 0:
+                faction.standby[uid] -= 1
+
+    def action_deploy(self, faction_id: str, army_id: str, unit_id: str,
+                      slot: int | None = None) -> str:
+        """上场:把待命·可用单位派进己方据点内的一支部队(§5)。
+
+        约束:单位必须在待命池且冷却已归零(可用);目标部队必须为本阵营非驻军部队,
+        且当前停在己方据点内(ADR-0005:部队必须回到己方据点才能补充人员)。
+        槽位由调用方指定(空格选中的位置);不指定则按兵种角色自动落位。
+        资源不做扣减(上场本身免费,招募时已付)。
+        """
+        f = self.factions.get(faction_id)
+        if not f:
+            return "失败:无此阵营"
+        u = self.unit_index.get(unit_id)
+        if not u:
+            return "失败:无此单位"
+        if unit_id not in f.standby:
+            return "失败:单位不在待命池"
+        if f.standby[unit_id] > 0:
+            return "失败:单位待命·不可用"
+        army = self.armies.get(army_id)
+        if not army or army.owner != faction_id or army.is_garrison:
+            return "失败:无此部队"
+        if army.node_id not in f.stronghold_ids:
+            return "失败:部队不在己方据点"
+        if not army.can_add(u, self.unit_index):
+            return "失败:部队已满或领导力不足"
+        if slot is not None:
+            if not (0 <= slot < GRID_SIZE):
+                return "失败:槽位越界"
+            if army.grid[slot] is not None:
+                return "失败:该槽位已占用"
+            ok = army.add(u, self.unit_index, slot=slot)
+        else:
+            ok = army.add(u, self.unit_index)
+        if not ok:
+            return "失败:加入失败"
+        self._pull_from_standby(f, u)
+        u.node_id = army.node_id
+        return f"{u.name} 已上场至 {army.name}"
+
+    def action_discharge(self, faction_id: str, army_id: str,
+                         unit_id: str) -> str:
+        """下场:把部队中的单位撤入待命·不可用(§5 + ADR-0005)。
+
+        任意位置都可下场(代价是 5 回合不可用冷却)。队长下场后由 _try_fill_captain
+        接任;无可用英雄接任则部队解散。
+        """
+        f = self.factions.get(faction_id)
+        if not f:
+            return "失败:无此阵营"
+        army = self.armies.get(army_id)
+        if not army or army.owner != faction_id or army.is_garrison:
+            return "失败:无此部队"
+        u = self.unit_index.get(unit_id)
+        if not u or u.army_id != army_id:
+            return "失败:单位不在此部队"
+        if unit_id not in army.grid:
+            return "失败:单位不在此部队"
+        # 从九宫格移除
+        army.remove(unit_id)
+        # 进待命·不可用(5 回合冷却)
+        self._to_standby(f, u, cooldown=self.STANDBY_COOLDOWN)
+        msg = f"{u.name} 下场,进入待命·不可用({self.STANDBY_COOLDOWN}回合)"
+        # 若是队长,尝试接任;无可用英雄则解散(并提示)
+        if army.captain_id == unit_id:
+            army.captain_id = None
+            if not self._try_fill_captain(army):
+                msg += f";无可用英雄接任,{army.name} 已解散"
+        return msg
+
+    def action_equip(self, faction_id: str, unit_id: str,
+                     artifact_id: str, slot: int) -> str:
+        """装备神器到指定槽位(0..2)(§3 装备栏)。
+
+        原型阶段不维护阵营神器库存:任何已定义神器 id 都可直接装备(占位实现,
+        便于 UI 验证 effects/tag_grant 生效)。槽位越界或神器未知则失败。
+        槽位已占用时替换(旧神器丢弃,原型不回收)。
+        """
+        f = self.factions.get(faction_id)
+        if not f:
+            return "失败:无此阵营"
+        u = self.unit_index.get(unit_id)
+        if not u:
+            return "失败:无此单位"
+        if self._unit_owner(u) != faction_id:
+            return "失败:单位不归你"
+        if not (0 <= slot < 3):
+            return "失败:槽位越界"
+        if artifact_id not in self.artifact_defs:
+            return "失败:未知神器"
+        # 写入/扩展 artifacts 列表(中间空位用 None 填充)
+        while len(u.artifacts) <= slot:
+            u.artifacts.append(None)  # type: ignore[arg-type]
+        u.artifacts[slot] = artifact_id
+        # tag_grant:从兵种本体 tag(含 MAJOR_TAGS 与小类)出发,合并当前全部装备赋予的 tag。
+        # 兵种本体 tag 不可由装备移除,故每次重算 = 本体 tag ∪ 当前装备 tag_grant。
+        granted: set[str] = set()
+        for aid in u.artifacts:
+            art = self.artifact_defs.get(aid)
+            if not art:
+                continue
+            for e in art.effects:
+                if e.get("type") == "tag_grant":
+                    granted.add(e["params"]["tag"])
+        # 本体 tag:首次招募时由 make_unit/make_hero 写入且不含 tag_grant 来源。
+        # 用单位 type_id/hero_def 重新取一份本体 tag,与当前装备赋予的 tag 合并。
+        body_tags = self._body_tags(u)
+        u.tags = body_tags | granted
+        art = self.artifact_defs[artifact_id]
+        return f"{u.name} 装备了 {art.name}"
+
+    def _body_tags(self, u: Unit) -> set[str]:
+        """单位本体词条(不含神器赋予的 tag)。取兵种/英雄定义的原始 tags。"""
+        if u.is_hero:
+            hdef = self.hero_defs.get(u.type_id)
+            return set(hdef.tags) if hdef else set(u.tags)
+        ut = self.unit_type_defs.get(u.type_id)
+        return set(ut.tags) if ut else set(u.tags)
 
     # ---------- 修正收集 ----------
     def collect_unit_mods(self, unit: Unit, army: Army | None,
@@ -253,31 +417,30 @@ class Game:
             for _ in range(count):
                 u = self.make_unit(type_id)
                 army.place_for_garrison(u, self.unit_index)
-        # 驻军设一个虚拟队长(取前排第一个单位,提其 will 以容纳全队)
+        # 驻军设一个虚拟队长(取前排第一个单位,提其 leadership 以容纳全队)
         for uid in army.grid:
             if uid:
                 army.captain_id = uid
-                self.unit_index[uid].base["will"] = 99
+                self.unit_index[uid].base["leadership"] = 999
                 break
         self.armies[aid] = army
         return army
 
     # ---------- 回合驱动 ----------
     def start_turn(self, faction: Faction) -> None:
-        """回合开始:事件触发(玩家阵营)、刷新招募池检查、驻军回血。"""
-        # 驻军回血补兵(未全灭)
-        for sid in list(faction.stronghold_ids):
-            sh = self.map.strongholds.get(sid)
-            if not sh:
-                continue
-            # 找该据点的驻军
-            for a in self.armies.values():
-                if a.is_garrison and a.node_id == sid and a.owner == faction.id:
-                    if not a.is_wiped(self.unit_index):
-                        for u in a.alive_units(self.unit_index):
-                            u.cur_hp = min(u.base.get("hp", 1),
-                                           u.cur_hp + u.base.get("hp", 1) * 0.1)
-                        # 补兵:原型简化为不补新单位,仅回血
+        """每阵营回合开始(规范入口):待命冷却推进 → 经济结算(含维护费/回血) →
+        招募池刷新检查。
+
+        AI 阵营与玩家阵营都走此入口。CLI/TUI 的回合编排应调用 start_turn,
+        不再直接调 tick_economy(后者仅为经济结算子步,供 start_turn 内部调用)。
+        回血前必须先扣维护费并打好断粮标记(断粮单位本回合不回血,见 §1)。
+        """
+        # 待命冷却推进(ADR-0005):不可用单位 -1,到 0 转可用
+        self._tick_standby(faction)
+        # 经济结算:产出 → 扣维护费(打断粮标记)→ 补给 → 各类回血(均跳过断粮单位)
+        # §2:回合开始先清空各资源 delta(存量保留),供本回合重新累计净变动
+        faction.resources.reset_turn()
+        self.tick_economy(faction)
         # 招募池刷新(每 14 天)
         for sid in list(faction.stronghold_ids):
             pool = faction.recruitment_pools.get(sid)
@@ -294,15 +457,28 @@ class Game:
 
     # ---------- 经济 ----------
     def tick_economy(self, faction: Faction) -> None:
-        """产出建筑产出资源 + 建造推进。"""
+        """经济结算(由 start_turn 调用,也可单独调用以重算)。时序(见 §1 Maintenance):
+        建筑产出 → 扣维护费(打断粮标记) → 补给补充 → 补给消耗/野外回血(5%)
+        → 据点内回血(10%) → 驻军回血(10%)。
+
+        所有回血阶段均跳过本回合断粮(_starved_this_turn)的单位(不掉血,仅跳过)。
+        驻军免维护费故不会断粮,其回血跳过检查仅为守一致口径。
+        """
+        # 1. 建筑产出(§2 delta:来源 build + 据点+建筑名)
         for sid in list(faction.stronghold_ids):
             sh = self.map.strongholds.get(sid)
             if not sh:
                 continue
-            gained = sh.tick_builds()
+            gained = sh.tick_produce()
             for k, v in gained.items():
-                faction.resources.add(k, v)
-        # 补给补充:在己方据点的部队
+                # 该据点所有产出建筑贡献同一资源,记成一条 delta(溯源到据点 + 建筑名串)
+                bld_names = "、".join(b.name for b in sh.buildings
+                                      if k in b.produces) or None
+                faction.resources.add(k, v, source=SOURCE_BUILD,
+                                      stronghold=sid, building=bld_names)
+        # 2. 扣维护费(单独函数,便于调整平衡;§1):在回血之前打断粮标记
+        self._deduct_maintenance(faction)
+        # 3. 补给补充:在己方据点的部队(§2 delta:来源 supply)
         for aid in list(faction.army_ids):
             army = self.armies.get(aid)
             if not army or army.is_garrison:
@@ -310,13 +486,13 @@ class Game:
             if army.node_id in faction.stronghold_ids:
                 need = army.supply_max - army.supply
                 if need > 0 and faction.resources.get("food") >= need:
-                    faction.resources.add("food", -need)
+                    faction.resources.add("food", -need, source=SOURCE_SUPPLY)
                     army.supply = army.supply_max
                 elif need > 0:
                     give = min(need, faction.resources.get("food"))
-                    faction.resources.add("food", -give)
+                    faction.resources.add("food", -give, source=SOURCE_SUPPLY)
                     army.supply += give
-        # 补给消耗:在小地点的部队
+        # 4. 补给消耗 + 野外回血(ADR-0004):在小地点的部队
         for aid in list(faction.army_ids):
             army = self.armies.get(aid)
             if not army or army.is_garrison:
@@ -327,9 +503,201 @@ class Game:
                     army.supply = 0
                     for u in army.alive_units(self.unit_index):
                         u.cur_hp = max(0, u.cur_hp - u.base.get("hp", 1) * 0.05)
+                else:
+                    # 野外(小地点)有补给时每回合回血 5%;断粮单位跳过
+                    for u in army.alive_units(self.unit_index):
+                        if getattr(u, "_starved_this_turn", False):
+                            continue
+                        u.cur_hp = min(u.base.get("hp", 1),
+                                       u.cur_hp + u.base.get("hp", 1) * 0.05)
+        # 5. 据点内回血(ADR-0004):非驻军部队在己方据点内每回合回血 10%;断粮单位跳过
+        for aid in list(faction.army_ids):
+            army = self.armies.get(aid)
+            if not army or army.is_garrison:
+                continue
+            if army.node_id not in faction.stronghold_ids:
+                continue
+            for u in army.alive_units(self.unit_index):
+                if getattr(u, "_starved_this_turn", False):
+                    continue
+                u.cur_hp = min(u.base.get("hp", 1),
+                               u.cur_hp + u.base.get("hp", 1) * 0.1)
+        # 6. 驻军回血补兵(未全灭):驻军免维护费不会断粮,此处仍守一致口径跳过断粮
+        for sid in list(faction.stronghold_ids):
+            sh = self.map.strongholds.get(sid)
+            if not sh:
+                continue
+            for a in self.armies.values():
+                if a.is_garrison and a.node_id == sid and a.owner == faction.id:
+                    if not a.is_wiped(self.unit_index):
+                        for u in a.alive_units(self.unit_index):
+                            if getattr(u, "_starved_this_turn", False):
+                                continue
+                            u.cur_hp = min(u.base.get("hp", 1),
+                                           u.cur_hp + u.base.get("hp", 1) * 0.1)
+                        # 补兵:原型简化为不补新单位,仅回血
+
+    # ---------- 维护费(§1) ----------
+    def _deduct_maintenance(self, faction: Faction) -> None:
+        """扣各单位维护费(§1)。单位级判定:逐资源尝试扣(允许部分扣),但只要任一
+        资源没扣足,即标记该单位本回合断粮(不回血)。标志性建筑驻军免维护费。
+
+        待命中的单位需不需要维护费?——需要。待命不是免维护状态(只免去上场冷却);
+        静养不进食说不通,且会让待命池成为躲避维护费的漏洞。故待命单位照常扣维护费,
+        断粮同样打标(待命单位本就不回血,标记在此只记录口径,无副作用)。
+
+        数据来源:UnitType.maintenance / HeroDef.maintenance(数据驱动)。
+        原型默认:普通人类兵种 {food:1},魔法兵种追加魔石,英雄约为普通 4 倍。
+        """
+        # 先把阵营所有非驻军单位打上未断粮默认(含上回合已断粮的,每回合重判);
+        # 同时复位训练标记(§3:每回合每单位最多训练 1 次)
+        for uid, u in self.unit_index.items():
+            if u.alive and self._unit_owner(u) == faction.id:
+                u._starved_this_turn = False
+                u._trained_this_turn = False
+        # 逐单位扣维护费
+        for uid, u in self.unit_index.items():
+            if not u.alive:
+                continue
+            army = self.armies.get(u.army_id) if u.army_id else None
+            if army and army.is_garrison:
+                continue   # 驻军免维护费
+            # 只管该阵营的单位(队长/成员归属由 army.owner 决定;待命单位也属本阵营)
+            owner = self._unit_owner(u)
+            if owner != faction.id:
+                continue
+            cost = self._maintenance_cost(u)
+            if not cost:
+                continue
+            # 逐资源尝试扣,允许部分扣(§2 delta:来源 maint)
+            starved = False
+            for k, v in cost.items():
+                have = faction.resources.get(k)
+                pay_v = min(v, have)
+                if pay_v > 0:
+                    faction.resources.add(k, -pay_v, source=SOURCE_MAINT)
+                if pay_v < v:
+                    starved = True   # 该资源没扣足
+            if starved:
+                u._starved_this_turn = True
+            # else 分支:已在开头重置为 False
+
+    def _unit_owner(self, u: Unit) -> str | None:
+        """单位归属阵营:部队成员看 army.owner,待命单位遍历阵营 standby。"""
+        if u.army_id and u.army_id in self.armies:
+            return self.armies[u.army_id].owner
+        for fid, f in self.factions.items():
+            if u.id in f.standby:
+                return fid
+        return None
+
+    def _maintenance_cost(self, u: Unit) -> dict[str, int]:
+        """单位的维护费(数据驱动)。原型默认规则见 CONTEXT.md Maintenance。"""
+        # 优先读定义里的 maintenance 字段;无则按原型默认推算
+        if u.is_hero:
+            hdef = self.hero_defs.get(u.type_id)
+            if hdef and getattr(hdef, "maintenance", None):
+                return dict(hdef.maintenance)
+        else:
+            ut = self.unit_type_defs.get(u.type_id)
+            if ut and getattr(ut, "maintenance", None):
+                return dict(ut.maintenance)
+        # 默认:普通人类兵种 {food:1},魔法兵种追加魔石,英雄 4 倍
+        cost: dict[str, int] = {"food": 4 if u.is_hero else 1}
+        if "magic" in u.tags:
+            cost["mana_stone"] = 4 if u.is_hero else 1
+        return cost
+
+    def _train_cost(self, u: Unit) -> dict[str, int]:
+        """训练消耗(数据驱动)。原型默认:gold = 招募价/2 + 5 食物;魔法系兵种额外消耗魔石;
+        英雄按其定义。见 CONTEXT.md Training 训练消耗。"""
+        if u.is_hero:
+            hdef = self.hero_defs.get(u.type_id)
+            if hdef and getattr(hdef, "train_cost", None):
+                return dict(hdef.train_cost)
+        else:
+            ut = self.unit_type_defs.get(u.type_id)
+            if ut and getattr(ut, "train_cost", None):
+                return dict(ut.train_cost)
+        # 默认:gold = 招募价/2(向下取整) + 5 食物;魔法系追加 1 魔石
+        recruit = {}
+        if u.is_hero:
+            hdef = self.hero_defs.get(u.type_id)
+            recruit = hdef.recruit_cost if hdef else {}
+        else:
+            ut = self.unit_type_defs.get(u.type_id)
+            recruit = ut.recruit_cost if ut else {}
+        gold_half = recruit.get("gold", 0) // 2
+        cost: dict[str, int] = {"gold": gold_half + 5, "food": 5}
+        if "magic" in u.tags:
+            cost["mana_stone"] = 1
+        return cost
+
+    def is_trainable(self, u: Unit) -> tuple[bool, str]:
+        """单位是否可训练(§3)。返回(可否, 不可原因)。
+
+        可训练位:
+        - 在己方据点内的部队中,且该据点无任何敌方部队;或
+        - 待命·可用(无位置,默认安全)。
+        其余条件(本回合尚未训练、资源负担得起)在 action_train 中实时判定。
+        """
+        owner = self._unit_owner(u)
+        if owner is None:
+            return False, "无主单位"
+        if not u.alive:
+            return False, "单位已亡"
+        # 待命·可用:无位置,默认安全可训练
+        f = self.factions.get(owner)
+        if f and u.id in f.standby:
+            if f.standby[u.id] > 0:
+                return False, "待命·不可用"
+            return True, ""
+        # 在部队中:检查部队是否在己方据点且该据点无敌方部队
+        if u.army_id and u.army_id in self.armies:
+            army = self.armies[u.army_id]
+            if army.is_garrison:
+                return False, "驻军不可训练"
+            if army.node_id not in f.stronghold_ids:
+                return False, "部队不在己方据点"
+            # 该据点是否有任何敌方部队(非驻军)
+            for a in self.armies.values():
+                if (a.node_id == army.node_id and a.owner not in (None, owner)
+                        and not a.is_garrison and not a.is_wiped(self.unit_index)):
+                    return False, "据点有敌方部队"
+            return True, ""
+        return False, "单位不在部队也不在待命"
+
+    def action_train(self, faction_id: str, unit_id: str) -> str:
+        """训练:消耗资源获 +5 XP(§3)。每回合每单位最多 1 次。
+
+        可训练位见 is_trainable;升级时 HP 按比例保留(见 Unit.gain_xp)。
+        训练本身不回血。
+        """
+        u = self.unit_index.get(unit_id)
+        if not u:
+            return "失败:无此单位"
+        if self._unit_owner(u) != faction_id:
+            return "失败:单位不归你"
+        if getattr(u, "_trained_this_turn", False):
+            return "失败:本回合已训练"
+        ok, why = self.is_trainable(u)
+        if not ok:
+            return f"失败:不可训练({why})"
+        cost = self._train_cost(u)
+        f = self.factions[faction_id]
+        if not f.resources.can_afford(cost):
+            return "失败:资源不足"
+        f.resources.pay(cost, source=SOURCE_TRAIN)
+        levels = u.gain_xp(5)
+        u._trained_this_turn = True
+        msg = f"{u.name} 训练:+5XP"
+        if levels > 0:
+            msg += f",升到 Lv{u.level}"
+        return msg
 
     # ---------- 动作 ----------
     def action_build(self, faction_id: str, stronghold_id: str, building_id: str) -> str:
+        """建造:支付足额资源即立即建成(ADR-0006,无建造回合)。"""
         f = self.factions[faction_id]
         sh = self.map.strongholds.get(stronghold_id)
         if not sh or sh.owner != faction_id:
@@ -342,18 +710,13 @@ class Game:
         cost = bdef.get("cost", {})
         if not f.resources.can_afford(cost):
             return "失败:资源不足"
-        f.resources.pay(cost)
-        turns = bdef.get("build_turns", 1)
-        # 领主加速
-        lord = f.lords.get(stronghold_id)
-        if lord:
-            turns = max(1, turns - 1)
+        f.resources.pay(cost, source=SOURCE_BUILD, stronghold=stronghold_id,
+                        building=cn_building(bdef))
         b = Building(id=f"b{random.randint(1000,9999)}", type_id=building_id,
                      name=cn_building(bdef),
-                     produces=bdef.get("produces", {}) if bdef.get("kind") == "produce" else {},
-                     build_turns_left=turns)
+                     produces=bdef.get("produces", {}) if bdef.get("kind") == "produce" else {})
         sh.add_building(b)
-        return f"已在 {sh.name} 建造 {b.name}(需{turns}回合)"
+        return f"已在 {sh.name} 建造 {b.name}(即时建成)"
 
     def action_recruit_hero(self, faction_id: str, stronghold_id: str, hero_id: str) -> str:
         f = self.factions[faction_id]
@@ -370,18 +733,16 @@ class Game:
             return "失败:信念不足(" + describe_req(hdef.belief_req) + ")"
         if not f.resources.can_afford(hdef.recruit_cost):
             return "失败:资源不足"
-        f.resources.pay(hdef.recruit_cost)
+        f.resources.pay(hdef.recruit_cost, source=SOURCE_RECRUIT, stronghold=stronghold_id,
+                        building=hdef.name)
         u = self.make_hero(hero_id)
-        u.node_id = stronghold_id
         f.hero_ids.append(u.id)
         # 招募后该槽位置 None（不压缩），其余英雄原位保留，与三窗口一一对应
         pool.offerings[pool.offerings.index(hero_id)] = None
-        # 英雄进入聚贤庄（hall_of_worthies）待命，不自动编入部队。
-        # 玩家可后续将其指派为据点领主，或新建部队时任队长。
-        # 保留 u.node_id=stronghold_id 使其暂留于招募据点，供指派/建队流程按
-        # 「该据点的无部队英雄」检索（据点界面 _candidates_for、部队界面 _new_army）。
-        f.hall_of_worthies[u.id] = 0
-        return f"招募了 {u.name}，进入聚贤庄待命（可指派至据点）"
+        # 招募的单位立即进入待命·可用(ADR-0005):阵营级、无位置,不自动编入部队。
+        # 玩家可后续派遣到己方据点内的部队,或新建部队时任队长。
+        self._to_standby(f, u, cooldown=0)
+        return f"招募了 {u.name}，进入待命·可用"
 
     def action_move(self, faction_id: str, army_id: str, to_node: str) -> str:
         f = self.factions[faction_id]
@@ -491,6 +852,8 @@ class Game:
             msgs.append(f"{attacker.name} 进攻失败,部队全灭")
         if result.defender_wiped:
             msgs.append(f"{defender.name} 被全灭")
+        # 死亡经验:每个阵亡单位,把其等级数值作为 XP 发给击杀方所有存活单位
+        self._award_death_xp(result, attacker, defender)
         if result.occupier_side == "attacker":
             # 进攻方占据结点
             if is_siege and target_sh:
@@ -554,6 +917,10 @@ class Game:
                         self.unit_index.pop(uid, None)
                 if aid in self.armies:
                     del self.armies[aid]
+        # 清待命池(阵营灭亡,待命单位随之消亡)
+        for uid in list(f.standby.keys()):
+            self.unit_index.pop(uid, None)
+        f.standby.clear()
         f.army_ids.clear()
         f.hero_ids.clear()
         self.log_msg(f"{f.name} 首都陷落,出局!所有部队解散。")
@@ -579,6 +946,31 @@ class Game:
                         if a.id in f.army_ids:
                             f.army_ids.remove(a.id)
                     del self.armies[a.id]
+
+    def _award_death_xp(self, result, attacker: Army, defender: Army) -> None:
+        """死亡经验:每个阵亡单位,击杀方所有存活单位各获得等同其等级数值的 XP。
+
+        判定击杀方:阵亡单位属于哪一边,另一边的存活单位拿经验。
+        (若双方都有阵亡,各自按对方阵亡单位的等级获得。)
+        """
+        att_ids = {u.id for u in attacker.alive_units(self.unit_index)}
+        def_ids = {u.id for u in defender.alive_units(self.unit_index)}
+        for uid in result.casualties:
+            dead = self.unit_index.get(uid)
+            if not dead:
+                continue
+            xp = getattr(dead, "level", 1)
+            if xp <= 0:
+                continue
+            # 阵亡方是防守方 -> 进攻方存活单位得经验;反之亦然
+            if uid in def_ids or (uid in {x.id for x in defender.units(self.unit_index)}):
+                gainers = [u for u in attacker.alive_units(self.unit_index)]
+            else:
+                gainers = [u for u in defender.alive_units(self.unit_index)]
+            for g in gainers:
+                levels = g.gain_xp(xp)
+                if levels > 0:
+                    self.log_msg(f"{g.name} 获 {xp} 经验,升到 Lv{g.level}")
 
     # ---------- 玩家事件 ----------
     def maybe_trigger_event(self, faction: Faction) -> None:

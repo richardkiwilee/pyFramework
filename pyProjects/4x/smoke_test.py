@@ -19,7 +19,7 @@ def run(max_turns: int = 200) -> int:
         for fid, f in list(game.factions.items()):
             if not f.alive:
                 continue
-            game.tick_economy(f)
+            game.start_turn(f)   # 规范入口:经济结算(含维护费/回血)+ 招募池刷新
             if not f.is_ai:
                 game.maybe_trigger_event(f)
                 if game.pending_event:
@@ -32,10 +32,21 @@ def run(max_turns: int = 200) -> int:
                     game.action_recruit_hero(fid, payload["stronghold"], payload["hero"])
                 elif kind == "move_attack":
                     game.action_move_attack(fid, payload["army"], payload["to"])
+                elif kind == "deploy":
+                    game.action_deploy(fid, payload["army"], payload["unit"], payload.get("slot"))
+                elif kind == "new_army":
+                    node_id = payload["stronghold"]
+                    name = payload.get("name", "AI 部队")
+                    army = game.create_army(fid, node_id, name)
+                    hero = game.unit_index.get(payload["hero"])
+                    if not hero or not game.set_captain(army, hero):
+                        game.disband_army(army)
                 if game.is_over():
                     break
             if game.is_over():
                 break
+        if game.is_over():
+            break
         game.end_turn_advance()
         for a in game.armies.values():
             a.has_acted_this_turn = False

@@ -51,10 +51,10 @@ class _Controller:
 
     # ---- 回合编排（镜像 cli/fsm.py）----
     def begin_player_turn(self) -> None:
-        """玩家回合开始：经济结算 + 事件触发。"""
+        """玩家回合开始：经济结算(含维护费/回血) + 招募池刷新 + 事件触发。"""
         g = self.g
         p = g.factions[g.player_id]
-        g.tick_economy(p)
+        g.start_turn(p)
         g.maybe_trigger_event(p)
 
     def run_ai_and_advance(self) -> None:
@@ -99,6 +99,19 @@ class _Controller:
         elif kind == "move_attack":
             msg = g.action_move_attack(fid, payload["army"], payload["to"])
             log.push(f"AI 行动:{msg}")
+        elif kind == "deploy":
+            msg = g.action_deploy(fid, payload["army"], payload["unit"], payload.get("slot"))
+            log.push(f"AI 上场:{msg}")
+        elif kind == "new_army":
+            node_id = payload["stronghold"]
+            name = payload.get("name", "AI 部队")
+            army = g.create_army(fid, node_id, name)
+            hero = g.unit_index.get(payload["hero"])
+            if not hero or not g.set_captain(army, hero):
+                g.disband_army(army)
+                log.push(f"AI 新建部队:失败({payload.get('hero')})")
+            else:
+                log.push(f"AI 新建部队:{army.name}(队长 {hero.name})")
 
     def _log_winner(self) -> None:
         w = self.g.winner

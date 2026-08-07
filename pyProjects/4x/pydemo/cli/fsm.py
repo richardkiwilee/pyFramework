@@ -48,8 +48,8 @@ class ConsoleFSM:
     def _begin_player_turn(self) -> None:
         game = self.game
         p = game.factions[game.player_id]
-        # 经济结算(产出+建造推进+补给)
-        game.tick_economy(p)
+        # 回合开始:经济结算(产出+建造推进+维护费+回血)+ 招募池刷新
+        game.start_turn(p)
         # 事件触发
         game.maybe_trigger_event(p)
         self.state = "EVENT"
@@ -262,6 +262,19 @@ class ConsoleFSM:
         elif kind == "move_attack":
             msg = self.game.action_move_attack(fid, payload["army"], payload["to"])
             print(f"  AI 行动:{msg}")
+        elif kind == "deploy":
+            msg = self.game.action_deploy(fid, payload["army"], payload["unit"], payload.get("slot"))
+            print(f"  AI 上场:{msg}")
+        elif kind == "new_army":
+            node_id = payload["stronghold"]
+            name = payload.get("name", "AI 部队")
+            army = self.game.create_army(fid, node_id, name)
+            hero = self.game.unit_index.get(payload["hero"])
+            if not hero or not self.game.set_captain(army, hero):
+                self.game.disband_army(army)
+                print(f"  AI 新建部队:失败({payload.get('hero')})")
+            else:
+                print(f"  AI 新建部队:{army.name}(队长 {hero.name})")
 
     # ---------- 工具 ----------
     def _parse_int(self, s: str, default: int) -> int:

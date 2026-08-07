@@ -4,13 +4,15 @@
 兵种词条分两类,全部平级:必选大类(近战/远程/魔法,至少其一,可多选)
 与枚举小类(人类/骑兵等,可多选)。词条是修正源与羁绊的输入。
 
-单位属性:规模/生命值/行动点/魔力点/行动速度/物攻/魔攻/物防/魔防/
-命中/闪避/格挡/暴击率/幸运/意志。
+单位属性:占用/生命值/行动点/魔力点/行动速度/物攻/魔攻/物防/魔防/
+命中/闪避/格挡/暴击率/幸运/意志/领导力。
 
 单位可装备至多 3 个神器。神器可附带词条(tag_grant),是修正源与羁绊来源。
+单位等级 1~99,升级烘进 base(永久成长);属性底层 double,每阶段 floor。
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
+import math
 from typing import Any
 
 # 必选大类
@@ -22,25 +24,34 @@ TAG_CN = {
 }
 
 # 单位基础属性及其上下界(用于修正管道 clamp)
+# occupy 不进修正管道(恒定,不随等级增长),但仍列于此以便统一展示
 UNIT_ATTRS = [
-    "size", "hp", "ap", "mana", "speed",
+    "occupy", "hp", "ap", "mana", "speed",
     "p_atk", "m_atk", "p_def", "m_def",
-    "acc", "eva", "block", "crit", "luck", "will",
+    "acc", "eva", "block", "crit", "luck", "will", "leadership",
 ]
 ATTR_BOUNDS: dict[str, tuple[float, float]] = {
     "hp": (0, 99999), "ap": (0, 99), "mana": (0, 99), "speed": (1, 999),
-    "size": (1, 99), "p_atk": (0, 9999), "m_atk": (0, 9999),
+    "occupy": (0, 99999), "p_atk": (0, 9999), "m_atk": (0, 9999),
     "p_def": (0, 9999), "m_def": (0, 9999),
     "acc": (0, 100), "eva": (0, 100), "block": (0, 100),
-    "crit": (0, 100), "luck": (0, 100), "will": (0, 999),
+    "crit": (0, 100), "luck": (0, 100), "will": (0, 999), "leadership": (0, 99999),
     "mana_regen": (0, 999),
 }
 ATTR_CN = {
     "hp": "生命", "ap": "行动点", "mana": "魔力", "speed": "速度",
     "p_atk": "物攻", "m_atk": "魔攻", "p_def": "物防", "m_def": "魔防",
     "acc": "命中", "eva": "闪避", "block": "格挡", "crit": "暴击",
-    "luck": "幸运", "will": "意志", "size": "规模", "mana_regen": "魔力恢复",
+    "luck": "幸运", "will": "意志", "occupy": "占用", "leadership": "领导力",
+    "mana_regen": "魔力恢复",
 }
+
+LEVEL_CAP = 99
+
+
+def xp_to_next(level: int) -> int:
+    """从 level 升到 level+1 所需经验。公差 5 的等差数列:1->2 需 5,2->3 需 10..."""
+    return 5 * level
 
 
 def validate_tags(tags: set[str]) -> None:
@@ -57,6 +68,9 @@ class UnitType:
     tags: set[str]
     recruit_cost: dict[str, int]   # 招募消耗资源
     base: dict[str, float]         # 基础属性
+    growth: dict[str, float] = field(default_factory=dict)   # 各属性增长率(每级 += growth[attr])
+    maintenance: dict[str, int] = field(default_factory=dict)   # 每回合维护费;缺省走原型默认
+    train_cost: dict[str, int] = field(default_factory=dict)    # 训练消耗;缺省走原型默认(gold=招募价/2 + 5 食物,魔法系加魔石)
     desc: str = ""
 
 
@@ -68,7 +82,11 @@ def load_unit_types(d: dict) -> dict[str, UnitType]:
         out[uid] = UnitType(
             id=uid, name=u["name"], tags=tags,
             recruit_cost=u.get("recruit_cost", {}),
-            base=u.get("base", {}), desc=u.get("desc", ""),
+            base=u.get("base", {}),
+            growth=u.get("growth", {}),
+            maintenance=u.get("maintenance", {}),
+            train_cost=u.get("train_cost", {}),
+            desc=u.get("desc", ""),
         )
     return out
 
@@ -95,11 +113,11 @@ class Unit:
     type_id: str
     name: str
     tags: set[str]                  # 含兵种词条 + 神器赋予的词条
-    base: dict[str, float]          # 基础属性(招募时确定,不含修正)
+    base: dict[str, float]          # 基础属性(招募时确定 + 等级成长烘进;不含情境修正)
     artifacts: list[str] = field(default_factory=list)   # 装备的神器 id,最多 3
     is_hero: bool = False
-    skills: list[str] = field(default_factory=list)     # 技能 id(英雄)
-    cur_hp: float = 0               # 当前生命
+    skills: list[str] = field(default_factory=list)     # 主动技能 id(英雄)
+    cur_hp: float = 0               # 当前生命(跨战斗累积,不每场回满)
     army_id: str | None = None      # 所属部队
     # 战斗内临时状态
     cur_ap: float = 0
@@ -108,6 +126,11 @@ class Unit:
     alive: bool = True
     # 当前所在结点
     node_id: str | None = None
+    # 成长
+    level: int = 1
+    xp: int = 0
+    # 成长率快照(从 UnitType 复制,供升级时使用;可被事件 perk 等改写)
+    growth: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.cur_hp <= 0:
@@ -123,7 +146,53 @@ class Unit:
                 if e.get("type") == "tag_grant":
                     self.tags.add(e["params"]["tag"])
 
+    def occupy(self) -> int:
+        """编入部队消耗的领导力点数。恒定,不随等级增长。"""
+        return int(self.base.get("occupy", 1))
+
+    def leadership(self) -> int:
+        """队长属性,决定部队可承载的占用总和。普通单位为 0。"""
+        return int(self.base.get("leadership", 0))
+
+    def gain_xp(self, amount: int) -> int:
+        """获得经验并升级,把成长烘进 base。返回升了几级。
+
+        XP 纯整数守恒:溢出的 XP 原样保留到下一级(3/5 +5 -> 升级扣5 -> 3/10)。
+        升级时 HP 按比例保留(不回满):cur_hp = floor(new_max * cur_hp / old_max),
+        即升级提升血量上限但保留当前伤势比例。
+        """
+        if self.level >= LEVEL_CAP:
+            return 0
+        self.xp += amount
+        levels_gained = 0
+        while self.level < LEVEL_CAP and self.xp >= xp_to_next(self.level):
+            self.xp -= xp_to_next(self.level)
+            self.level += 1
+            self._apply_growth()
+            levels_gained += 1
+        return levels_gained
+
+    def _apply_growth(self) -> None:
+        """升一级:按增长率把成长烘进 base,每属性 floor。
+        occupy 不增长(从 growth 中跳过);其余属性按 growth 值累加后 floor。
+        HP 按比例保留(不回满):升级提升血量上限,但保留当前伤势比例。"""
+        old_max = self.base.get("hp", 1)
+        old_cur = self.cur_hp
+        for attr, rate in self.growth.items():
+            if attr == "occupy" or rate == 0:
+                continue
+            old_val = self.base.get(attr, 0.0)
+            new_val = math.floor(old_val + rate)
+            self.base[attr] = float(new_val)
+        # HP 按比例保留(纯整数运算,无中间小数)
+        new_max = self.base.get("hp", old_max)
+        if new_max > 0 and old_max > 0:
+            self.cur_hp = float(math.floor(new_max * old_cur / old_max))
+        else:
+            self.cur_hp = new_max
+
     def describe(self) -> str:
         tagstr = "/".join(TAG_CN.get(t, t) for t in sorted(self.tags))
         return (f"{self.name}[{tagstr}] HP:{int(self.cur_hp)}/{int(self.base.get('hp', 1))} "
-                f"速:{int(self.base.get('speed', 0))} 物攻:{int(self.base.get('p_atk', 0))}")
+                f"速:{int(self.base.get('speed', 0))} 物攻:{int(self.base.get('p_atk', 0))} "
+                f"Lv{self.level}")

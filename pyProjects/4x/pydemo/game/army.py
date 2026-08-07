@@ -1,7 +1,8 @@
 """
 部队:3x3 九宫格,前/中/后三排,最多 9 个单位。
 
-必须由英雄任队长,队长意志决定部队最大规模。
+必须由英雄任队长,队长的 Leadership(领导力)决定部队可承载的 Occupy(占用)总和。
+每个单位在九宫格恒占 1 格,但消耗的占用不同(强/大单位占用更高)。
 部队必须始终有队长;队长离队须同据点指派接任,否则解散。
 英雄可任领主(与队长互斥)。
 
@@ -50,22 +51,23 @@ class Army:
     def units(self, unit_index: dict[str, Unit]) -> list[Unit]:
         return [unit_index[uid] for uid in self.grid if uid is not None]
 
-    def size(self, unit_index: dict[str, Unit]) -> int:
-        return sum(int(unit_index[uid].base.get("size", 1))
-                   for uid in self.grid if uid is not None)
+    def occupy_total(self, unit_index: dict[str, Unit]) -> int:
+        """部队当前占用的领导力总和。"""
+        return sum(unit_index[uid].occupy() for uid in self.grid if uid is not None)
 
-    def max_size(self, unit_index: dict[str, Unit]) -> int:
+    def max_leadership(self, unit_index: dict[str, Unit]) -> int:
+        """部队可承载的占用上限 = 队长的领导力。"""
         if self.captain_id and self.captain_id in unit_index:
-            return int(unit_index[self.captain_id].base.get("will", 5))
+            return unit_index[self.captain_id].leadership()
         return 0
 
     def can_add(self, unit: Unit, unit_index: dict[str, Unit]) -> bool:
         if unit.id not in unit_index:
             return False
-        # 找空位
+        # 找空位(九宫格最多 9 个单位)
         if None not in self.grid:
             return False
-        if self.size(unit_index) + int(unit.base.get("size", 1)) > self.max_size(unit_index):
+        if self.occupy_total(unit_index) + unit.occupy() > self.max_leadership(unit_index):
             return False
         return True
 
@@ -96,7 +98,7 @@ class Army:
         return True
 
     def place_for_garrison(self, unit: Unit, unit_index: dict[str, Unit]) -> bool:
-        """驻军专用:按角色选槽位直接放置,不做规模检查。"""
+        """驻军专用:按角色选槽位直接放置,不做占用检查。"""
         slot = self._pick_slot(unit)
         if slot < 0 or self.grid[slot] is not None:
             try:
@@ -139,7 +141,7 @@ class Army:
                 else:
                     cells.append("·")
             rows.append(f"{ROW_CN[r]}排[{' '.join(cells)}]")
-        return (f"{self.name}(队长:{cap} 规模:{self.size(unit_index)}/{self.max_size(unit_index)} "
+        return (f"{self.name}(队长:{cap} 占用:{self.occupy_total(unit_index)}/{self.max_leadership(unit_index)} "
                 f"补给:{self.supply})\n  " + "\n  ".join(rows))
 
 

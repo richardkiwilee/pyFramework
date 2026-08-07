@@ -11,8 +11,21 @@ from ..game.unit import TAG_CN
 
 def render_header(game: Game) -> str:
     p = game.factions[game.player_id]
+    res = p.resources
+    # §2:资源以 现存(净变动) 形式显示,如 粮食:20(+1)
+    res_parts = []
+    for k in __import__("pydemo.game.economy", fromlist=["RESOURCE_TYPES"]).RESOURCE_TYPES:
+        v = res.get(k)
+        if v == 0:
+            continue
+        net = res.resource(k).net()
+        if net != 0:
+            sign = "+" if net > 0 else ""
+            res_parts.append(f"{RESOURCE_CN[k]}:{v}({sign}{net})")
+        else:
+            res_parts.append(f"{RESOURCE_CN[k]}:{v}")
     return (f"=== {game.calendar.describe()} ===\n"
-            f"玩家: {p.name}  资源:{p.resources.describe()}\n"
+            f"玩家: {p.name}  资源:{'  '.join(res_parts)}\n"
             f"信念:{p.belief.describe()}")
 
 
@@ -71,7 +84,8 @@ def render_buildable(game: Game, stronghold_id: str) -> str:
     for bid, bdef in game.building_defs.items():
         cost = bdef.get("cost", {})
         coststr = "、".join(f"{RESOURCE_CN.get(k,k)}{v}" for k, v in cost.items())
-        lines.append(f"  [{idx}] {bdef['name']} 费:{coststr} 回合:{bdef.get('build_turns',1)} -> {bid}")
+        # 建造即时:支付足额资源即建成,无建造回合(ADR-0006)
+        lines.append(f"  [{idx}] {bdef['name']} 费:{coststr} (即时建成) -> {bid}")
         idx += 1
     return "\n".join(lines)
 

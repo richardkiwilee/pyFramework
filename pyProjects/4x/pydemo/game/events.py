@@ -9,7 +9,7 @@ import random
 from dataclasses import dataclass, field
 from typing import Any
 
-from .economy import Resources, Belief, BELIEF_CN, RESOURCE_CN
+from .economy import Resources, Belief, BELIEF_CN, RESOURCE_CN, SOURCE_EVENT
 
 
 @dataclass
@@ -43,7 +43,8 @@ def apply_option(opt: EventOption, resources: Resources, belief: Belief) -> str:
         belief.change(dim, int(delta))
         parts.append(f"{BELIEF_CN.get(dim, dim)} {delta:+d}")
     for k, v in eff.get("resources", {}).items():
-        resources.add(k, int(v))
+        # §2 delta:事件结算记来源 event
+        resources.add(k, int(v), source=SOURCE_EVENT)
         parts.append(f"{RESOURCE_CN.get(k, k)} {int(v):+d}")
     return "、".join(parts) if parts else "无变化"
 

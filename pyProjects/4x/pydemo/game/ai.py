@@ -7,6 +7,11 @@ AI:贪心启发式,5 条优先级规则。
 4. 遇敌方主力弱势则攻
 5. 有机会夺敌首都优先
 
+重建兜底(ADR-0005 待命池落地后补):当阵营已无玩家编组部队,但有待命·可用英雄
+驻于己方据点,则新建一支部队(任队长),使阵营失去初始部队后能重建、继续推进,
+避免冒烟对局长期"双方 0 部队"死局。新建部队后,若还有待命·可用单位,尽量派进
+停在己方据点的部队(上场须部队在己方据点)。
+
 返回一个动作列表,由 Game 执行。每个动作是 (kind, payload) 元组。
 """
 from __future__ import annotations
@@ -58,6 +63,43 @@ def ai_take_turn(faction: Faction, game) -> list[tuple[str, dict]]:
                 # 注意:不在此处改 pool.offerings;action_recruit_hero 会负责移除。
                 actions.append(("recruit_hero", {"stronghold": sid, "hero": hid}))
                 break
+
+    # 2.5 重建兜底:无玩家编组部队但有待命·可用英雄 → 在己方据点新建部队
+    player_armies = [game.armies.get(aid) for aid in faction.army_ids
+                     if game.armies.get(aid) and not game.armies[aid].is_garrison]
+    if not player_armies:
+        # 找一个己方据点作为建队地点(优先首都)
+        node_id = faction.capital_id
+        if node_id and node_id in faction.stronghold_ids:
+            # 待命·可用英雄
+            hero = None
+            for uid in faction.standby_available_ids():
+                u = game.unit_index.get(uid)
+                if u and u.is_hero and u.alive:
+                    hero = u
+                    break
+            if hero is not None:
+                actions.append(("new_army", {"stronghold": node_id,
+                                             "hero": hero.id,
+                                             "name": f"{hero.name}的部队"}))
+
+    # 2.6 上场:把待命·可用单位派进停在己方据点的部队(ADR-0005:须在己方据点)
+    avail_ids = faction.standby_available_ids()
+    if avail_ids:
+        for army in player_armies:
+            if army.node_id not in faction.stronghold_ids:
+                continue
+            if None not in army.grid:
+                continue  # 无空位
+            # 按占用升序派低占用单位先上,便于塞更多
+            cands = sorted(
+                ((game.unit_index[uid], uid) for uid in avail_ids
+                 if uid in game.unit_index and game.unit_index[uid].alive),
+                key=lambda uu: uu[0].occupy())
+            for u, uid in cands:
+                if army.can_add(u, game.unit_index):
+                    actions.append(("deploy", {"army": army.id, "unit": uid}))
+                    break  # 一支部队本回合先派一个,避免超占
 
     # 3 & 5. 移动与进攻:遍历部队,向敌方首都推进。
     # 先算到敌方首都的距离图(BFS),让部队朝距离更小的邻接点走,避免来回反弹。

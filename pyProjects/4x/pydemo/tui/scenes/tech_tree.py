@@ -280,7 +280,7 @@ class TreeScene(Scene):
         for cx in range(1, w - 1):
             buf.set_char(cx, 2, "─", theme.BORDER, theme.BG)
         top = 3
-        bottom = h - 2
+        bottom = h - 3   # §6: 让出 y=h-2 给日志栏, y=h-1 由框架绘键提示
         mid_x = w // 2
         list_rect = (1, top, mid_x - 1, bottom - top)
         detail_rect = (mid_x, top, w - mid_x - 1, bottom - top)
@@ -292,6 +292,8 @@ class TreeScene(Scene):
         self._render_detail(buf, detail_rect)
         for cx in range(1, w - 1):
             buf.set_char(cx, bottom, "─", theme.BORDER, theme.BG)
+        # §6 底部日志栏 y=h-2
+        log.render_log_bar(buf, 0, h - 2, w)
 
     def _render_filter_row(self, buf: FrameBuffer, w: int) -> None:
         parts = []

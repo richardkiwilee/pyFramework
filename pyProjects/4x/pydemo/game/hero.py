@@ -23,6 +23,9 @@ class HeroDef:
     skills: list[str]               # 技能 id 列表
     recruit_cost: dict[str, int]    # 招募资源消耗
     belief_req: dict[str, int]      # 信念门槛 {dim: threshold}
+    growth: dict[str, float] = field(default_factory=dict)   # 各属性增长率
+    maintenance: dict[str, int] = field(default_factory=dict)   # 每回合维护费;缺省走原型默认(英雄 4 倍)
+    train_cost: dict[str, int] = field(default_factory=dict)    # 训练消耗;缺省走原型默认(按其定义)
     desc: str = ""
 
 
@@ -31,9 +34,13 @@ def load_hero_defs(d: dict) -> dict[str, HeroDef]:
     for hid, h in d.items():
         out[hid] = HeroDef(
             id=hid, name=h["name"], tags=set(h.get("tags", ["melee", "human"])),
-            base=h.get("base", {}), skills=h.get("skills", []),
+            base=h.get("base", {}), growth=h.get("growth", {}),
+            skills=h.get("skills", []),
             recruit_cost=h.get("recruit_cost", {}),
-            belief_req=h.get("belief_req", {}), desc=h.get("desc", ""),
+            belief_req=h.get("belief_req", {}),
+            maintenance=h.get("maintenance", {}),
+            train_cost=h.get("train_cost", {}),
+            desc=h.get("desc", ""),
         )
     return out
 
@@ -46,6 +53,7 @@ def make_hero_unit(hero_def: HeroDef) -> Unit:
         name=hero_def.name,
         tags=set(hero_def.tags),
         base=dict(hero_def.base),
+        growth=dict(hero_def.growth),
         is_hero=True,
         skills=list(hero_def.skills),
     )

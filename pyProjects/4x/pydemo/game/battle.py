@@ -10,6 +10,7 @@ Tick 驱动的自动战斗引擎。
 计算各单位的有效属性,再进入 Tick 循环。
 """
 from __future__ import annotations
+import math
 import random
 from dataclasses import dataclass, field
 from typing import Any
@@ -42,6 +43,8 @@ class BattleResult:
     log: list[str] = field(default_factory=list)
     # 结局:谁占据结点(None 表示无变化,进攻方退回)
     occupier_side: str | None = None   # 'attacker' | 'defender' | None
+    # 本场阵亡单位 id 列表(用于结算死亡经验)
+    casualties: list[str] = field(default_factory=list)
 
 
 def collect_all_mods(
@@ -93,7 +96,10 @@ def run_battle(
         u.cur_mana = eff_map[u.id].get("mana", 0)
         u.atb = 0.0
         u.alive = True
-        u.cur_hp = eff_map[u.id].get("hp", u.cur_hp)
+        # HP 跨战斗累积(不每场回满):保留进场 cur_hp,仅 clamp 到当前有效上限。
+        # AP/Mana 仍每场回满;HP 跨场消耗是"3~4 场耗死"模型的前提(见 unit_types 校准)。
+        eff_hp = eff_map[u.id].get("hp", u.base.get("hp", 1))
+        u.cur_hp = eff_hp if u.cur_hp <= 0 else min(u.cur_hp, eff_hp)
 
     # 构造槽位映射(unit -> slot)
     def side_slots(side: BattleSide) -> list[tuple[int, Unit]]:
@@ -154,15 +160,15 @@ def run_battle(
             teff = eff_map[t_unit.id]
             is_magic = "magic" in u.tags and ueff.get("m_atk", 0) > ueff.get("p_atk", 0)
             if is_magic:
-                dmg = max(1, ueff.get("m_atk", 0) - teff.get("m_def", 0))
+                dmg = max(1, int(math.floor(ueff.get("m_atk", 0) - teff.get("m_def", 0))))
                 kind = "魔攻"
             else:
-                dmg = max(1, ueff.get("p_atk", 0) - teff.get("p_def", 0))
+                dmg = max(1, int(math.floor(ueff.get("p_atk", 0) - teff.get("p_def", 0))))
                 kind = "物攻"
             # 暴击/命中简化
             crit = random.random() < (ueff.get("crit", 0) / 100.0)
             if crit:
-                dmg = int(dmg * 1.5)
+                dmg = int(math.floor(dmg * 1.5))
             t_unit.cur_hp -= dmg
             if log_detail:
                 result.log.append(f"[T{tick}] {u.name} {kind}→{t_unit.name} 伤害{dmg}"
@@ -171,8 +177,10 @@ def run_battle(
             if t_unit.cur_hp <= 0:
                 t_unit.alive = False
                 t_unit.cur_hp = 0
+                if t_unit.id not in result.casualties:
+                    result.casualties.append(t_unit.id)
                 if log_detail:
-                    result.log.append(f"  {t_unit.name} 阵亡")
+                    result.log.append(f"  {t_unit.name} 阵亡(Lv{getattr(t_unit, 'level', 1)})")
         tick += 1
         # 全灭检查
         if not side_alive(attacker):

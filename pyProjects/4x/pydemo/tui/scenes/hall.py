@@ -1,8 +1,11 @@
-"""聚贤庄场景：只读展示玩家英雄厅（hall_of_worthies）。
+"""待命池场景:只读浏览阵营级待命单位(ADR-0005)。
 
-按 操作逻辑.md：招募完后立刻进入聚贤庄。业务层无"召唤/登场/冷却推进"接口，
-故本场景只读列出 hall_of_worthies 中的英雄及其冷却回合数，并标注占位说明。
-ESC 返回；按"召唤"键给出占位警告（未来业务层扩展）。
+待命取代聚贤庄:阵营级、全兵种通用、无位置。分两态:
+  - 可用(冷却 0):可派遣到己方据点内的部队 / 可训练
+  - 不可用(冷却 >0):下场后 5 回合冷却中,暂不能上场
+
+业务层 Faction.standby: {unit_id: cooldown}。冷却在 start_turn 推进。
+本场景只读列出待命单位及其冷却;ESC 返回。召唤/上场走部队编辑界面的"上场"。
 """
 from __future__ import annotations
 
@@ -12,15 +15,14 @@ from pyconsole.core import actions
 from pyconsole.core.scene import Scene, SceneResult, NONE, POP
 from pyconsole.io.buffer import FrameBuffer
 from pyconsole.io import theme
-from pyconsole.io.widgets import draw_box, fill_rect
-from pyconsole.io.width import text_width
+from pyconsole.io.widgets import draw_box
 
 from .. import controller as ctrl_mod
 from .. import log
 from pydemo.game.unit import ATTR_CN, TAG_CN
 
 
-class HallScene(Scene):
+class StandbyScene(Scene):
     allow_status_overlay = True
 
     def __init__(self) -> None:
@@ -33,29 +35,20 @@ class HallScene(Scene):
 
     # ---- 数据 ----
     def _entries(self) -> list[tuple[str, int]]:
-        """hall_of_worthies: {hero_unit_id: cooldown} -> [(name, cooldown)]。"""
-        g = ctrl_mod.ctrl.g
+        """standby: {unit_id: cooldown} -> [(unit_id, cooldown)]。"""
         player = ctrl_mod.ctrl.player()
-        out: list[tuple[str, int]] = []
-        for uid, cd in player.hall_of_worthies.items():
-            u = g.unit_index.get(uid)
-            name = u.name if u else uid
-            out.append((uid, int(cd)))
-        return out
+        return [(uid, int(cd)) for uid, cd in player.standby.items()]
 
     # ---- 输入 ----
     def handle_action(self, event) -> SceneResult:
         a = event.action
         if a == actions.BACK:
             return POP()
-        if a in (actions.UP,):
+        if a == actions.UP:
             self._move(-1)
             return NONE()
         if a == actions.DOWN:
             self._move(1)
-            return NONE()
-        if a in (actions.CONFIRM, actions.SELECT):
-            self._summon()
             return NONE()
         return NONE()
 
@@ -65,38 +58,26 @@ class HallScene(Scene):
             return
         self.focus = (self.focus + delta) % len(entries)
 
-    def _summon(self) -> None:
-        entries = self._entries()
-        if not entries:
-            log.push("聚贤庄空空如也", warn=True)
-            return
-        uid, _cd = entries[self.focus]
-        g = ctrl_mod.ctrl.g
-        u = g.unit_index.get(uid)
-        name = u.name if u else uid
-        log.push(f"召唤 {name}：业务层暂未实现召唤/登场机制（占位）", warn=True)
-
     # ---- 渲染 ----
     def render(self, buf: FrameBuffer) -> None:
         w, h = buf.w, buf.h
-        draw_box(buf, 0, 0, w, h, title="聚贤庄")
-        # 头部说明 y=1
-        buf.put_text(2, 1, "招募 / 遣散的英雄在此休整（只读 · 召唤待业务层扩展）",
+        draw_box(buf, 0, 0, w, h, title="待命池")
+        buf.put_text(2, 1, "阵营级候命池 · 可用可派遣到己方据点部队 / 不可用为下场冷却中",
                      theme.DIM, theme.BG)
         for cx in range(1, w - 1):
             buf.set_char(cx, 2, "─", theme.BORDER, theme.BG)
 
         entries = self._entries()
         if not entries:
-            buf.put_text(2, 4, "聚贤庄空空如也。", theme.DIM, theme.BG)
-            buf.put_text(2, 6, "招募英雄后此处会显示其冷却剩余回合。", theme.DIM, theme.BG)
-            buf.put_text(2, 28, "ESC 返回", theme.DIM, theme.BG)
+            buf.put_text(2, 4, "待命池为空。", theme.DIM, theme.BG)
+            buf.put_text(2, 6, "招募或下场单位后会出现在此。", theme.DIM, theme.BG)
+            log.render_log_bar(buf, 0, h - 2, w)
             return
 
         # 表头 y=4
-        buf.put_text(2, 4, "英雄", theme.ACCENT, theme.BG)
+        buf.put_text(2, 4, "单位", theme.ACCENT, theme.BG)
         buf.put_text(28, 4, "词条", theme.ACCENT, theme.BG)
-        buf.put_text(70, 4, "冷却剩余", theme.ACCENT, theme.BG)
+        buf.put_text(64, 4, "状态", theme.ACCENT, theme.BG)
         for cx in range(1, w - 1):
             buf.set_char(cx, 5, "─", theme.BORDER, theme.BG)
 
@@ -108,22 +89,23 @@ class HallScene(Scene):
             u = g.unit_index.get(uid)
             name = u.name if u else uid
             tagstr = "/".join(TAG_CN.get(t, t) for t in sorted(u.tags)) if u else "—"
-            cd_txt = f"{cd} 回合" if cd > 0 else "可召唤"
-            cd_fg = theme.GOLD if cd > 0 else theme.ACCENT2
+            status_txt = f"不可用({cd}回合)" if cd > 0 else "可用"
+            status_fg = theme.WARN if cd > 0 else theme.ACCENT2
             if i == self.focus:
                 buf.fill_rect(1, ry, w - 2, 1, " ", theme.SELECTED_FG, theme.SELECTED_BG)
                 buf.put_text(2, ry, "▶", theme.ACCENT2, theme.SELECTED_BG)
                 buf.put_text(4, ry, name, theme.SELECTED_FG, theme.SELECTED_BG)
                 buf.put_text(28, ry, tagstr, theme.SELECTED_FG, theme.SELECTED_BG)
-                buf.put_text(70, ry, cd_txt, theme.SELECTED_FG, theme.SELECTED_BG)
+                buf.put_text(64, ry, status_txt, theme.SELECTED_FG, theme.SELECTED_BG)
             else:
                 buf.put_text(2, ry, "  ", theme.DIM, theme.BG)
                 buf.put_text(4, ry, name, theme.HEADING, theme.BG)
                 buf.put_text(28, ry, tagstr, theme.DIM, theme.BG)
-                buf.put_text(70, ry, cd_txt, cd_fg, theme.BG)
+                buf.put_text(64, ry, status_txt, status_fg, theme.BG)
             ry += 1
 
-        buf.put_text(2, 28, "↑↓ 切换  回车 召唤(占位)  ESC 返回", theme.DIM, theme.BG)
+        # §6 底部日志栏 y=h-2（键提示由框架在 h-1 绘制；行尾操作提示并入 get_hints）
+        log.render_log_bar(buf, 0, h - 2, w)
 
     def get_hints(self) -> list[str]:
-        return ["↑↓ 切换", "回车 召唤(占位)", "ESC 返回"]
+        return ["↑↓ 切换", "ESC 返回", "上场请到部队编辑界面"]

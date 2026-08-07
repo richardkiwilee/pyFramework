@@ -1,13 +1,13 @@
 {
-  "market":     {"name": "市场",   "kind": "produce", "cost": {"wood": 10},            "build_turns": 1, "produces": {"gold": 5}},
-  "farm":       {"name": "农场",   "kind": "produce", "cost": {"wood": 5},             "build_turns": 1, "produces": {"food": 5}},
-  "sawmill":    {"name": "伐木场", "kind": "produce", "cost": {"gold": 10},            "build_turns": 1, "produces": {"wood": 5}},
-  "quarry":     {"name": "采石场", "kind": "produce", "cost": {"wood": 15},            "build_turns": 2, "produces": {"stone": 5}},
-  "iron_mine":  {"name": "铁矿场", "kind": "produce", "cost": {"wood": 15, "stone": 10}, "build_turns": 2, "produces": {"iron": 5}},
-  "mana_mine":  {"name": "魔石矿", "kind": "produce", "cost": {"gold": 20, "stone": 10}, "build_turns": 2, "produces": {"mana_stone": 3}},
-  "academy":    {"name": "学院",   "kind": "produce", "cost": {"gold": 25, "wood": 10}, "build_turns": 2, "produces": {"tech": 3}},
-  "monument":   {"name": "纪念碑", "kind": "produce", "cost": {"stone": 20},            "build_turns": 2, "produces": {"culture": 3}},
-  "temple":     {"name": "神庙",   "kind": "produce", "cost": {"wood": 10, "stone": 10}, "build_turns": 2, "produces": {"faith": 3}},
-  "caravan":    {"name": "商队",   "kind": "produce", "cost": {"gold": 15},              "build_turns": 1, "produces": {"luxury": 2}},
-  "court":      {"name": "宫廷",   "kind": "produce", "cost": {"gold": 30, "culture": 5}, "build_turns": 3, "produces": {"decree": 1}}
+  "market":     {"name": "市场",   "kind": "produce", "cost": {"wood": 10},            "produces": {"gold": 5}},
+  "farm":       {"name": "农场",   "kind": "produce", "cost": {"wood": 5},             "produces": {"food": 5}},
+  "sawmill":    {"name": "伐木场", "kind": "produce", "cost": {"gold": 10},            "produces": {"wood": 5}},
+  "quarry":     {"name": "采石场", "kind": "produce", "cost": {"wood": 15},            "produces": {"stone": 5}},
+  "iron_mine":  {"name": "铁矿场", "kind": "produce", "cost": {"wood": 15, "stone": 10}, "produces": {"iron": 5}},
+  "mana_mine":  {"name": "魔石矿", "kind": "produce", "cost": {"gold": 20, "stone": 10}, "produces": {"mana_stone": 3}},
+  "academy":    {"name": "学院",   "kind": "produce", "cost": {"gold": 25, "wood": 10}, "produces": {"tech": 3}},
+  "monument":   {"name": "纪念碑", "kind": "produce", "cost": {"stone": 20},            "produces": {"culture": 3}},
+  "temple":     {"name": "神庙",   "kind": "produce", "cost": {"wood": 10, "stone": 10}, "produces": {"faith": 3}},
+  "caravan":    {"name": "商队",   "kind": "produce", "cost": {"gold": 15},              "produces": {"luxury": 2}},
+  "court":      {"name": "宫廷",   "kind": "produce", "cost": {"gold": 30, "culture": 5}, "produces": {"decree": 1}}
 }

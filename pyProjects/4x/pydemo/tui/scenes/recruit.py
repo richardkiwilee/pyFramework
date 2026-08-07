@@ -4,10 +4,9 @@
 - 左右分成 3 个窗口，分别是 3 个单位（招募池的 3 个 offerings）。
 - 每个窗口显示单位详情和招募费用，回车招募。
 - 招募成功后**留在本场景**：被招募的窗口置空显示"（空位）/已被招募"，
-  其余英雄原位保留；3 个都招满即 3 个空栏位。不再跳转聚贤庄——业务层
-  action_recruit_hero 现在把英雄送入聚贤庄（hall_of_worthies）待命，不自动
-  编入部队；玩家可后续在据点界面将其指派为领主，或新建部队时任队长
-  （见 §8）。聚贤庄场景暂未挂接入口（待业务层扩展召唤/登场/冷却机制）。
+  其余英雄原位保留；3 个都招满即 3 个空栏位。招募的单位进入待命·可用
+  （阵营级、无位置，见 ADR-0005），不自动编入部队；玩家可后续派遣到
+  己方据点内的部队，或新建部队时任队长。待命池场景可只读浏览。
 
 交互：
 - ↑↓ 切换己方据点（每个据点有独立招募池，每 14 天刷新 3 个）。
@@ -18,8 +17,8 @@
 
 业务层 RecruitmentPool.offerings 为**固定 3 槽**列表：每槽为 hero_def id 或
 None（已招募/未刷新出的空位）。招募把对应槽位置 None，不压缩，故三窗口与槽
-位一一对应——被招募的窗口才空，其余英雄原位保留。pool 由 tick_economy 每 14
-天自动刷新（重填 3 槽）；此处只读 pool.offerings。
+位一一对应——被招募的窗口才空，其余英雄原位保留。pool 由 start_turn 每 14
+天自动刷新（重填 3 槽）；此处只读 pool.offerings。招募的单位进入待命·可用。
 """
 from __future__ import annotations
 
@@ -45,7 +44,7 @@ W3 = (66, 3, 33, 25)
 WINDOWS = [W1, W2, W3]
 
 # 详情里展示的基础属性（按重要性排列，窗口高度有限）
-DETAIL_ATTRS = ["hp", "p_atk", "m_atk", "p_def", "m_def", "speed", "acc", "eva", "block", "crit", "will"]
+DETAIL_ATTRS = ["hp", "p_atk", "m_atk", "p_def", "m_def", "speed", "acc", "eva", "block", "crit", "will", "occupy", "leadership"]
 
 
 class RecruitScene(Scene):
@@ -164,9 +163,8 @@ class RecruitScene(Scene):
         offs = self._offerings()
         for i, rect in enumerate(WINDOWS):
             self._render_window(buf, rect, i, offs)
-        # 图例 y=28
-        buf.put_text(2, 28, "↑↓ 切换据点  ←→ 选择英雄  回车 招募  ESC 返回",
-                     theme.DIM, theme.BG)
+        # §6 底部日志栏 y=h-2（键提示由框架在 h-1 绘制；原图例与 get_hints 重复，移除）
+        log.render_log_bar(buf, 0, h - 2, w)
 
     def _render_header(self, buf: FrameBuffer, w: int) -> None:
         sh = self._current_sh()

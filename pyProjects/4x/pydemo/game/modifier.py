@@ -60,16 +60,21 @@ def compute_attribute(
     hi: float | None = None,
 ) -> float:
     """
-    按固定顺序计算:固定加 -> 百分比乘 -> clamp。
+    按固定顺序计算:固定加 -> 百分比乘 -> clamp,每阶段向下取整(floor)。
+    玩家面板与战斗所用均为整数,玩家可用整数反推公式,故底层不留隐藏小数。
     只处理 attr 匹配的修正。
     """
+    import math
     relevant = [m for m in mods if m.attr == attr]
     flat = sum(m.value for m in relevant if m.op == "flat")
     pct = sum(m.value for m in relevant if m.op == "pct")
-    result = base + flat
-    result = result * (1.0 + pct)
+    # 阶段 1:base + flat,floor
+    result = float(math.floor(base + flat))
+    # 阶段 2:*(1+pct),floor
+    result = float(math.floor(result * (1.0 + pct)))
+    # 阶段 3:clamp(边界本身为整数,clamp 后天然整数)
     if lo is not None:
         result = max(lo, result)
     if hi is not None:
         result = min(hi, result)
-    return result
+    return float(math.floor(result))

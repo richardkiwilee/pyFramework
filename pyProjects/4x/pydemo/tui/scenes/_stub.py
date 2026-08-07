@@ -14,6 +14,8 @@ from pyconsole.io.buffer import FrameBuffer
 from pyconsole.io import theme
 from pyconsole.io.widgets import draw_box, put_centered
 
+from .. import log
+
 
 class StubScene(Scene):
     allow_status_overlay = True
@@ -36,6 +38,8 @@ class StubScene(Scene):
         draw_box(buf, 0, 0, w, h, title=self._title)
         put_centered(buf, h // 2, self._message, w, theme.DIM, theme.BG)
         put_centered(buf, h // 2 + 2, "ESC 返回", w, theme.ACCENT, theme.BG)
+        # §6 底部日志栏 y=h-2（键提示由框架在 h-1 绘制）
+        log.render_log_bar(buf, 0, h - 2, w)
 
     def get_hints(self) -> list[str]:
         return ["ESC 返回"]

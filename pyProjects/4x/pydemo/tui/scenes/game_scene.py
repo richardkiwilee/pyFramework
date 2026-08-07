@@ -33,18 +33,22 @@ from .. import actions as g_actions
 from pydemo.game.economy import RESOURCE_TYPES, RESOURCE_CN, BELIEF_CN
 from .map_scene import render_topology, _render_legend, C_OWN, C_ENEMY, C_NEUTRAL, C_MINOR
 
+# §2 资源净变动配色:增量 >0 绿、≤0 红(原型复用归属色)
+C_GAIN = C_OWN    # 41 绿
+C_LOSS = C_ENEMY  # 196 红
+
 # 默认操作提示：游戏主场景下可用的绑定键（省略 ↑↓/回车 提示）。
 DEFAULT_HINTS: list[tuple[str, str]] = [
     ("K", "科技"), ("W", "文化"), ("H", "百科"), ("J", "外交"),
-    ("C", "据点"), ("A", "部队"), ("Z", "招募"), ("M", "地图"),
-    ("T", "下一回合"), ("ESC", "选单"), ("Tab", "总览"),
+    ("C", "据点"), ("A", "部队"), ("Z", "招募"), ("X", "单位"),
+    ("V", "据点总览"),
+    ("M", "地图"), ("T", "下一回合"), ("ESC", "选单"), ("Tab", "总览"),
 ]
 
 
 class GameScene(Scene):
     allow_status_overlay = True
     hints_row = "top"  # 框架在第 0 行原生绘制键提示栏（render_hints 重写）
-
     def __init__(self) -> None:
         super().__init__()
         self._hints: list[tuple[str, str]] = list(DEFAULT_HINTS)
@@ -104,6 +108,12 @@ class GameScene(Scene):
         if a == g_actions.OPEN_ARMY:
             from .army import ArmyScene
             return PUSH(ArmyScene())
+        if a == g_actions.OPEN_UNIT:
+            from .unit import UnitScene
+            return PUSH(UnitScene())
+        if a == g_actions.OPEN_STRONGHOLD_OVERVIEW:
+            from .stronghold_overview import StrongholdOverviewScene
+            return PUSH(StrongholdOverviewScene())
         if a == g_actions.OPEN_RECRUIT:
             from .recruit import RecruitScene
             return PUSH(RecruitScene())
@@ -176,7 +186,10 @@ class GameScene(Scene):
         buf.put_text(1, y, cal_desc, theme.HEADING, theme.BG)
 
     def _render_resource_line(self, buf: FrameBuffer, w: int, y: int, g, player) -> None:
-        """y=2：阵营 + 资源 + 信念。"""
+        """y=2：阵营 + 资源(§2:现存(净变动) 形式)+ 信念。
+
+        净变动 >0 绿色、≤0 红色(§2);无变动则只显示现存值,不带括号。
+        """
         buf.fill_rect(0, y, w, 1, " ", theme.DIM, theme.BG)
         x = buf.put_text(1, y, player.name, theme.HEADING, theme.BG)
         x = buf.put_text(x, y, "  ", theme.DIM, theme.BG)
@@ -185,14 +198,30 @@ class GameScene(Scene):
             v = res.get(k)
             if v == 0:
                 continue
-            txt = f"{RESOURCE_CN[k]}:{v} "
-            fg = theme.GOLD if k == "gold" else (
+            net = res.resource(k).net()
+            if net != 0:
+                # §2:20(+1) 形式,净变动 >0 绿、≤0 红
+                sign = "+" if net > 0 else ""
+                delta_txt = f"({sign}{net})"
+                txt = f"{RESOURCE_CN[k]}:{v}{delta_txt} "
+                delta_fg = C_GAIN if net > 0 else C_LOSS
+            else:
+                txt = f"{RESOURCE_CN[k]}:{v} "
+                delta_fg = None
+            base_fg = theme.GOLD if k == "gold" else (
                 theme.ACCENT if k in ("tech", "culture", "faith") else theme.FG)
             if x + text_width(txt) > w - 1:
                 if w - 1 - x > 4:
                     buf.put_text(x, y, "…", theme.DIM, theme.BG)
                 break
-            x = buf.put_text(x, y, txt, fg, theme.BG)
+            # 先画存量部分(不带 delta_txt 的前缀)
+            if net != 0:
+                prefix = f"{RESOURCE_CN[k]}:{v}"
+                x = buf.put_text(x, y, prefix, base_fg, theme.BG)
+                x = buf.put_text(x, y, delta_txt, delta_fg, theme.BG)
+                x = buf.put_text(x, y, " ", theme.DIM, theme.BG)
+            else:
+                x = buf.put_text(x, y, txt, base_fg, theme.BG)
         # 信念挤在右侧
         belief_txt = "  ".join(f"{BELIEF_CN[dim]}:{val:+d}" for dim, val in player.belief.values.items())
         bt_w = text_width(belief_txt)
@@ -200,25 +229,8 @@ class GameScene(Scene):
             buf.put_text(w - 1 - bt_w, y, belief_txt, theme.ACCENT2, theme.BG)
 
     def _render_log(self, buf: FrameBuffer, w: int, h: int) -> None:
-        """y=h-1：日志信息栏（最近若干条）。"""
-        ly = h - 1
-        buf.fill_rect(0, ly, w, 1, " ", theme.DIM, theme.BG)
-        buf.put_text(0, ly, "日志", theme.ACCENT, theme.BG)
-        msgs = log.recent(3)
-        if not msgs:
-            buf.put_text(4, ly, "（无）", theme.DIM, theme.BG)
-            return
-        x = 4
-        for i, (text, warn) in enumerate(msgs):
-            if i > 0:
-                if x + text_width(" │ ") >= w:
-                    break
-                x = buf.put_text(x, ly, " │ ", theme.DIM, theme.BG)
-            fg = theme.WARN if warn else theme.DIM
-            trunc = w - x
-            if trunc <= 1:
-                break
-            x = put_truncated(buf, x, ly, text, trunc, fg, theme.BG)
+        """y=h-1：日志信息栏（最近若干条）。§6 委托共享渲染。"""
+        log.render_log_bar(buf, 0, h - 1, w)
 
     # ---- Tab overlay：自定义帝国总览 ----
     def render_overlay(self, buf: FrameBuffer, w: int, h: int) -> bool:

@@ -24,6 +24,7 @@ from pyconsole.io.widgets import draw_box
 from pyconsole.io.width import text_width
 
 from .. import controller as ctrl_mod
+from .. import log
 
 # 归属颜色
 C_OWN = 41       # 绿
@@ -218,8 +219,10 @@ class MapScene(Scene):
         w, h = buf.w, buf.h
         draw_box(buf, 0, 0, w, h, title="地图一览")
         g = ctrl_mod.ctrl.g
-        render_topology(buf, (1, 1, w - 2, h - 2), g)
-        _render_legend(buf, 2, h - 2, w)
+        render_topology(buf, (1, 1, w - 2, h - 3), g)
+        _render_legend(buf, 2, h - 3, w)
+        # §6 底部日志栏 y=h-2（键提示由框架在 h-1 绘制）
+        log.render_log_bar(buf, 0, h - 2, w)
 
     def get_hints(self) -> list[str]:
         return ["ESC 返回"]

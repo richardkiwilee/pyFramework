@@ -27,7 +27,6 @@ from pyconsole.io.width import text_width
 from .. import controller as ctrl_mod
 from .. import log
 from pydemo.game.economy import RESOURCE_CN
-from pydemo.game.map_system import SIZE_CN
 
 # 归属颜色
 C_OWN = 41       # 绿
@@ -61,6 +60,13 @@ class StrongholdScene(Scene):
 
     def on_enter(self, params: Any = None) -> None:
         self.params = params
+        # 委托进入:预选到指定据点（供据点总览 V 回车进入）
+        if isinstance(params, dict) and params.get("stronghold_id"):
+            shs = list(ctrl_mod.ctrl.g.map.strongholds.values())
+            for i, sh in enumerate(shs):
+                if sh.id == params["stronghold_id"]:
+                    self.focus[0] = i
+                    break
 
     def on_return(self, value: Any) -> None:
         """从 ArmyScene（部队操作委托）弹回时，W2 部队列表可能变化，夹住焦点。"""
@@ -110,12 +116,13 @@ class StrongholdScene(Scene):
                 ok = player.resources.can_afford(cost)
                 out.append((bid, name, cost_str, ok))
         else:  # assign 领主
+            # 候选改为阵营级待命·可用英雄(ADR-0005):无位置,不再限"同据点无部队英雄"
             lord_ids = set(player.lords.values())
             captain_ids = {a.captain_id for a in g.armies.values() if a.captain_id}
-            for u in g.unit_index.values():
-                if (u.is_hero and u.alive and u.node_id == sh.id
-                        and u.id not in lord_ids and u.id not in captain_ids):
-                    out.append((u.id, u.name, "可指派", True))
+            for uid in player.standby_available_ids():
+                u = g.unit_index.get(uid)
+                if u and u.is_hero and u.alive and u.id not in lord_ids and u.id not in captain_ids:
+                    out.append((u.id, u.name, "待命·可用", True))
         return out
 
     # ---- 输入 ----
@@ -246,7 +253,13 @@ class StrongholdScene(Scene):
             msg = g.action_build(g.player_id, sh.id, cid)
             log.push(msg)
         else:
-            ctrl_mod.ctrl.player().lords[sh.id] = cid
+            # 指派领主:候选来自待命·可用,先出待命池(ADR-0005)
+            player = ctrl_mod.ctrl.player()
+            u = g.unit_index.get(cid)
+            if u and cid in player.standby:
+                player.standby.pop(cid, None)
+                u.node_id = sh.id
+            player.lords[sh.id] = cid
             log.push(f"指派 {name} 为 {sh.name} 的领主")
 
     # ---- 渲染 ----
@@ -262,9 +275,8 @@ class StrongholdScene(Scene):
         self._render_w2(buf)
         self._render_w3(buf)
         self._render_w4(buf)
-        # 图例 y=28
-        legend = "◆首都  绿=我方  红=敌方  白=中立  ·  槽位=建筑/空槽  ·  →进入 ←回退 回车确认"
-        buf.put_text(2, 28, legend, theme.DIM, theme.BG)
+        # §6 底部日志栏 y=h-2（键提示由框架在 h-1 绘制；面包屑已含操作提示，原图例移除）
+        log.render_log_bar(buf, 0, h - 2, w)
 
     def _breadcrumb(self) -> str:
         sh = self._selected_sh()
@@ -317,7 +329,7 @@ class StrongholdScene(Scene):
         owner_txt = "我方" if sh.owner == ctrl_mod.ctrl.g.player_id else (
             "中立" if sh.owner is None else "敌方")
         buf.put_text(x + 1, y + 2,
-                     f"规模{SIZE_CN.get(sh.size, '?')} 槽{len(sh.buildings)}/{sh.slots()} {owner_txt}",
+                     f"规模{sh.size}槽 槽{len(sh.buildings)}/{sh.slots()} {owner_txt}",
                      theme.DIM, theme.BG)
         rows = self._w2_rows_for(sh)
         if not rows:
@@ -330,7 +342,7 @@ class StrongholdScene(Scene):
             if kind == "slot":
                 if key < len(sh.buildings):
                     b = sh.buildings[key]
-                    label = b.name + ("(建造中)" if not b.is_ready() else "")
+                    label = b.name   # 建造即时,无"建造中"状态(ADR-0006)
                     fg = theme.FG
                 else:
                     label = "空槽"

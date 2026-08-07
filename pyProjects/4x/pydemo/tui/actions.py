@@ -17,6 +17,8 @@ OPEN_STRONGHOLD = "open_stronghold"  # C 据点一览
 OPEN_ARMY = "open_army"            # A 部队一栏
 OPEN_RECRUIT = "open_recruit"       # Z 招募一览
 OPEN_MAP = "open_map"              # M 地图一览
+OPEN_UNIT = "open_unit"             # X 单位一览(§3)
+OPEN_STRONGHOLD_OVERVIEW = "open_stronghold_overview"  # V 据点总览(§4)
 
 # 部队场景：仅在最左侧窗口时可用
 NEW_ARMY = "new_army"              # N 新建部队
