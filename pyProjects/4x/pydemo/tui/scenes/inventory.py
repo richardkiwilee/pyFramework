@@ -48,6 +48,22 @@ def _describe_effect(eff: dict) -> str:
                 f"{ATTR_CN.get(p.get('attr'), p.get('attr'))} +{p.get('value', 0)}")
     if et == "aura_flat":
         return f"光环 {ATTR_CN.get(p.get('attr'), p.get('attr'))} +{p.get('value', 0)}"
+    if et == "ap_damage":
+        kind_cn = "魔法" if p.get("kind") == "magic" else "物理"
+        return f"造成 {p.get('value', 0)} {kind_cn}伤害"
+    if et == "apply_status":
+        from pydemo.game.triggers import STATUS_CN, StatusType, STATUS_META
+        st = p.get("status", "")
+        try:
+            st_enum = StatusType(st)
+            stname = STATUS_CN.get(st_enum, st)
+            layers = p.get("duration")
+            if layers is None:
+                layers = STATUS_META[st_enum][0]
+        except ValueError:
+            stname = st
+            layers = p.get("duration", "")
+        return f"施加 {stname} {layers}层"
     return f"{et} {p}"
 
 

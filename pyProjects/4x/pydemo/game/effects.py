@@ -42,6 +42,9 @@ class Effect:
     pp_cost: int = 0          # 被动效果消耗 PP(ADR-0008)
     mana_cost: int = 0        # 主动效果消耗 魔力点(部分主动/被动技能同时要求 AP/PP 与 Mana)
     condition: Any = None
+    # 被动效果的触发时点(ADR-0011):放 effect dict,多 effect 被动可各发各时点。
+    # 主动效果此字段为 None。值见 triggers.TriggerPoint。
+    trigger_point: Any = None
 
 
 def build_skill_effects(skill_def: dict) -> list[Effect]:
@@ -56,6 +59,7 @@ def build_skill_effects(skill_def: dict) -> list[Effect]:
             pp_cost=e.get("pp_cost", 0),
             mana_cost=e.get("mana_cost", 0),
             condition=e.get("condition"),
+            trigger_point=e.get("trigger_point"),
         ))
     return effects
 
@@ -111,4 +115,92 @@ def collect_passive_modifiers(
                                  float(p["value"]), op="flat"))
         # tag_grant 不产生修正,它改变单位词条集合,在 unit 构造时处理
         # skill_grant 也不产生修正,它把技能加入单位 granted_skills(装/卸时重算)
+        # ap_damage / apply_status 等战斗类效果不在修正管道展开:active 由战斗引擎
+        # execute_active_effect 执行,被动类(如 apply_status with trigger_point)
+        # 由 dispatch_trigger → execute_passive_effect 执行(ADR-0008/0011)。
     return mods
+
+
+# ---------------------------------------------------------------------------
+# 主动/被动效果执行器(批次2,由战斗引擎调用,ADR-0008/0010/0011)
+# ---------------------------------------------------------------------------
+
+def apply_status_from_effect(eff: Effect, target) -> list[str]:
+    """施加状态(ADR-0010 消费模型):重施加取 max(当前, 新层),不叠加。
+
+    读 params.status(状态类型字符串)、params.duration(层数,缺省取 STATUS_META 默认)。
+    返回施加的状态名列表(可多状态,本效果通常单状态)。
+    """
+    from .triggers import apply_status, StatusType
+    applied: list[str] = []
+    p = eff.params or {}
+    st = p.get("status")
+    if not st:
+        return applied
+    layers = p.get("duration")
+    try:
+        applied.append(apply_status(target, st, layers))
+    except ValueError:
+        # 未知状态类型:跳过(脏数据容忍)
+        pass
+    return applied
+
+
+def execute_active_effect(eff: Effect, ctx, attacker, target) -> dict:
+    """执行一条主动效果(ap_damage / apply_status),由战斗引擎行动段调用。
+
+    ap_damage 委托 ctx.resolve_strike(...) 走与普通攻击一致的命中/格挡/闪避/暴击管道
+    (单一来源,不重复实现)。apply_status 调 apply_status_from_effect 对 target 施加。
+    返回 {dmg, kind, blocked, evaded, crit, status_applied} 供日志与后续时点。
+    """
+    p = eff.params or {}
+    et = eff.effect_type
+    status_applied: list[str] = []
+    if et == "ap_damage":
+        kind = p.get("kind", "physical")
+        value = int(p.get("value", 0))
+        # 委托战斗管道:flat_dmg 传 value,由 resolve_strike 按 kind 取攻防
+        res = ctx.resolve_strike(ctx, attacker, target, kind, flat_dmg=value)
+        return {"dmg": res.dmg, "kind": res.kind, "blocked": res.blocked,
+                "evaded": res.evaded, "crit": res.crit, "status_applied": []}
+    if et == "apply_status":
+        status_applied = apply_status_from_effect(eff, target)
+        # apply_status 本身不造成伤害,但可能伴随 ap_damage(由调用方对每个 effect 逐条调)
+        return {"dmg": 0, "kind": "", "blocked": False, "evaded": False,
+                "crit": False, "status_applied": status_applied}
+    # 未知主动效果类型:无操作
+    return {"dmg": 0, "kind": "", "blocked": False, "evaded": False,
+            "crit": False, "status_applied": []}
+
+
+def execute_passive_effect(eff: Effect, ctx, actor, target) -> dict:
+    """执行一条被动效果(被动响应时调用,ADR-0011)。
+
+    apply_status→对 target 施加(如 frost_warden 在 on_block 时把攻击者冻结,target=攻击者)。
+    ap_damage→委托 ctx.resolve_strike(被动追击也走管道)。
+    返回同 execute_active_effect 的 dict。
+    """
+    p = eff.params or {}
+    et = eff.effect_type
+    if et == "apply_status":
+        applied = apply_status_from_effect(eff, target)
+        return {"dmg": 0, "kind": "", "blocked": False, "evaded": False,
+                "crit": False, "status_applied": applied}
+    if et == "ap_damage":
+        kind = p.get("kind", "physical")
+        value = int(p.get("value", 0))
+        res = ctx.resolve_strike(ctx, actor, target, kind, flat_dmg=value)
+        return {"dmg": res.dmg, "kind": res.kind, "blocked": res.blocked,
+                "evaded": res.evaded, "crit": res.crit, "status_applied": []}
+    return {"dmg": 0, "kind": "", "blocked": False, "evaded": False,
+            "crit": False, "status_applied": []}
+
+
+def active_cost(eff: Effect) -> tuple[int, int]:
+    """主动效果的 (ap_cost, mana_cost)。"""
+    return int(eff.ap_cost), int(eff.mana_cost)
+
+
+def passive_pp_cost(eff: Effect) -> int:
+    """被动效果的 pp_cost。"""
+    return int(eff.pp_cost)

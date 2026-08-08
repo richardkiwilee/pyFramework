@@ -77,7 +77,12 @@
 - 结算:Tick 驱动,默认 200 Tick;每 Tick 各单位行动条按速度累加(速度 75 = +0.75/Tick),达 100 出手;同 Tick 多人达 100 时防守方优先、前排优先
 - 结局:200 Tick 走完不判胜负,防守方留守原地、进攻方回出发结点;一方全灭则另一方占结点
 - 九宫格:行列决定射程与掩拦——近战打同列或邻列前排,远程/魔法可越排,前排掩护同列后排
-- 战斗策略:战前为每单位预设优先级表(目标/站位/技能序),按预设自动结算
+- 战斗策略:战前为每单位预设策略表(≤8 槽,分主动区+被动区,主动按行序从上到下检测释放、被动在触发时点响应),按预设自动结算(ADR-0011)
+- 策略表条件:必要(全满足才释放并筛合法目标)+ 优先(满足则偏好目标,不影响释放)两型,结构化 dict 编码(如 `{"type":"self_hp_le","threshold":50}`);必要先过滤、优先后排序;池空回退可达性池不软锁
+- 触发时点(ADR-0011):10 个枚举——battle_start / battle_end(一次性)、self_attack_start/end(攻击者出手前后)、ally_attacked_start/end(被攻击方响应前后)、on_block / on_eva(格挡/闪避成功时)、after_phys / after_magic(受物理/魔法攻击后)。按时点各自计,每时点最多 1 单位响应,速度降序、判满足即扣 PP(响应前)
+- 状态系统(ADR-0010):消费模型(无 tick 计时),三型消费方式——整场持续 / 自身攻击消耗层 / 自身受击消耗层;重施加取 max 不叠加;battle_end 清场(状态不跨场);状态作为策略表条件输入(enemy_has_frozen / pref_enemy_frozen 等)
+- 命中/格挡/闪避/暴击掷骰:统一管道(普通攻击与 ap_damage 共用),命中后判闪避(→伤害 0,触发 on_eva)、格挡(→伤害减半,触发 on_block)、暴击(→伤害 ×1.5);模块开关 BLOCK_EVA_ENABLED 可一键关闭(恒命中无格挡/闪避)
+- RNG 注入:run_battle 接 rng 参数,战斗脱离全局 random.seed,便于测试定种子
 - 三战斗资源(ADR-0008):HP 跨场累积不回满;**AP**(行动点)战斗内释主动技能,每场回满;**PP**(被动点)战斗内释被动技能,每场回满;**Mana**(魔力点)释魔法技能,**跨场不回满**(进场只按当前有效上限 clamp,月相恢复,新月+0→满月+6 线性)。部分技能可同时要求 AP/PP 与 Mana
 - 魔法闭环:魔石招魔法兵种 → 战斗内 Mana 释魔法技能 → 月相调 Mana 恢复
 
@@ -110,4 +115,6 @@ python-demo/pydemo/
 - 控制台输出中文,代码标识符英文;数据定义中文可读值 + 英文键
 - 逻辑与交互分离;一个功能点一个类;按键逻辑用 FSM 调类函数;预留语言/美术/按键绑定接口
 - 装备仓库落地:`game/` 含装备 def_id 库存计数与仓库逻辑(`add_artifact_stock` / `artifact_def_of` / `equipped_count` / `available_count` / `action_equip` / `action_unequip` / `action_sell_artifact` / `_release_artifacts`);`tui/scenes/inventory.py` 为仓库场景(键 I)
+- 战斗引擎落地:`game/triggers.py`(TriggerPoint/StatusType/StatusConsume/ConditionType 枚举 + 状态消费函数)、`game/formation.py`(8 槽两区策略表 + 条件求值 + 带槽位选目标)、`game/effects.py`(主动/被动执行器)、`game/battle.py`(BattleContext/resolve_strike 统一管道/主动执行/被动调度 dispatch_trigger/状态消费/冻结跳过/RNG 注入);`tui/scenes/unit.py` W2 技能描述面板
+- 单测:`pyconsole/tests`(149 测)框架/渲染/效果;`pydemo/tests/test_battle_engine.py`(27 测)战斗引擎端到端。`py smoke_test.py` 为对局冒烟(exit 0 = 过)
 - 技术栈:纯 Python 标准库,无第三方依赖

@@ -403,6 +403,9 @@ class UnitScene(Scene):
             buf.put_text(x + 1, ry, f"训练消耗: {cost_txt}", theme.GOLD, theme.BG)
         else:
             buf.put_text(x + 1, ry, f"训练: {status}", theme.WARN, theme.BG)
+        ry += 1
+        # 技能面板(ADR-0008/0011):列习得+装备赋予技能,各 effect 描述 + 消耗 + 触发时点
+        self._render_skills(buf, u, ry)
         # 按钮行动条（底部）
         self._render_buttons(buf, u)
         # 装备子模式覆盖层（在按钮上方区域列神器）
@@ -497,6 +500,71 @@ class UnitScene(Scene):
     def _hline(self, buf, x, y, ww) -> None:
         for cx in range(x + 1, x + ww - 1):
             buf.set_char(cx, y, "─", theme.BORDER, theme.BG)
+
+    def _render_skills(self, buf, u, ry) -> None:
+        """技能面板(ADR-0008/0011):列习得+装备赋予技能,各 effect 描述 + 消耗 + 触发时点。
+
+        仅展示,不参与编辑交互。每技能一行:技能名 + kind 标 + 各 effect 描述。
+        被动技能附触发时点;主动附 AP/Mana 消耗。
+        """
+        x, y, ww, hh = W2
+        bottom_limit = y + hh - 3   # 留按钮行 + 分隔
+        if ry >= bottom_limit:
+            return
+        buf.put_text(x + 1, ry, "技能", theme.ACCENT, theme.BG); ry += 1
+        if u is None:
+            return
+        g = ctrl_mod.ctrl.g
+        skill_defs = g.defs.get("skills", {})
+        for sid in u.effective_skills():
+            if ry >= bottom_limit:
+                break
+            sd = skill_defs.get(sid)
+            if sd is None:
+                continue
+            name = sd.get("name", sid)
+            kind = sd.get("kind", "perk")
+            kind_cn = {"active": "主动", "passive": "被动", "perk": "常驻"}.get(kind, kind)
+            # 技能名 + kind
+            head = f"· {name} [{kind_cn}]"
+            # 消耗/时点标注(从 effects 聚合)
+            cost_parts = []
+            tp_parts = []
+            for e in sd.get("effects", []):
+                trig = e.get("trigger", "passive")
+                if trig == "active":
+                    if e.get("ap_cost"):
+                        cost_parts.append(f"AP{e['ap_cost']}")
+                    if e.get("mana_cost"):
+                        cost_parts.append(f"魔力{e['mana_cost']}")
+                elif trig == "passive":
+                    if e.get("pp_cost"):
+                        cost_parts.append(f"PP{e['pp_cost']}")
+                    tp = e.get("trigger_point")
+                    if tp:
+                        tp_cn = {"battle_start": "开场", "battle_end": "收场",
+                                 "self_attack_start": "出手前", "self_attack_end": "出手后",
+                                 "ally_attacked_start": "受击前", "ally_attacked_end": "受击后",
+                                 "on_block": "格挡时", "on_eva": "闪避时",
+                                 "after_phys": "受物攻后", "after_magic": "受魔攻后"}.get(tp, tp)
+                        tp_parts.append(tp_cn)
+            ann = ""
+            if cost_parts:
+                ann += " 耗" + "/".join(cost_parts)
+            if tp_parts:
+                ann += " @" + "/".join(tp_parts)
+            line = head + ann
+            put_truncated(buf, x + 2, ry, line, ww - 4, theme.ACCENT2 if kind != "perk" else theme.FG,
+                          theme.BG)
+            ry += 1
+            # 各 effect 细节(若还有空间)
+            for e in sd.get("effects", []):
+                if ry >= bottom_limit:
+                    break
+                from .inventory import _describe_effect
+                desc = _describe_effect(e)
+                put_truncated(buf, x + 4, ry, f"- {desc}", ww - 6, theme.DIM, theme.BG)
+                ry += 1
 
     @staticmethod
     def _cost_text(cost: dict) -> str:

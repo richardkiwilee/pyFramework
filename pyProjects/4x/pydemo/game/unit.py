@@ -132,8 +132,8 @@ class Unit:
     cur_mana: float = 0             # 魔力(高级资源,跨场累积,进场只 clamp 上限,ADR-0008)
     atb: float = 0                  # 行动条(0..100)
     alive: bool = True
-    # 状态(离散标签+计时,与修正管道分离,ADR-0010)
-    statuses: dict[str, int] = field(default_factory=dict)  # status_type -> 剩余回合(0 即将解除)
+    # 状态(离散标签,消费模型无 tick 计时,ADR-0010)
+    statuses: dict[str, int] = field(default_factory=dict)  # status_type -> 剩余层数(0 即将解除;由 triggers.STATUS_META 定消费方式)
     # 当前所在结点
     node_id: str | None = None
     # 成长

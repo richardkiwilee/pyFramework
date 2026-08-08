@@ -9,6 +9,13 @@
     "effects": [{"type": "pct_attr", "params": {"attr": "m_atk", "value": 0.05}}]},
   "iron_body":      {"name": "铁躯", "kind": "perk", "desc": "+20 物防",
     "effects": [{"type": "flat_attr", "params": {"attr": "p_def", "value": 20}}]},
-  "fireball":       {"name": "火球术", "kind": "active", "desc": "主动:耗 3 魔力造成魔法伤害",
-    "effects": [{"type": "ap_damage", "params": {"kind": "magic", "value": 45}, "trigger": "active", "mana_cost": 3}]}
+  "fireball":       {"name": "火球术", "kind": "active", "desc": "主动:耗 1 AP/3 魔力造成魔法伤害",
+    "effects": [{"type": "ap_damage", "params": {"kind": "magic", "value": 45}, "trigger": "active", "ap_cost": 1, "mana_cost": 3}]},
+  "ice_brand":      {"name": "冰烙印", "kind": "active", "desc": "主动:耗 2 AP 造成物理伤害并施加 1 层冰封",
+    "effects": [
+      {"type": "ap_damage", "params": {"kind": "physical", "value": 30}, "trigger": "active", "ap_cost": 2},
+      {"type": "apply_status", "params": {"status": "frozen", "duration": 1}, "trigger": "active"}
+    ]},
+  "frost_warden":   {"name": "霜守", "kind": "passive", "desc": "被动:格挡成功时耗 1 PP 把攻击者冻结 1 层",
+    "effects": [{"type": "apply_status", "params": {"status": "frozen", "duration": 1}, "trigger": "passive", "trigger_point": "on_block", "pp_cost": 1}]}
 }

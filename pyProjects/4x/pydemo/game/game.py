@@ -1007,17 +1007,19 @@ class Game:
                                        u.id, "p_def", buff_val, op="pct"))
         all_mods = a_mods + d_mods
         # 策略
+        skill_defs = self.defs.get("skills", {})
         strats: dict[str, UnitStrategy] = {}
         for u in attacker.alive_units(self.unit_index):
-            strats[u.id] = build_default_formation(attacker, self.unit_index)[u.id]
+            strats[u.id] = build_default_formation(attacker, self.unit_index, skill_defs)[u.id]
         for u in defender.alive_units(self.unit_index):
-            strats[u.id] = build_default_formation(defender, self.unit_index)[u.id]
+            strats[u.id] = build_default_formation(defender, self.unit_index, skill_defs)[u.id]
         # 跑战斗
         aside = BattleSide(army=attacker, is_attacker=True, home_node=from_node,
                             units=attacker.alive_units(self.unit_index))
         dside = BattleSide(army=defender, is_attacker=False,
                            units=defender.alive_units(self.unit_index))
-        result = run_battle(aside, dside, strats, all_mods, log_detail=False)
+        result = run_battle(aside, dside, strats, all_mods, log_detail=False,
+                            rng=random.Random(), skill_defs=skill_defs)
         # 处理结局
         msgs: list[str] = []
         if result.attacker_wiped:

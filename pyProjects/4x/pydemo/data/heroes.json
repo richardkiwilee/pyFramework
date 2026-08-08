@@ -1,5 +1,5 @@
 {
-  "knight":   {"name": "骑士王", "tags": ["melee", "human", "cavalry"], "skills": ["cavalry_charge", "commander_aura", "iron_body"],
+  "knight":   {"name": "骑士王", "tags": ["melee", "human", "cavalry"], "skills": ["cavalry_charge", "commander_aura", "iron_body", "frost_warden"],
     "recruit_cost": {"gold": 40, "iron": 10}, "belief_req": {"morality": 20},
     "base": {"occupy": 60, "hp": 200, "ap": 4, "pp": 4, "mana": 0, "speed": 110, "p_atk": 45, "m_atk": 0, "p_def": 25, "m_def": 10, "acc": 95, "eva": 15, "block": 20, "crit": 15, "luck": 5, "will": 0, "leadership": 150},
     "growth": {"hp": 7.0, "ap": 0.1, "pp": 0, "mana": 0, "speed": 0.3, "p_atk": 0.7, "m_atk": 0, "p_def": 0.5, "m_def": 0.3, "acc": 0.2, "eva": 0.1, "block": 0.2, "crit": 0.1, "luck": 0.1, "will": 0.3, "leadership": 0.7},
