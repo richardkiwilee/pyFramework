@@ -59,10 +59,14 @@ class Resource:
     output() 渲染"现存(净变动)"形式,如"20(+1)";括号内为本回合已结算净变动。
     net() 返回本回合净变动(所有 delta 之和)。
     每回合开始前应 reset_turn() 清空 delta(存量保留),供下回合重新累计。
+    display_net() = net() + 投影(建造/拆除后立刻可见的下回合预估产出,操作逻辑.md §2.1):
+    用于资源面板的"下回合变化"实时刷新——建造农场后立刻从 (-3) 变 (+2)。
+    投影由 add_projected() 写入,reset_turn() 一并清空(下回合真实产出由 tick_economy 记 delta,不重复)。
     """
     kind: str = "gold"
     amount: int = 0
     deltas: list[DeltaItem] = field(default_factory=list)
+    _projected: int = 0   # 投影预估(操作逻辑.md §2.1):建造/拆除后立刻可见的下回合产出
 
     def add(self, v: int, source: str = SOURCE_UNKNOWN,
             stronghold: str | None = None, building: str | None = None) -> None:
@@ -70,16 +74,28 @@ class Resource:
         self.deltas.append(DeltaItem(source=source, value=v,
                                      stronghold=stronghold, building=building))
 
+    def add_projected(self, v: int) -> None:
+        """累加投影预估(操作逻辑.md §2.1)。正负皆可(建造 +产出 / 拆除 -产出)。"""
+        self._projected += v
+
+    def clear_projected(self) -> None:
+        self._projected = 0
+
     def net(self) -> int:
         return sum(d.value for d in self.deltas)
 
+    def display_net(self) -> int:
+        """面板用净变动 = 本回合已结算净变动 + 下回合投影预估。"""
+        return self.net() + self._projected
+
     def reset_turn(self) -> None:
-        """回合开始清空 delta(存量保留),供下回合重新累计。"""
+        """回合开始清空 delta 与投影(存量保留),供下回合重新累计。"""
         self.deltas.clear()
+        self._projected = 0
 
     def output(self) -> str:
-        """渲染 现存(净变动) 形式,如 20(+1)。"""
-        n = self.net()
+        """渲染 现存(净变动) 形式,如 20(+1)。用 display_net(含投影)。"""
+        n = self.display_net()
         sign = "+" if n >= 0 else ""   # 负数自带 -
         return f"{self.amount}({sign}{n})"
 

@@ -8,12 +8,14 @@
   空格进入该格的详细操作（W1 变为该格单位详情，W2 列出可用操作）：
     · 单位格 → [移动, 下场, 编辑装备]
       移动：再在九宫格选目标格，回车确认；目标为空=移过去，目标为单位=换位。
-      下场 → action_discharge（进待命·不可用 5 回合；队长下场可能解散部队）。
+      下场 → action_discharge（部队在己方据点内则冷却 0、否则 5 回合；队长下场可能解散部队）。
       编辑装备 → PUSH(UnitScene(), {"unit_id":...}) 委托给单位场景。
     · 空格 → [上场]
       上场 → 列待命·可用单位，回车 action_deploy（部队须在己方据点）。
 - 部队级操作（W2 非单元格模式）：移动（整支部队在地图邻接地点移动/攻击）、
-  编辑（占位）、解散。
+  编辑（进入 W3 九宫格编辑阵型）、解散。
+  操作逻辑.md §7.3：焦点在 W2（非单元格模式）时方向键右不再进入 W3，
+  必须选中"编辑"并按回车才进入右侧九宫格焦点。
 - N 新建部队：仅 W1 且本方据点英雄可用；阵营级待命·可用英雄任队长（ADR-0005）。
 
 注意：可由 StrongholdScene 通过 PUSH(ArmyScene(), {"army_id":...}) 委托进入，
@@ -220,8 +222,8 @@ class ArmyScene(Scene):
                 # 单元格模式 → 退回九宫格浏览
                 self.cell_mode = False
                 self.level = 2
-            else:
-                self.level = 2
+            # 操作逻辑.md §7.3:部队级模式(W2 非单元格)方向键右不再进入 W3。
+            # 必须在 W2 选中"编辑"并按回车(_w2_activate)才进入 W3 九宫格焦点。
             return NONE()
         # level 2：进入单元格详情
         self._enter_cell_mode()
@@ -295,7 +297,11 @@ class ArmyScene(Scene):
             self.level = 2
             return NONE()
         if op == "编辑":
-            log.push("部队编辑：业务层暂未开放（占位）", warn=True)
+            # 操作逻辑.md §7.4:部队级"编辑"按回车 → 进入 W3 九宫格焦点(level 2,非单元格),
+            # 供玩家上下左右浏览九宫格、空格进单元格操作。
+            self.level = 2
+            self.cell_mode = False
+            self.grid_cursor = 0
             return NONE()
         if op == "解散":
             return self._disband(army)
@@ -825,7 +831,7 @@ class ArmyScene(Scene):
             return ["↑↓←→ 选格", "空格 进详情操作", "ESC 返回"]
         if self.cell_mode:
             return ["↑↓ 选操作", "回车 确认", "←/ESC 回九宫格"]
-        hints = ["1-4 筛选", "↑↓ 切换", "→ 进入", "← 回退", "回车 确认"]
+        hints = ["1-4 筛选", "↑↓ 切换", "→ 进入W2", "回车 确认/编辑", "← 回退"]
         if self.level == 0:
             hints.append("N 新建")
         hints.append("ESC 返回")

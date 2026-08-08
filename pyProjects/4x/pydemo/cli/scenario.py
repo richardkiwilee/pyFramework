@@ -87,6 +87,14 @@ def build_scenario() -> Game:
         Building(id="b_mana_start", type_id="mana_mine", name="魔石矿",
                  produces={"mana_stone": 3}))
 
+    # 初始仓库装备(ADR-0007):玩家开局拥有每种装备定义各 3 件,全部可用。
+    # 装备改为实例模型——经 make_artifact_instance 生成独立实例入 player.inventory(≤200)。
+    # AI 原型阶段不使用装备,故不发放(AI 单位无装备,死亡回收为空操作)。
+    for def_id in game.artifact_defs:
+        for _ in range(3):
+            game.make_artifact_instance(def_id, "player")
+    game.log_msg(f"玩家仓库初始装备:{sum(1 for _ in game.artifact_defs) * 3} 件")
+
     # 据点驻军(含中立据点)
     for sid, sh in game.map.strongholds.items():
         game.make_garrison(sh)

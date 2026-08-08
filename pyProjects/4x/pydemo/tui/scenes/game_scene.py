@@ -41,7 +41,7 @@ C_LOSS = C_ENEMY  # 196 红
 DEFAULT_HINTS: list[tuple[str, str]] = [
     ("K", "科技"), ("W", "文化"), ("H", "百科"), ("J", "外交"),
     ("C", "据点"), ("A", "部队"), ("Z", "招募"), ("X", "单位"),
-    ("V", "据点总览"),
+    ("V", "据点总览"), ("I", "仓库"),
     ("M", "地图"), ("T", "下一回合"), ("ESC", "选单"), ("Tab", "总览"),
 ]
 
@@ -111,6 +111,9 @@ class GameScene(Scene):
         if a == g_actions.OPEN_UNIT:
             from .unit import UnitScene
             return PUSH(UnitScene())
+        if a == g_actions.OPEN_INVENTORY:
+            from .inventory import InventoryScene
+            return PUSH(InventoryScene())
         if a == g_actions.OPEN_STRONGHOLD_OVERVIEW:
             from .stronghold_overview import StrongholdOverviewScene
             return PUSH(StrongholdOverviewScene())
@@ -188,7 +191,8 @@ class GameScene(Scene):
     def _render_resource_line(self, buf: FrameBuffer, w: int, y: int, g, player) -> None:
         """y=2：阵营 + 资源(§2:现存(净变动) 形式)+ 信念。
 
-        净变动 >0 绿色、≤0 红色(§2);无变动则只显示现存值,不带括号。
+        净变动用 display_net(操作逻辑.md §2.1)= 本回合已结算净变动 + 下回合投影
+        (建造/拆除后立刻刷新)。>0 绿色、≤0 红色(§2);无变动则只显示现存值。
         """
         buf.fill_rect(0, y, w, 1, " ", theme.DIM, theme.BG)
         x = buf.put_text(1, y, player.name, theme.HEADING, theme.BG)
@@ -198,7 +202,7 @@ class GameScene(Scene):
             v = res.get(k)
             if v == 0:
                 continue
-            net = res.resource(k).net()
+            net = res.resource(k).display_net()
             if net != 0:
                 # §2:20(+1) 形式,净变动 >0 绿、≤0 红
                 sign = "+" if net > 0 else ""

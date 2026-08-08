@@ -19,6 +19,11 @@ OPEN_RECRUIT = "open_recruit"       # Z 招募一览
 OPEN_MAP = "open_map"              # M 地图一览
 OPEN_UNIT = "open_unit"             # X 单位一览(§3)
 OPEN_STRONGHOLD_OVERVIEW = "open_stronghold_overview"  # V 据点总览(§4)
+OPEN_INVENTORY = "open_inventory"    # I 仓库(操作逻辑.md §13)
+
+# 仓库场景:装备操作(焦点在左侧装备上时)
+SELL_ARTIFACT = "sell_artifact"       # S 卖出在库·可用装备(操作逻辑.md §13)
+UNEQUIP_ARTIFACT = "unequip_artifact"  # X 卸下正在装备的装备(操作逻辑.md §13)
 
 # 部队场景：仅在最左侧窗口时可用
 NEW_ARMY = "new_army"              # N 新建部队

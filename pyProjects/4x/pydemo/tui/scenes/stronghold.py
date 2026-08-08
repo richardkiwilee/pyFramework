@@ -9,9 +9,9 @@
 - 焦点在部队上按 → 进入部队操作（委托给 ArmyScene，等同部队一览）。
 - 不在最左侧窗口时，← 回退一层；ESC 也回退一层，在 W1 时 ESC 退出本场景。
 
-业务层无据点"拆除/指派领主"接口，故拆除用直接 buildings 列表删除、
-指派用直接 player.lords[sh.id]=hero 写入（计划中标注的业务层缺口）。
-建造走 Game.action_build（有资源/槽位校验）。
+业务层"拆除"已接通 Game.action_demolish(即时拆除、不退资源,并刷新下回合产出
+投影,操作逻辑.md §2.1);"指派领主"用直接 player.lords[sh.id]=hero 写入(计划中
+标注的业务层缺口)。建造走 Game.action_build(有资源/槽位校验)。
 """
 from __future__ import annotations
 
@@ -239,8 +239,9 @@ class StrongholdScene(Scene):
         i = self._slot_index
         if i < len(sh.buildings):
             b = sh.buildings[i]
-            sh.buildings.pop(i)
-            log.push(f"拆除了 {sh.name} 的 {b.name}")
+            # 走业务层(操作逻辑.md §5.4:拆除后刷新下回合产出投影)
+            msg = ctrl_mod.ctrl.g.action_demolish(ctrl_mod.ctrl.g.player_id, sh.id, b.id)
+            log.push(msg)
 
     def _do_candidate_confirm(self) -> None:
         g = ctrl_mod.ctrl.g

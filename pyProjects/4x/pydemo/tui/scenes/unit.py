@@ -7,10 +7,12 @@
 - 训练：消费资源直接获 +5 XP（走 Game.action_train）；可训练位见 is_trainable
   （在己方据点且该据点无敌方部队，或待命·可用）。不可训练/已训练/资源不足时按钮
   置灰，回车在日志栏提示原因。
-- 装备栏：展示已装备神器（最多 3，u.artifacts）。回车进入神器选择子模式，列出所有
-  已定义神器（原型不维护库存），回车装备到该槽位（走 Game.action_equip）。装备不
-  受位置限制。可由 ArmyScene 通过 PUSH(UnitScene(), {"unit_id":...}) 委托进入并
-  预选到指定单位。
+- 装备栏：展示已装备神器（最多 3，u.artifacts 存实例 id,ADR-0007）。
+  操作逻辑.md §8.4/单位界面装备:空槽位回车进入装备选择子模式,列出仓库内
+  可用实例(未装备、冷却已归零),回车装备到该槽(走 Game.action_equip,实例模型);
+  已占用槽位回车则卸下该槽装备(走 Game.action_unequip,按单位是否在己方据点
+  决定冷却,见操作逻辑.md §13)。装备不受位置限制。可由 ArmyScene 通过
+  PUSH(UnitScene(), {"unit_id":...}) 委托进入并预选到指定单位。
 """
 from __future__ import annotations
 
@@ -142,6 +144,14 @@ class UnitScene(Scene):
             return "资源不足"
         return ""
 
+    def _available_instances(self) -> list:
+        """仓库内在库·可用的装备实例列表(ADR-0007),供装备选择子模式列出。
+        排序按 def_id 再按 instance id,保证稳定展示。"""
+        g = ctrl_mod.ctrl.g
+        player = ctrl_mod.ctrl.player()
+        insts = player.inventory_available_instances()
+        return sorted(insts, key=lambda a: (a.def_id, a.id))
+
     def _artifact_defs(self) -> list:
         """所有已定义神器 (id, Artifact)，按 id 排序，便于稳定展示。"""
         g = ctrl_mod.ctrl.g
@@ -206,21 +216,29 @@ class UnitScene(Scene):
         if self.btn_focus == 0:
             self._do_train(u)
         else:
-            # 装备栏：进入神器选择子模式
-            self.in_equip = self.btn_focus - 1
-            self.equip_focus = 0
-            self.equip_scroll = 0
+            slot = self.btn_focus - 1
+            # 操作逻辑.md §8.4(单位界面装备):槽位已装 → 回车卸下;空槽 → 进装备选择。
+            has = slot < len(u.artifacts) and u.artifacts[slot]
+            if has:
+                msg = ctrl_mod.ctrl.g.action_unequip(
+                    ctrl_mod.ctrl.g.player_id, u.id, slot)
+                ok = not msg.startswith("失败")
+                log.push(msg, warn=not ok)
+            else:
+                self.in_equip = slot
+                self.equip_focus = 0
+                self.equip_scroll = 0
 
     def _handle_equip(self, a) -> SceneResult:
-        arts = self._artifact_defs()
+        insts = self._available_instances()
         if a == actions.BACK:
             self.in_equip = None
             return NONE()
         if a in (actions.UP, actions.DOWN):
-            if not arts:
+            if not insts:
                 return NONE()
             delta = -1 if a == actions.UP else 1
-            self.equip_focus = (self.equip_focus + delta) % len(arts)
+            self.equip_focus = (self.equip_focus + delta) % len(insts)
             # 滚动夹住
             visible = 8
             if self.equip_focus < self.equip_scroll:
@@ -229,15 +247,17 @@ class UnitScene(Scene):
                 self.equip_scroll = self.equip_focus - visible + 1
             return NONE()
         if a == actions.CONFIRM:
-            if not arts:
+            if not insts:
+                log.push("仓库无可用装备", warn=True)
                 self.in_equip = None
                 return NONE()
             u = self._selected_unit()
             if u is None:
                 self.in_equip = None
                 return NONE()
-            aid = arts[self.equip_focus][0]
-            msg = ctrl_mod.ctrl.g.action_equip(ctrl_mod.ctrl.g.player_id, u.id, aid, self.in_equip)
+            inst = insts[self.equip_focus]
+            msg = ctrl_mod.ctrl.g.action_equip(
+                ctrl_mod.ctrl.g.player_id, u.id, inst.id, self.in_equip)
             ok = not msg.startswith("失败")
             log.push(msg, warn=not ok)
             self.in_equip = None
@@ -388,27 +408,27 @@ class UnitScene(Scene):
         top = y + hh - 9
         bx = x + 1
         bw = ww - 2
-        draw_box(buf, bx, top, bw, 7, title=f"装备栏{self.in_equip + 1} · 选神器(ESC 取消)",
+        draw_box(buf, bx, top, bw, 7, title=f"装备栏{self.in_equip + 1} · 选装备(ESC 取消)",
                  fg=theme.ACCENT)
-        arts = self._artifact_defs()
-        if not arts:
-            buf.put_text(bx + 1, top + 1, "（无神器定义）", theme.WARN, theme.BG)
+        insts = self._available_instances()
+        if not insts:
+            buf.put_text(bx + 1, top + 1, "（仓库无可用装备）", theme.WARN, theme.BG)
             return
+        g = ctrl_mod.ctrl.g
         visible = 5
         start = self.equip_scroll
-        end = min(len(arts), start + visible)
+        end = min(len(insts), start + visible)
         for i in range(start, end):
             row = i - start
             ry = top + 1 + row
-            aid, art = arts[i]
-            # 当前槽位已装的神器标 "(已装)"
-            cur = u.artifacts[self.in_equip] if self.in_equip < len(u.artifacts) else None
-            tag = " (已装)" if cur == aid else ""
-            label = f"{art.name}{tag}"
+            inst = insts[i]
+            art = g.artifact_def_of(inst.id)
+            name = art.name if art else inst.def_id
+            label = f"{name}"
             self._draw_row(buf, bx, ry, bw, label, theme.FG, i, self.equip_focus,
                            True, truncate=True)
-        if len(arts) > visible:
-            buf.put_text(bx + bw - 8, top, f"({self.equip_focus + 1}/{len(arts)})",
+        if len(insts) > visible:
+            buf.put_text(bx + bw - 8, top, f"({self.equip_focus + 1}/{len(insts)})",
                          theme.DIM, theme.BG)
 
     def _render_buttons(self, buf, u) -> None:
@@ -425,8 +445,9 @@ class UnitScene(Scene):
                 fg = theme.DIM if disabled else theme.ACCENT
             else:
                 slot = i - 1
+                # 操作逻辑.md §8.4:满槽显示装备名(回车卸下),空槽显示"空"(回车装备)
                 has = u is not None and slot < len(u.artifacts) and u.artifacts[slot]
-                fg = theme.FG if has else theme.DIM
+                fg = theme.ACCENT2 if has else theme.DIM
             self._render_button(buf, bx, yb, bw, labels[i], focused, fg)
 
     def _button_rects(self, yb: int) -> list:
@@ -444,9 +465,9 @@ class UnitScene(Scene):
         labels = ["训练"]
         for slot in range(3):
             if u is not None and slot < len(u.artifacts) and u.artifacts[slot]:
-                aid = u.artifacts[slot]
-                art = g.artifact_defs.get(aid)
-                name = art.name if art else aid
+                iid = u.artifacts[slot]
+                art = g.artifact_def_of(iid)
+                name = art.name if art else iid
             else:
                 name = "空"
             labels.append(f"装备{slot + 1}:{name}")
@@ -475,9 +496,9 @@ class UnitScene(Scene):
 
     def get_hints(self) -> list[str]:
         if self.in_equip is not None:
-            return ["↑↓ 选神器", "回车 装备", "ESC 取消"]
+            return ["↑↓ 选装备", "回车 装备", "ESC 取消"]
         if self.in_detail:
-            return ["↑↓ 切换按钮", "回车 确认", "空格/← 回列表", "ESC 返回"]
+            return ["↑↓ 切换按钮", "回车 训练/装(卸)备", "空格/← 回列表", "ESC 返回"]
         return ["↑↓ 选单位", "空格/回车 进详情", "ESC 返回"]
 
 

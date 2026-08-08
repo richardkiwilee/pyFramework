@@ -18,6 +18,7 @@ from .economy import (Resources, Belief, RESOURCE_TYPES, RESOURCE_CN, BELIEF_DIM
                       SOURCE_TRAIN, SOURCE_SUPPLY, SOURCE_INIT)
 from .map_system import GameMap, Stronghold, MinorLocation, Building
 from .unit import (Unit, UnitType, Artifact, load_unit_types, load_artifacts,
+                   ArtifactInstance, ARTIFACT_AVAILABLE, ARTIFACT_UNAVAILABLE,
                    ATTR_BOUNDS, ATTR_CN, TAG_CN, MAJOR_TAGS)
 from .hero import (HeroDef, load_hero_defs, make_hero_unit, meets_belief_req,
                    describe_req, RecruitmentPool)
@@ -64,6 +65,9 @@ class Game:
         self.pending_event: GameEvent | None = None
         self._army_counter = 0
         self._unit_counter = 0
+        self._artifact_counter = 0   # 装备实例 id 计数(ADR-0007)
+        # 装备实例索引:instance_id -> ArtifactInstance(便于 O(1) 查询单位装备)
+        self._artifact_index: dict[str, ArtifactInstance] = {}
 
     # ---------- 工具 ----------
     def log_msg(self, msg: str) -> None:
@@ -77,6 +81,45 @@ class Game:
     def new_army_id(self) -> str:
         self._army_counter += 1
         return f"army_{self._army_counter}"
+
+    def new_artifact_id(self) -> str:
+        """装备实例唯一 id(ADR-0007)。"""
+        self._artifact_counter += 1
+        return f"art_{self._artifact_counter}"
+
+    def make_artifact_instance(self, def_id: str, owner: str,
+                               state: str = ARTIFACT_AVAILABLE,
+                               cooldown: int = 0) -> ArtifactInstance:
+        """创建一件装备实例,登记进 owner 阵营仓库 + 全局索引(ADR-0007)。
+
+        用于场景初始化与(后续可能的)装备获取动作。仓库上限 200,超则不建(返回 None)。
+        """
+        f = self.factions.get(owner)
+        if f is None:
+            return None  # type: ignore[return-value]
+        if len(f.inventory) >= 200:
+            return None  # type: ignore[return-value]
+        if def_id not in self.artifact_defs:
+            return None  # type: ignore[return-value]
+        inst = ArtifactInstance(id=self.new_artifact_id(), def_id=def_id,
+                                owner=owner, state=state, cooldown=cooldown)
+        f.inventory.append(inst)
+        self._artifact_index[inst.id] = inst
+        return inst
+
+    def artifact_def_of(self, instance_id: str) -> Artifact | None:
+        """装备实例 -> 其 Artifact 定义(None 若无)。"""
+        inst = self._artifact_index.get(instance_id)
+        if not inst:
+            return None
+        return self.artifact_defs.get(inst.def_id)
+
+    def artifact_instance(self, instance_id: str) -> ArtifactInstance | None:
+        return self._artifact_index.get(instance_id)
+
+    def _instance_in_faction_inventory(self, inst: ArtifactInstance,
+                                       faction: Faction) -> bool:
+        return inst in faction.inventory
 
     # ---------- 装配 ----------
     def add_faction(self, fid: str, name: str, is_ai: bool = False) -> Faction:
@@ -94,7 +137,7 @@ class Game:
             base=dict(ut.base),
             growth=dict(ut.growth),
         )
-        u.grant_tags_from_artifacts(self.artifact_defs)
+        u.grant_tags_from_artifacts(self._artifact_index, self.artifact_defs)
         self.unit_index[u.id] = u
         return u
 
@@ -102,7 +145,7 @@ class Game:
         hdef = self.hero_defs[hero_def_id]
         u = make_hero_unit(hdef)
         u.id = self.new_id("u")
-        u.grant_tags_from_artifacts(self.artifact_defs)
+        u.grant_tags_from_artifacts(self._artifact_index, self.artifact_defs)
         self.unit_index[u.id] = u
         return u
 
@@ -201,6 +244,15 @@ class Game:
             if faction.standby[uid] > 0:
                 faction.standby[uid] -= 1
 
+    def _tick_inventory(self, faction: Faction) -> None:
+        """回合开始:仓库内不可用装备冷却 -1,到 0 转可用(ADR-0007)。"""
+        for inst in faction.inventory:
+            if inst.is_unavailable() and inst.cooldown > 0:
+                inst.cooldown -= 1
+                if inst.cooldown <= 0:
+                    inst.state = ARTIFACT_AVAILABLE
+                    inst.cooldown = 0
+
     def action_deploy(self, faction_id: str, army_id: str, unit_id: str,
                       slot: int | None = None) -> str:
         """上场:把待命·可用单位派进己方据点内的一支部队(§5)。
@@ -243,10 +295,11 @@ class Game:
 
     def action_discharge(self, faction_id: str, army_id: str,
                          unit_id: str) -> str:
-        """下场:把部队中的单位撤入待命·不可用(§5 + ADR-0005)。
+        """下场:把部队中的单位撤入待命(§7.7 + ADR-0005,操作逻辑.md §7.7)。
 
-        任意位置都可下场(代价是 5 回合不可用冷却)。队长下场后由 _try_fill_captain
-        接任;无可用英雄接任则部队解散。
+        冷却规则:单位所属部队当前停在己方据点内,则下场后立刻进入待命·可用
+        (冷却 0);不在己方据点(野外/敌境)则进待命·不可用,5 回合后转可用。
+        队长下场后由 _try_fill_captain 接任;无可用英雄接任则部队解散。
         """
         f = self.factions.get(faction_id)
         if not f:
@@ -261,9 +314,14 @@ class Game:
             return "失败:单位不在此部队"
         # 从九宫格移除
         army.remove(unit_id)
-        # 进待命·不可用(5 回合冷却)
-        self._to_standby(f, u, cooldown=self.STANDBY_COOLDOWN)
-        msg = f"{u.name} 下场,进入待命·不可用({self.STANDBY_COOLDOWN}回合)"
+        # 冷却:部队在己方据点 → 立即可用;否则 5 回合不可用(操作逻辑.md §7.7)
+        in_stronghold = army.node_id in f.stronghold_ids
+        if in_stronghold:
+            self._to_standby(f, u, cooldown=0)
+            msg = f"{u.name} 下场,进入待命·可用(部队在己方据点)"
+        else:
+            self._to_standby(f, u, cooldown=self.STANDBY_COOLDOWN)
+            msg = f"{u.name} 下场,进入待命·不可用({self.STANDBY_COOLDOWN}回合)"
         # 若是队长,尝试接任;无可用英雄则解散(并提示)
         if army.captain_id == unit_id:
             army.captain_id = None
@@ -272,12 +330,13 @@ class Game:
         return msg
 
     def action_equip(self, faction_id: str, unit_id: str,
-                     artifact_id: str, slot: int) -> str:
-        """装备神器到指定槽位(0..2)(§3 装备栏)。
+                     instance_id: str, slot: int) -> str:
+        """装备一件仓库内可用装备到指定槽位 0..2(§3 装备栏,ADR-0007)。
 
-        原型阶段不维护阵营神器库存:任何已定义神器 id 都可直接装备(占位实现,
-        便于 UI 验证 effects/tag_grant 生效)。槽位越界或神器未知则失败。
-        槽位已占用时替换(旧神器丢弃,原型不回收)。
+        装备改为实例模型:instance_id 必须为本阵营仓库内、在库且可用(未装备、
+        冷却已归零)的实例。目标单位可为本阵营任意单位,不要求其在据点内(玩家可将
+        可用装备装备给任意单位)。装备到已占用槽位会先把旧装备卸下(旧装备若其单位
+        不在己方据点则进不可用冷却,见 action_unequip 规则)。槽位越界/实例不可用则失败。
         """
         f = self.factions.get(faction_id)
         if not f:
@@ -289,28 +348,140 @@ class Game:
             return "失败:单位不归你"
         if not (0 <= slot < 3):
             return "失败:槽位越界"
-        if artifact_id not in self.artifact_defs:
-            return "失败:未知神器"
-        # 写入/扩展 artifacts 列表(中间空位用 None 填充)
+        inst = self._artifact_index.get(instance_id)
+        if not inst or not self._instance_in_faction_inventory(inst, f):
+            return "失败:无此装备实例"
+        if not inst.is_available():
+            if inst.is_equipped():
+                return "失败:装备已被装备"
+            return "失败:装备不可用(冷却中)"
+        art = self.artifact_defs.get(inst.def_id)
+        if not art:
+            return "失败:未知装备定义"
+        # 槽位已占用:先把旧实例卸下(走 unequip 规则)
         while len(u.artifacts) <= slot:
             u.artifacts.append(None)  # type: ignore[arg-type]
-        u.artifacts[slot] = artifact_id
-        # tag_grant:从兵种本体 tag(含 MAJOR_TAGS 与小类)出发,合并当前全部装备赋予的 tag。
-        # 兵种本体 tag 不可由装备移除,故每次重算 = 本体 tag ∪ 当前装备 tag_grant。
+        old_iid = u.artifacts[slot]
+        if old_iid is not None:
+            old_msg = self._unequip_instance(f, u, slot, suppress_log=True)
+            if old_msg.startswith("失败"):
+                return old_msg   # 理论上不会失败,防御
+        # 装上新实例
+        u.artifacts[slot] = instance_id
+        inst.equipped_by = u.id
+        inst.state = ARTIFACT_AVAILABLE
+        inst.cooldown = 0
+        self._recompute_unit_tags(u)
+        return f"{u.name} 装备了 {art.name}"
+
+    def action_unequip(self, faction_id: str, unit_id: str, slot: int) -> str:
+        """卸下单位指定槽位 0..2 的装备(ADR-0007)。
+
+        可在单位界面(满槽按回车)或仓库界面(X 键)调用。卸下规则:装备的单位当前
+        在己方据点内则实例回到仓库·可用(冷却 0);不在己方据点则进不可用,5 回合后
+        恢复可用(与单位下场冷却同理,ADR-0005)。槽位空则失败。
+        """
+        f = self.factions.get(faction_id)
+        if not f:
+            return "失败:无此阵营"
+        u = self.unit_index.get(unit_id)
+        if not u:
+            return "失败:无此单位"
+        if self._unit_owner(u) != faction_id:
+            return "失败:单位不归你"
+        if not (0 <= slot < 3):
+            return "失败:槽位越界"
+        if slot >= len(u.artifacts) or u.artifacts[slot] is None:
+            return "失败:该槽位无装备"
+        return self._unequip_instance(f, u, slot)
+
+    def _unequip_instance(self, f: Faction, u: Unit, slot: int,
+                         suppress_log: bool = False) -> str:
+        """从单位槽位卸下一件装备实例,按单位是否在己方据点决定冷却。
+
+        suppress_log=True 时不写 log(equip 替换旧装备时由调用方统一报消息)。
+        """
+        iid = u.artifacts[slot]
+        inst = self._artifact_index.get(iid) if iid is not None else None
+        if inst is None:
+            return "失败:该槽位无装备"
+        art = self.artifact_defs.get(inst.def_id)
+        name = art.name if art else iid
+        u.artifacts[slot] = None
+        inst.equipped_by = None
+        # 装备的单位当前所在部队
+        army = self.armies.get(u.army_id) if u.army_id else None
+        in_stronghold = (army is not None and not army.is_garrison
+                         and army.node_id in f.stronghold_ids)
+        if in_stronghold:
+            inst.state = ARTIFACT_AVAILABLE
+            inst.cooldown = 0
+            msg = f"{u.name} 卸下了 {name}(回库·可用)"
+        else:
+            inst.state = ARTIFACT_UNAVAILABLE
+            inst.cooldown = self.STANDBY_COOLDOWN
+            msg = (f"{u.name} 卸下了 {name}(单位不在己方据点,进不可用"
+                   f"{self.STANDBY_COOLDOWN}回合)")
+        self._recompute_unit_tags(u)
+        if not suppress_log:
+            self.log_msg(msg)
+        return msg
+
+    def action_sell_artifact(self, faction_id: str, instance_id: str) -> str:
+        """卖出仓库内一件在库·可用装备,固定 +10 金币(ADR-0007)。
+
+        只能卖出未装备且 state=available 的实例。不可用(冷却中)或已装备的不可卖。
+        """
+        f = self.factions.get(faction_id)
+        if not f:
+            return "失败:无此阵营"
+        inst = self._artifact_index.get(instance_id)
+        if not inst or not self._instance_in_faction_inventory(inst, f):
+            return "失败:无此装备实例"
+        if not inst.is_available():
+            if inst.is_equipped():
+                return "失败:装备已被装备,先卸下"
+            return "失败:装备不可用(冷却中)"
+        art = self.artifact_defs.get(inst.def_id)
+        name = art.name if art else instance_id
+        # 从仓库与索引移除
+        f.inventory.remove(inst)
+        self._artifact_index.pop(inst.id, None)
+        f.resources.add("gold", 10, source=SOURCE_INIT,
+                        building=name)
+        return f"卖出 {name},+10 金币"
+
+    def _release_artifacts(self, f: Faction, u: Unit) -> None:
+        """单位死亡/解散时回收其装备:全部回库·可用(死亡无位置惩罚)。"""
+        for slot in range(len(u.artifacts)):
+            iid = u.artifacts[slot]
+            inst = self._artifact_index.get(iid) if iid is not None else None
+            if inst is None:
+                continue
+            inst.equipped_by = None
+            inst.state = ARTIFACT_AVAILABLE
+            inst.cooldown = 0
+        u.artifacts = []
+
+    def _recompute_unit_tags(self, u: Unit) -> None:
+        """重算单位 tags = 本体 tag ∪ 当前装备赋予的 tag(ADR-0007)。
+
+        兵种本体 tag 不可由装备移除,故每次装备/卸下后重算。装备改实例模型,经
+        _artifact_index 映射到 def_id 再取 effects。
+        """
         granted: set[str] = set()
-        for aid in u.artifacts:
-            art = self.artifact_defs.get(aid)
+        for iid in u.artifacts:
+            inst = self._artifact_index.get(iid)
+            if not inst:
+                continue
+            art = self.artifact_defs.get(inst.def_id)
             if not art:
                 continue
             for e in art.effects:
                 if e.get("type") == "tag_grant":
                     granted.add(e["params"]["tag"])
-        # 本体 tag:首次招募时由 make_unit/make_hero 写入且不含 tag_grant 来源。
-        # 用单位 type_id/hero_def 重新取一份本体 tag,与当前装备赋予的 tag 合并。
         body_tags = self._body_tags(u)
         u.tags = body_tags | granted
-        art = self.artifact_defs[artifact_id]
-        return f"{u.name} 装备了 {art.name}"
 
     def _body_tags(self, u: Unit) -> set[str]:
         """单位本体词条(不含神器赋予的 tag)。取兵种/英雄定义的原始 tags。"""
@@ -353,16 +524,19 @@ class Game:
             mods.extend(collect_passive_modifiers(effs, unit.id, unit.tags,
                                                   army_tags_count,
                                                   ModifierSource.SKILL, sid))
-        # 5. 装备(神器)
-        for aid in unit.artifacts:
-            art = self.artifact_defs.get(aid)
+        # 5. 装备(神器):经实例索引解析到 def(ADR-0007)
+        for iid in unit.artifacts:
+            inst = self._artifact_index.get(iid)
+            if not inst:
+                continue
+            art = self.artifact_defs.get(inst.def_id)
             if not art:
                 continue
             effs = build_skill_effects({"effects": art.effects})
             army_tags_count = self._army_tags_count(army) if army else {}
             mods.extend(collect_passive_modifiers(effs, unit.id, unit.tags,
                                                   army_tags_count,
-                                                  ModifierSource.ARTIFACT, aid))
+                                                  ModifierSource.ARTIFACT, iid))
         # 6. 地形(小地点):原型给小修正
         if terrain and terrain in self.terrain_defs:
             tdef = self.terrain_defs[terrain]
@@ -437,6 +611,8 @@ class Game:
         """
         # 待命冷却推进(ADR-0005):不可用单位 -1,到 0 转可用
         self._tick_standby(faction)
+        # 装备冷却推进(ADR-0007):仓库内不可用装备 -1,到 0 转可用
+        self._tick_inventory(faction)
         # 经济结算:产出 → 扣维护费(打断粮标记)→ 补给 → 各类回血(均跳过断粮单位)
         # §2:回合开始先清空各资源 delta(存量保留),供本回合重新累计净变动
         faction.resources.reset_turn()
@@ -697,7 +873,13 @@ class Game:
 
     # ---------- 动作 ----------
     def action_build(self, faction_id: str, stronghold_id: str, building_id: str) -> str:
-        """建造:支付足额资源即立即建成(ADR-0006,无建造回合)。"""
+        """建造:支付足额资源即立即建成(ADR-0006,无建造回合)。
+
+        操作逻辑.md §2.1:建造后立刻刷新"下回合变化"——把新建筑的下回合产出
+        写入资源投影(add_projected),使面板净变动立刻体现(如农场 +5 食物:
+        27(-3) 立刻变 27(+2))。投影由 reset_turn 清空,下回合真实产出由
+        tick_economy 记 delta,不会重复计数。
+        """
         f = self.factions[faction_id]
         sh = self.map.strongholds.get(stronghold_id)
         if not sh or sh.owner != faction_id:
@@ -716,7 +898,33 @@ class Game:
                      name=cn_building(bdef),
                      produces=bdef.get("produces", {}) if bdef.get("kind") == "produce" else {})
         sh.add_building(b)
+        # point 4:新建筑下回合产出写入投影,面板立刻刷新
+        for k, v in b.produces.items():
+            f.resources.resource(k).add_projected(v)
         return f"已在 {sh.name} 建造 {b.name}(即时建成)"
+
+    def action_demolish(self, faction_id: str, stronghold_id: str, building_id: str) -> str:
+        """拆除据点内一座建筑(按 Building.id 实例 id)。
+
+        即时拆除、不退资源(原型)。操作逻辑.md §5.4:拆除后立刻刷新"下回合变化"——
+        该建筑的下回合产出从投影中扣除(add_projected(-v)),面板净变动立刻体现。
+        """
+        f = self.factions[faction_id]
+        sh = self.map.strongholds.get(stronghold_id)
+        if not sh or sh.owner != faction_id:
+            return "失败:据点不归你所有"
+        target = None
+        for b in sh.buildings:
+            if b.id == building_id:
+                target = b
+                break
+        if target is None:
+            return "失败:据点内无此建筑"
+        sh.buildings.remove(target)
+        # point 4:拆除建筑下回合产出从投影扣除,面板立刻刷新
+        for k, v in target.produces.items():
+            f.resources.resource(k).add_projected(-v)
+        return f"已在 {sh.name} 拆除 {target.name}"
 
     def action_recruit_hero(self, faction_id: str, stronghold_id: str, hero_id: str) -> str:
         f = self.factions[faction_id]
@@ -908,17 +1116,23 @@ class Game:
             return
         f = self.factions[old_owner]
         f.alive = False
-        # 解散所有部队与英雄
+        # 解散所有部队与英雄(装备回库·可用)
         for aid in list(f.army_ids):
             a = self.armies.get(aid)
             if a:
                 for uid in a.grid:
                     if uid:
+                        u = self.unit_index.get(uid)
+                        if u:
+                            self._release_artifacts(f, u)
                         self.unit_index.pop(uid, None)
                 if aid in self.armies:
                     del self.armies[aid]
         # 清待命池(阵营灭亡,待命单位随之消亡)
         for uid in list(f.standby.keys()):
+            u = self.unit_index.get(uid)
+            if u:
+                self._release_artifacts(f, u)
             self.unit_index.pop(uid, None)
         f.standby.clear()
         f.army_ids.clear()
@@ -937,9 +1151,13 @@ class Game:
     def _cleanup_wiped(self) -> None:
         for a in list(self.armies.values()):
             if a.is_wiped(self.unit_index) and not a.is_garrison:
-                # 玩家部队全灭:解散
+                # 玩家部队全灭:解散(装备回库·可用)
+                owner_f = self.factions.get(a.owner)
                 for uid in list(a.grid):
                     if uid:
+                        u = self.unit_index.get(uid)
+                        if u and owner_f is not None:
+                            self._release_artifacts(owner_f, u)
                         self.unit_index.pop(uid, None)
                 if a.id in self.armies:
                     for f in self.factions.values():

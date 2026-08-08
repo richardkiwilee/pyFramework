@@ -106,6 +106,40 @@ def load_artifacts(d: dict) -> dict[str, Artifact]:
     return out
 
 
+# 装备实例状态:可用 / 不可用(卸下冷却中)。见 ADR-0007。
+ARTIFACT_AVAILABLE = "available"
+ARTIFACT_UNAVAILABLE = "unavailable"
+
+
+@dataclass
+class ArtifactInstance:
+    """一件装备实例(ADR-0007)。
+
+    装备从"按定义 id 装备"改为"按实例装备":阵营仓库持有最多 200 件实例,
+    每件有独立状态与冷却。Unit.artifacts 存实例 id(非 def_id)。
+    - state=available 且 equipped_by=None:在库可装备/可卖出
+    - state=unavailable 且 equipped_by=None:卸下冷却中(冷却 >0),不可装备/卖出
+    - equipped_by 非 None:正被某单位装备(左侧列表加 E 前缀);此时 state 仍为 available
+    """
+    id: str
+    def_id: str
+    owner: str                       # 所属阵营 id
+    state: str = ARTIFACT_AVAILABLE
+    cooldown: int = 0                # 不可用剩余回合(state=unavailable 时 >0)
+    equipped_by: str | None = None   # 装备该实例的单位 id;None=在库
+
+    def is_equipped(self) -> bool:
+        return self.equipped_by is not None
+
+    def is_available(self) -> bool:
+        """在库且可用(可装备/卖出)。"""
+        return self.equipped_by is None and self.state == ARTIFACT_AVAILABLE
+
+    def is_unavailable(self) -> bool:
+        """在库但卸下冷却中。"""
+        return self.equipped_by is None and self.state == ARTIFACT_UNAVAILABLE
+
+
 @dataclass
 class Unit:
     """一个单位实例。"""
@@ -114,7 +148,7 @@ class Unit:
     name: str
     tags: set[str]                  # 含兵种词条 + 神器赋予的词条
     base: dict[str, float]          # 基础属性(招募时确定 + 等级成长烘进;不含情境修正)
-    artifacts: list[str] = field(default_factory=list)   # 装备的神器 id,最多 3
+    artifacts: list[str] = field(default_factory=list)   # 装备实例 id,最多 3(ADR-0007)
     is_hero: bool = False
     skills: list[str] = field(default_factory=list)     # 主动技能 id(英雄)
     cur_hp: float = 0               # 当前生命(跨战斗累积,不每场回满)
@@ -136,10 +170,18 @@ class Unit:
         if self.cur_hp <= 0:
             self.cur_hp = self.base.get("hp", 1)
 
-    def grant_tags_from_artifacts(self, artifact_defs: dict[str, Artifact]) -> None:
-        """神器附带词条(tag_grant)合并进单位词条集合。"""
-        for aid in self.artifacts:
-            art = artifact_defs.get(aid)
+    def grant_tags_from_artifacts(self, instances: dict[str, "ArtifactInstance"],
+                                  artifact_defs: dict[str, Artifact]) -> None:
+        """装备附带词条(tag_grant)合并进单位词条集合。
+
+        装备改为实例模型(ADR-0007):self.artifacts 存实例 id,需经 instances 映射
+        到 def_id 再查 artifact_defs。instances 缺失该 id 时跳过(脏数据容忍)。
+        """
+        for iid in self.artifacts:
+            inst = instances.get(iid)
+            if not inst:
+                continue
+            art = artifact_defs.get(inst.def_id)
             if not art:
                 continue
             for e in art.effects:

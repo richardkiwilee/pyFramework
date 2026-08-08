@@ -24,6 +24,7 @@ BINDINGS: dict[str, str] = {
     "m": A.OPEN_MAP,
     "x": A.OPEN_UNIT,
     "v": A.OPEN_STRONGHOLD_OVERVIEW,
+    "i": A.OPEN_INVENTORY,
     "n": A.NEW_ARMY,
     "t": A.END_TURN,
     "1": A.FILTER_1,

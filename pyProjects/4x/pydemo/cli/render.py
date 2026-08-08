@@ -18,7 +18,7 @@ def render_header(game: Game) -> str:
         v = res.get(k)
         if v == 0:
             continue
-        net = res.resource(k).net()
+        net = res.resource(k).display_net()
         if net != 0:
             sign = "+" if net > 0 else ""
             res_parts.append(f"{RESOURCE_CN[k]}:{v}({sign}{net})")
