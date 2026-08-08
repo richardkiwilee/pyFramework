@@ -10,16 +10,26 @@
   - tag_bonus:     拥有某词条时加 flat 属性(兵种加成)。params: tag, attr, value, op
   - moon_regen:    按月相给魔力恢复加成(月相修正示例)。params: scale
   - aura_flat:     队长光环:全队某属性 flat 加成。params: attr, value
-  - tag_grant:     装备/技能使单位获得某词条(神器附带 Synergy 来源)。params: tag
+  - tag_grant:     装备/技能使单位获得某词条(装备附带 Synergy 来源)。params: tag
+  - skill_grant:   装备使单位获得某技能(装上时加入 granted_skills,卸下时移除)。
+                   params: skill(技能 id)。ADR-0008。
 
-效果分两类:被动(passive,持续修正)与主动(active,战斗内由策略调用)。
-主动效果的类型集与被动相同的接口,但触发时机不同;原型主动技能用 'ap_damage' 等。
+技能按 kind 三分类(ADR-0008):active(主动,耗 AP)、passive(被动,耗 PP,在触发
+时点检测)、perk(免费常驻修正,走修正管道,不占策略表 8 槽)。主动效果的类型集与
+被动相同的接口,但触发时机不同;原型主动技能用 'ap_damage' 等。
+perk 与事件源 Perk 都走修正管道,但二者来源不同、互不混用槽位。
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
 from .modifier import Modifier, ModifierSource
+
+# 技能 kind 三值(ADR-0008)
+SKILL_ACTIVE = "active"
+SKILL_PASSIVE = "passive"
+SKILL_PERK = "perk"
+SKILL_KINDS = (SKILL_ACTIVE, SKILL_PASSIVE, SKILL_PERK)
 
 
 @dataclass
@@ -29,7 +39,8 @@ class Effect:
     params: dict[str, Any]    # 参数
     trigger: str = "passive"  # passive | active
     ap_cost: int = 0          # 主动效果消耗 AP
-    mana_cost: int = 0        # 主动效果消耗 魔力点
+    pp_cost: int = 0          # 被动效果消耗 PP(ADR-0008)
+    mana_cost: int = 0        # 主动效果消耗 魔力点(部分主动/被动技能同时要求 AP/PP 与 Mana)
     condition: Any = None
 
 
@@ -42,10 +53,18 @@ def build_skill_effects(skill_def: dict) -> list[Effect]:
             params=e.get("params", {}),
             trigger=e.get("trigger", "passive"),
             ap_cost=e.get("ap_cost", 0),
+            pp_cost=e.get("pp_cost", 0),
             mana_cost=e.get("mana_cost", 0),
             condition=e.get("condition"),
         ))
     return effects
+
+
+def skill_kind(skill_def: dict | None) -> str:
+    """取技能定义的 kind,缺省归为 perk(向后兼容旧无 kind 字段的被动修正技能)。"""
+    if not skill_def:
+        return SKILL_PERK
+    return skill_def.get("kind", SKILL_PERK)
 
 
 def collect_passive_modifiers(
@@ -91,4 +110,5 @@ def collect_passive_modifiers(
             mods.append(Modifier(source, source_id, owner_id, p["attr"],
                                  float(p["value"]), op="flat"))
         # tag_grant 不产生修正,它改变单位词条集合,在 unit 构造时处理
+        # skill_grant 也不产生修正,它把技能加入单位 granted_skills(装/卸时重算)
     return mods

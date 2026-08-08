@@ -18,14 +18,14 @@ from .economy import (Resources, Belief, RESOURCE_TYPES, RESOURCE_CN, BELIEF_DIM
                       SOURCE_TRAIN, SOURCE_SUPPLY, SOURCE_INIT)
 from .map_system import GameMap, Stronghold, MinorLocation, Building
 from .unit import (Unit, UnitType, Artifact, load_unit_types, load_artifacts,
-                   ArtifactInstance, ARTIFACT_AVAILABLE, ARTIFACT_UNAVAILABLE,
                    ATTR_BOUNDS, ATTR_CN, TAG_CN, MAJOR_TAGS)
 from .hero import (HeroDef, load_hero_defs, make_hero_unit, meets_belief_req,
                    describe_req, RecruitmentPool)
 from .army import Army, empty_army, row_of, col_of, ROWS, ROW_CN, GRID_SIZE
 from .synergy import load_synergies, collect_synergy_mods
 from .modifier import (Modifier, ModifierCollection, compute_attribute, ModifierSource)
-from .effects import (Effect, build_skill_effects, collect_passive_modifiers)
+from .effects import (Effect, build_skill_effects, collect_passive_modifiers,
+                      skill_kind, SKILL_PERK)
 from .formation import UnitStrategy, build_default_formation, choose_target_with_slots
 from .battle import BattleSide, BattleResult, run_battle, effective_attrs
 from .events import GameEvent, load_events, apply_option, random_event
@@ -65,9 +65,6 @@ class Game:
         self.pending_event: GameEvent | None = None
         self._army_counter = 0
         self._unit_counter = 0
-        self._artifact_counter = 0   # 装备实例 id 计数(ADR-0007)
-        # 装备实例索引:instance_id -> ArtifactInstance(便于 O(1) 查询单位装备)
-        self._artifact_index: dict[str, ArtifactInstance] = {}
 
     # ---------- 工具 ----------
     def log_msg(self, msg: str) -> None:
@@ -82,44 +79,34 @@ class Game:
         self._army_counter += 1
         return f"army_{self._army_counter}"
 
-    def new_artifact_id(self) -> str:
-        """装备实例唯一 id(ADR-0007)。"""
-        self._artifact_counter += 1
-        return f"art_{self._artifact_counter}"
-
-    def make_artifact_instance(self, def_id: str, owner: str,
-                               state: str = ARTIFACT_AVAILABLE,
-                               cooldown: int = 0) -> ArtifactInstance:
-        """创建一件装备实例,登记进 owner 阵营仓库 + 全局索引(ADR-0007)。
-
-        用于场景初始化与(后续可能的)装备获取动作。仓库上限 200,超则不建(返回 None)。
-        """
+    # ---------- 装备库存(def_id 计数模型,ADR-0009) ----------
+    def add_artifact_stock(self, def_id: str, owner: str, count: int = 1) -> None:
+        """给阵营仓库增加 count 件某定义装备(入库存计数)。"""
         f = self.factions.get(owner)
-        if f is None:
-            return None  # type: ignore[return-value]
-        if len(f.inventory) >= 200:
-            return None  # type: ignore[return-value]
-        if def_id not in self.artifact_defs:
-            return None  # type: ignore[return-value]
-        inst = ArtifactInstance(id=self.new_artifact_id(), def_id=def_id,
-                                owner=owner, state=state, cooldown=cooldown)
-        f.inventory.append(inst)
-        self._artifact_index[inst.id] = inst
-        return inst
+        if f is None or def_id not in self.artifact_defs:
+            return
+        f.inventory[def_id] = f.inventory.get(def_id, 0) + max(0, count)
 
-    def artifact_def_of(self, instance_id: str) -> Artifact | None:
-        """装备实例 -> 其 Artifact 定义(None 若无)。"""
-        inst = self._artifact_index.get(instance_id)
-        if not inst:
-            return None
-        return self.artifact_defs.get(inst.def_id)
+    def artifact_def_of(self, def_id: str) -> Artifact | None:
+        """按 def_id 取装备定义(ADR-0009)。"""
+        return self.artifact_defs.get(def_id)
 
-    def artifact_instance(self, instance_id: str) -> ArtifactInstance | None:
-        return self._artifact_index.get(instance_id)
+    def equipped_count(self, faction_id: str, def_id: str) -> int:
+        """某 def_id 装备在本阵营各单位已装备的总数(反查所有己方单位 artifacts)。"""
+        n = 0
+        for uid, u in self.unit_index.items():
+            if self._unit_owner(u) != faction_id:
+                continue
+            n += u.artifacts.count(def_id)
+        return n
 
-    def _instance_in_faction_inventory(self, inst: ArtifactInstance,
-                                       faction: Faction) -> bool:
-        return inst in faction.inventory
+    def available_count(self, faction_id: str, def_id: str) -> int:
+        """某 def_id 装备的"在库可装数" = 库存数 - 已装备数(≥0)。"""
+        f = self.factions.get(faction_id)
+        if not f:
+            return 0
+        stock = f.inventory.get(def_id, 0)
+        return max(0, stock - self.equipped_count(faction_id, def_id))
 
     # ---------- 装配 ----------
     def add_faction(self, fid: str, name: str, is_ai: bool = False) -> Faction:
@@ -137,7 +124,7 @@ class Game:
             base=dict(ut.base),
             growth=dict(ut.growth),
         )
-        u.grant_tags_from_artifacts(self._artifact_index, self.artifact_defs)
+        u.grant_tags_from_artifacts(self.artifact_defs)
         self.unit_index[u.id] = u
         return u
 
@@ -145,7 +132,7 @@ class Game:
         hdef = self.hero_defs[hero_def_id]
         u = make_hero_unit(hdef)
         u.id = self.new_id("u")
-        u.grant_tags_from_artifacts(self._artifact_index, self.artifact_defs)
+        u.grant_tags_from_artifacts(self.artifact_defs)
         self.unit_index[u.id] = u
         return u
 
@@ -244,14 +231,7 @@ class Game:
             if faction.standby[uid] > 0:
                 faction.standby[uid] -= 1
 
-    def _tick_inventory(self, faction: Faction) -> None:
-        """回合开始:仓库内不可用装备冷却 -1,到 0 转可用(ADR-0007)。"""
-        for inst in faction.inventory:
-            if inst.is_unavailable() and inst.cooldown > 0:
-                inst.cooldown -= 1
-                if inst.cooldown <= 0:
-                    inst.state = ARTIFACT_AVAILABLE
-                    inst.cooldown = 0
+    # def_id 库存模型无卸下冷却,故无 _tick_inventory(ADR-0009 取代 ADR-0007)。
 
     def action_deploy(self, faction_id: str, army_id: str, unit_id: str,
                       slot: int | None = None) -> str:
@@ -330,13 +310,13 @@ class Game:
         return msg
 
     def action_equip(self, faction_id: str, unit_id: str,
-                     instance_id: str, slot: int) -> str:
-        """装备一件仓库内可用装备到指定槽位 0..2(§3 装备栏,ADR-0007)。
+                     def_id: str, slot: int) -> str:
+        """装备一件仓库内在库可用装备到指定槽位 0..3(ADR-0009)。
 
-        装备改为实例模型:instance_id 必须为本阵营仓库内、在库且可用(未装备、
-        冷却已归零)的实例。目标单位可为本阵营任意单位,不要求其在据点内(玩家可将
-        可用装备装备给任意单位)。装备到已占用槽位会先把旧装备卸下(旧装备若其单位
-        不在己方据点则进不可用冷却,见 action_unequip 规则)。槽位越界/实例不可用则失败。
+        装备按 def_id 以库存计数存储:取该 def_id 一件在库可装数装备到 slot。
+        位置限制:目标单位所在部队必须位于己方据点内才允许(待命单位无部队、
+        视为安全,可编辑);野外部队无法穿戴。槽位已占用时先把旧装备卸下(回库)。
+        库存不足/槽位越界/位置不符则失败。
         """
         f = self.factions.get(faction_id)
         if not f:
@@ -346,40 +326,31 @@ class Game:
             return "失败:无此单位"
         if self._unit_owner(u) != faction_id:
             return "失败:单位不归你"
-        if not (0 <= slot < 3):
+        if not (0 <= slot < u.ARTIFACT_SLOTS):
             return "失败:槽位越界"
-        inst = self._artifact_index.get(instance_id)
-        if not inst or not self._instance_in_faction_inventory(inst, f):
-            return "失败:无此装备实例"
-        if not inst.is_available():
-            if inst.is_equipped():
-                return "失败:装备已被装备"
-            return "失败:装备不可用(冷却中)"
-        art = self.artifact_defs.get(inst.def_id)
-        if not art:
+        if not self._unit_in_own_stronghold(f, u):
+            return "失败:单位不在己方据点(野外不可穿戴/卸下)"
+        if def_id not in self.artifact_defs:
             return "失败:未知装备定义"
-        # 槽位已占用:先把旧实例卸下(走 unequip 规则)
+        if self.available_count(faction_id, def_id) <= 0:
+            return "失败:仓库无此装备在库可用"
+        art = self.artifact_defs[def_id]
+        # 槽位已占用:先把旧装备卸下(回库)
         while len(u.artifacts) <= slot:
             u.artifacts.append(None)  # type: ignore[arg-type]
-        old_iid = u.artifacts[slot]
-        if old_iid is not None:
-            old_msg = self._unequip_instance(f, u, slot, suppress_log=True)
-            if old_msg.startswith("失败"):
-                return old_msg   # 理论上不会失败,防御
-        # 装上新实例
-        u.artifacts[slot] = instance_id
-        inst.equipped_by = u.id
-        inst.state = ARTIFACT_AVAILABLE
-        inst.cooldown = 0
+        if u.artifacts[slot] is not None:
+            self._unequip_into_inventory(u, slot)
+        # 装上新装备(记 def_id 到槽位;库存计数不变,已装备由反查体现)
+        u.artifacts[slot] = def_id
         self._recompute_unit_tags(u)
+        self._recompute_granted_skills(u)
         return f"{u.name} 装备了 {art.name}"
 
     def action_unequip(self, faction_id: str, unit_id: str, slot: int) -> str:
-        """卸下单位指定槽位 0..2 的装备(ADR-0007)。
+        """卸下单位指定槽位 0..3 的装备,回库(ADR-0009)。
 
-        可在单位界面(满槽按回车)或仓库界面(X 键)调用。卸下规则:装备的单位当前
-        在己方据点内则实例回到仓库·可用(冷却 0);不在己方据点则进不可用,5 回合后
-        恢复可用(与单位下场冷却同理,ADR-0005)。槽位空则失败。
+        位置限制同装备:单位所在部队须在己方据点内;待命单位可编辑。
+        无冷却——卸下即回库可用。槽位空则失败。
         """
         f = self.factions.get(faction_id)
         if not f:
@@ -389,92 +360,70 @@ class Game:
             return "失败:无此单位"
         if self._unit_owner(u) != faction_id:
             return "失败:单位不归你"
-        if not (0 <= slot < 3):
+        if not (0 <= slot < u.ARTIFACT_SLOTS):
             return "失败:槽位越界"
+        if not self._unit_in_own_stronghold(f, u):
+            return "失败:单位不在己方据点(野外不可穿戴/卸下)"
         if slot >= len(u.artifacts) or u.artifacts[slot] is None:
             return "失败:该槽位无装备"
-        return self._unequip_instance(f, u, slot)
-
-    def _unequip_instance(self, f: Faction, u: Unit, slot: int,
-                         suppress_log: bool = False) -> str:
-        """从单位槽位卸下一件装备实例,按单位是否在己方据点决定冷却。
-
-        suppress_log=True 时不写 log(equip 替换旧装备时由调用方统一报消息)。
-        """
-        iid = u.artifacts[slot]
-        inst = self._artifact_index.get(iid) if iid is not None else None
-        if inst is None:
-            return "失败:该槽位无装备"
-        art = self.artifact_defs.get(inst.def_id)
-        name = art.name if art else iid
-        u.artifacts[slot] = None
-        inst.equipped_by = None
-        # 装备的单位当前所在部队
-        army = self.armies.get(u.army_id) if u.army_id else None
-        in_stronghold = (army is not None and not army.is_garrison
-                         and army.node_id in f.stronghold_ids)
-        if in_stronghold:
-            inst.state = ARTIFACT_AVAILABLE
-            inst.cooldown = 0
-            msg = f"{u.name} 卸下了 {name}(回库·可用)"
-        else:
-            inst.state = ARTIFACT_UNAVAILABLE
-            inst.cooldown = self.STANDBY_COOLDOWN
-            msg = (f"{u.name} 卸下了 {name}(单位不在己方据点,进不可用"
-                   f"{self.STANDBY_COOLDOWN}回合)")
+        name = self._unequip_into_inventory(u, slot)
         self._recompute_unit_tags(u)
-        if not suppress_log:
-            self.log_msg(msg)
-        return msg
+        self._recompute_granted_skills(u)
+        return f"{u.name} 卸下了 {name}(回库·可用)"
 
-    def action_sell_artifact(self, faction_id: str, instance_id: str) -> str:
-        """卖出仓库内一件在库·可用装备,固定 +10 金币(ADR-0007)。
+    def _unequip_into_inventory(self, u: Unit, slot: int) -> str:
+        """把单位 slot 槽位的装备卸下回库(库存计数不变,槽位置 None)。返回装备名。"""
+        def_id = u.artifacts[slot]
+        art = self.artifact_defs.get(def_id) if def_id else None
+        name = art.name if art else (def_id or "?")
+        u.artifacts[slot] = None
+        return name
 
-        只能卖出未装备且 state=available 的实例。不可用(冷却中)或已装备的不可卖。
+    def _unit_in_own_stronghold(self, f: Faction, u: Unit) -> bool:
+        """单位所在部队是否在己方据点内(待命单位无部队、视为安全,可编辑)。ADR-0009。"""
+        if not u.army_id:
+            return True   # 待命单位
+        army = self.armies.get(u.army_id)
+        if not army or army.is_garrison:
+            return False  # 驻军不可编辑装备
+        return army.node_id in f.stronghold_ids
+
+    def action_sell_artifact(self, faction_id: str, def_id: str) -> str:
+        """卖出仓库内 1 件某定义装备,固定 +10 金币(ADR-0009)。
+
+        按定义卖:从库存扣 1(只能在库可用数内,已装备数不可卖)。
         """
         f = self.factions.get(faction_id)
         if not f:
             return "失败:无此阵营"
-        inst = self._artifact_index.get(instance_id)
-        if not inst or not self._instance_in_faction_inventory(inst, f):
-            return "失败:无此装备实例"
-        if not inst.is_available():
-            if inst.is_equipped():
-                return "失败:装备已被装备,先卸下"
-            return "失败:装备不可用(冷却中)"
-        art = self.artifact_defs.get(inst.def_id)
-        name = art.name if art else instance_id
-        # 从仓库与索引移除
-        f.inventory.remove(inst)
-        self._artifact_index.pop(inst.id, None)
-        f.resources.add("gold", 10, source=SOURCE_INIT,
-                        building=name)
-        return f"卖出 {name},+10 金币"
+        if def_id not in self.artifact_defs:
+            return "失败:未知装备定义"
+        if self.available_count(faction_id, def_id) <= 0:
+            return "失败:无在库可用件(已装备须先卸下)"
+        art = self.artifact_defs[def_id]
+        f.inventory[def_id] -= 1
+        if f.inventory[def_id] <= 0:
+            f.inventory.pop(def_id, None)
+        f.resources.add("gold", 10, source=SOURCE_INIT, building=art.name)
+        return f"卖出 {art.name},+10 金币"
 
     def _release_artifacts(self, f: Faction, u: Unit) -> None:
-        """单位死亡/解散时回收其装备:全部回库·可用(死亡无位置惩罚)。"""
-        for slot in range(len(u.artifacts)):
-            iid = u.artifacts[slot]
-            inst = self._artifact_index.get(iid) if iid is not None else None
-            if inst is None:
-                continue
-            inst.equipped_by = None
-            inst.state = ARTIFACT_AVAILABLE
-            inst.cooldown = 0
+        """单位死亡/解散时回收其装备:全部回库(死亡无位置惩罚)。ADR-0009。
+
+        def_id 库存计数不变(库存含已装备),单位槽位置空即可——已装备数由反查体现,
+        单位没了就不再占用库存。故本函数只需清槽位。
+        """
         u.artifacts = []
+        u.granted_skills = []
 
     def _recompute_unit_tags(self, u: Unit) -> None:
-        """重算单位 tags = 本体 tag ∪ 当前装备赋予的 tag(ADR-0007)。
+        """重算单位 tags = 本体 tag ∪ 当前装备赋予的 tag(ADR-0009)。
 
-        兵种本体 tag 不可由装备移除,故每次装备/卸下后重算。装备改实例模型,经
-        _artifact_index 映射到 def_id 再取 effects。
+        兵种本体 tag 不可由装备移除,故每次装备/卸下后重算。按 def_id 直接查 artifact_defs。
         """
         granted: set[str] = set()
-        for iid in u.artifacts:
-            inst = self._artifact_index.get(iid)
-            if not inst:
-                continue
-            art = self.artifact_defs.get(inst.def_id)
+        for def_id in u.artifacts:
+            art = self.artifact_defs.get(def_id)
             if not art:
                 continue
             for e in art.effects:
@@ -483,8 +432,26 @@ class Game:
         body_tags = self._body_tags(u)
         u.tags = body_tags | granted
 
+    def _recompute_granted_skills(self, u: Unit) -> None:
+        """重算装备赋予技能(ADR-0008):遍历单位装备,收集 skill_grant 的技能 id。
+
+        装上时加入、卸下时移除——整体重算即可(装/卸后调用)。与 _recompute_unit_tags
+        同样的"全量重算"口径。
+        """
+        granted: list[str] = []
+        for def_id in u.artifacts:
+            art = self.artifact_defs.get(def_id)
+            if not art:
+                continue
+            for e in art.effects:
+                if e.get("type") == "skill_grant":
+                    sid = e["params"].get("skill")
+                    if sid and sid not in granted:
+                        granted.append(sid)
+        u.granted_skills = granted
+
     def _body_tags(self, u: Unit) -> set[str]:
-        """单位本体词条(不含神器赋予的 tag)。取兵种/英雄定义的原始 tags。"""
+        """单位本体词条(不含装备赋予的 tag)。取兵种/英雄定义的原始 tags。"""
         if u.is_hero:
             hdef = self.hero_defs.get(u.type_id)
             return set(hdef.tags) if hdef else set(u.tags)
@@ -512,31 +479,29 @@ class Game:
             if tag in unit.tags:
                 mods.append(Modifier(ModifierSource.DAY_NIGHT, "tod", unit.id, attr, val, op="pct"))
         # 3. 兵种词条加成:原型通过技能 tag_bonus 体现,无全局词条修正
-        # 4. 技能/被动
-        for sid in unit.skills:
-            sdef = None
-            # 技能定义来自 building/hero 数据中的 skills;原型在 hero_defs 里
+        # 4. 技能/被动:遍历单位有效技能(习得 + 装备赋予),kind=perk 走修正管道
+        for sid in unit.effective_skills():
             skill_data = self._skill_def(sid)
             if not skill_data:
+                continue
+            # 仅 perk(kind=perk 或缺省)走修正管道;active/passive 由战斗引擎处理
+            if skill_kind(skill_data) != SKILL_PERK:
                 continue
             effs = build_skill_effects(skill_data)
             army_tags_count = self._army_tags_count(army) if army else {}
             mods.extend(collect_passive_modifiers(effs, unit.id, unit.tags,
                                                   army_tags_count,
                                                   ModifierSource.SKILL, sid))
-        # 5. 装备(神器):经实例索引解析到 def(ADR-0007)
-        for iid in unit.artifacts:
-            inst = self._artifact_index.get(iid)
-            if not inst:
-                continue
-            art = self.artifact_defs.get(inst.def_id)
+        # 5. 装备:按 def_id 直接查 defs(ADR-0009)
+        for def_id in unit.artifacts:
+            art = self.artifact_defs.get(def_id)
             if not art:
                 continue
             effs = build_skill_effects({"effects": art.effects})
             army_tags_count = self._army_tags_count(army) if army else {}
             mods.extend(collect_passive_modifiers(effs, unit.id, unit.tags,
                                                   army_tags_count,
-                                                  ModifierSource.ARTIFACT, iid))
+                                                  ModifierSource.ARTIFACT, def_id))
         # 6. 地形(小地点):原型给小修正
         if terrain and terrain in self.terrain_defs:
             tdef = self.terrain_defs[terrain]
@@ -611,8 +576,7 @@ class Game:
         """
         # 待命冷却推进(ADR-0005):不可用单位 -1,到 0 转可用
         self._tick_standby(faction)
-        # 装备冷却推进(ADR-0007):仓库内不可用装备 -1,到 0 转可用
-        self._tick_inventory(faction)
+        # 装备冷却已移除(def_id 库存模型,ADR-0009),无 _tick_inventory
         # 经济结算:产出 → 扣维护费(打断粮标记)→ 补给 → 各类回血(均跳过断粮单位)
         # §2:回合开始先清空各资源 delta(存量保留),供本回合重新累计净变动
         faction.resources.reset_turn()

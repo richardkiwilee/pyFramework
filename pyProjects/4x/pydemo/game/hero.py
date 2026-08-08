@@ -20,12 +20,13 @@ class HeroDef:
     name: str
     tags: set[str]
     base: dict[str, float]
-    skills: list[str]               # 技能 id 列表
+    skills: list[str]               # 习得技能 id 列表
     recruit_cost: dict[str, int]    # 招募资源消耗
     belief_req: dict[str, int]      # 信念门槛 {dim: threshold}
     growth: dict[str, float] = field(default_factory=dict)   # 各属性增长率
     maintenance: dict[str, int] = field(default_factory=dict)   # 每回合维护费;缺省走原型默认(英雄 4 倍)
     train_cost: dict[str, int] = field(default_factory=dict)    # 训练消耗;缺省走原型默认(按其定义)
+    map_skills: list[str] = field(default_factory=list)   # 地图技能(2 个占位,仅率领部队的英雄可用,本期不接逻辑)
     desc: str = ""
 
 
@@ -40,6 +41,7 @@ def load_hero_defs(d: dict) -> dict[str, HeroDef]:
             belief_req=h.get("belief_req", {}),
             maintenance=h.get("maintenance", {}),
             train_cost=h.get("train_cost", {}),
+            map_skills=h.get("map_skills", []),
             desc=h.get("desc", ""),
         )
     return out

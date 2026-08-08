@@ -644,6 +644,11 @@ class ArmyScene(Scene):
         buf.put_text(x + 1, ry, f"词条 {tagstr}", theme.DIM, theme.BG); ry += 1
         buf.put_text(x + 1, ry, f"英雄 {'是' if u.is_hero else '否'}", theme.DIM, theme.BG); ry += 1
         buf.put_text(x + 1, ry, f"等级 Lv{u.level}  经验 {u.xp}", theme.ACCENT, theme.BG); ry += 1
+        # 装备可编辑性提示(ADR-0009):仅部队在己方据点时可编辑装备
+        if self._is_ours(army) and g._unit_in_own_stronghold(ctrl_mod.ctrl.player(), u):
+            buf.put_text(x + 1, ry, "装备:可编辑(在己方据点)", theme.ACCENT2, theme.BG)
+        elif self._is_ours(army):
+            buf.put_text(x + 1, ry, "装备:不可编辑(野外)", theme.WARN, theme.BG)
         ry += 1
         buf.put_text(x + 1, ry, "属性", theme.ACCENT, theme.BG); ry += 1
         attrs = ["hp", "p_atk", "m_atk", "p_def", "m_def", "speed", "acc", "eva", "block", "crit", "will", "occupy", "leadership"]

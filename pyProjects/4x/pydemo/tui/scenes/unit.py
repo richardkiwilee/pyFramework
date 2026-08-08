@@ -3,15 +3,16 @@
 按 修正稿1.md §3：
 - 左右两窗口。左侧列己方所有单位（场上部队成员 + 待命 + 己方据点驻军）；
   右侧展示单位详情：所有属性、所属部队、当前位置、等级与经验、训练所需资源、装备栏。
-- 空格在左窗口时把焦点切进右侧详情；右侧有 4 个可交互"按钮"：训练 + 3 装备栏。
+- 空格在左窗口时把焦点切进右侧详情；右侧有 5 个可交互"按钮"：训练 + 4 装备栏。
 - 训练：消费资源直接获 +5 XP（走 Game.action_train）；可训练位见 is_trainable
   （在己方据点且该据点无敌方部队，或待命·可用）。不可训练/已训练/资源不足时按钮
   置灰，回车在日志栏提示原因。
-- 装备栏：展示已装备神器（最多 3，u.artifacts 存实例 id,ADR-0007）。
+- 装备栏：展示已装备神器（最多 4,槽位 0..3,u.artifacts 存 def_id,ADR-0009）。
   操作逻辑.md §8.4/单位界面装备:空槽位回车进入装备选择子模式,列出仓库内
-  可用实例(未装备、冷却已归零),回车装备到该槽(走 Game.action_equip,实例模型);
-  已占用槽位回车则卸下该槽装备(走 Game.action_unequip,按单位是否在己方据点
-  决定冷却,见操作逻辑.md §13)。装备不受位置限制。可由 ArmyScene 通过
+  在库可用的装备定义(按 def_id,显示库存数),回车装备到该槽(走 Game.action_equip,
+  def_id 库存模型);已占用槽位回车则卸下该槽装备(走 Game.action_unequip)。
+  装/卸均要求单位所在部队在己方据点内(待命单位可编辑);野外部队不可穿戴/卸下,
+  失败时日志栏提示"单位不在己方据点"。可由 ArmyScene 通过
   PUSH(UnitScene(), {"unit_id":...}) 委托进入并预选到指定单位。
 """
 from __future__ import annotations
@@ -36,14 +37,14 @@ W2 = (34, 3, 65, 25)
 
 # 详情属性 3 列布局的起始 x（W2 内部）
 _ATTR_COLS = (35, 56, 77)
-# 16 个属性按 3 列分组（最后一行 1 个）
+# 17 个属性按 3 列分组(含 pp,ADR-0008;末行 2 个)
 _ATTR_ROWS = [
-    ["hp", "ap", "mana"],
-    ["speed", "p_atk", "m_atk"],
-    ["p_def", "m_def", "acc"],
-    ["eva", "block", "crit"],
-    ["luck", "will", "occupy"],
-    ["leadership"],
+    ["hp", "ap", "pp"],
+    ["mana", "speed", "p_atk"],
+    ["m_atk", "p_def", "m_def"],
+    ["acc", "eva", "block"],
+    ["crit", "luck", "will"],
+    ["occupy", "leadership"],
 ]
 
 
@@ -55,8 +56,8 @@ class UnitScene(Scene):
         self.focus = 0           # 左侧单位列表焦点
         self.list_scroll = 0
         self.in_detail = False   # False=左列表有焦点, True=右侧按钮有焦点
-        self.btn_focus = 0       # 0=训练 1/2/3=装备栏
-        # 装备子模式:正在为哪个槽位(0..2)选神器;None=不在子模式
+        self.btn_focus = 0       # 0=训练 1..4=装备栏(共 5 个按钮)
+        # 装备子模式:正在为哪个槽位(0..3)选神器;None=不在子模式
         self.in_equip: int | None = None
         self.equip_scroll = 0
         self.equip_focus = 0
@@ -144,18 +145,18 @@ class UnitScene(Scene):
             return "资源不足"
         return ""
 
-    def _available_instances(self) -> list:
-        """仓库内在库·可用的装备实例列表(ADR-0007),供装备选择子模式列出。
-        排序按 def_id 再按 instance id,保证稳定展示。"""
+    def _available_defs(self) -> list:
+        """仓库内在库·可用的装备定义列表(ADR-0009),供装备选择子模式列出。
+        返回 [(def_id, Artifact, available_count)] 按 def_id 排序稳定展示。"""
         g = ctrl_mod.ctrl.g
         player = ctrl_mod.ctrl.player()
-        insts = player.inventory_available_instances()
-        return sorted(insts, key=lambda a: (a.def_id, a.id))
-
-    def _artifact_defs(self) -> list:
-        """所有已定义神器 (id, Artifact)，按 id 排序，便于稳定展示。"""
-        g = ctrl_mod.ctrl.g
-        return sorted(g.artifact_defs.items(), key=lambda kv: kv[0])
+        out = []
+        for def_id in sorted(g.artifact_defs.keys()):
+            avail = g.available_count(player.id, def_id)
+            if avail <= 0:
+                continue   # 在库可装数为 0(无库存或全被装备)的不列出
+            out.append((def_id, g.artifact_defs[def_id], avail))
+        return out
 
     # ---- 输入 ----
     def handle_action(self, event) -> SceneResult:
@@ -198,7 +199,7 @@ class UnitScene(Scene):
     def _move_vertical(self, a: str, entries: list) -> None:
         delta = -1 if a == actions.UP else 1
         if self.in_detail:
-            self.btn_focus = (self.btn_focus + delta) % 4
+            self.btn_focus = (self.btn_focus + delta) % 5
             return
         self.focus = (self.focus + delta) % len(entries)
         self._clamp_scroll()
@@ -230,15 +231,15 @@ class UnitScene(Scene):
                 self.equip_scroll = 0
 
     def _handle_equip(self, a) -> SceneResult:
-        insts = self._available_instances()
+        defs = self._available_defs()
         if a == actions.BACK:
             self.in_equip = None
             return NONE()
         if a in (actions.UP, actions.DOWN):
-            if not insts:
+            if not defs:
                 return NONE()
             delta = -1 if a == actions.UP else 1
-            self.equip_focus = (self.equip_focus + delta) % len(insts)
+            self.equip_focus = (self.equip_focus + delta) % len(defs)
             # 滚动夹住
             visible = 8
             if self.equip_focus < self.equip_scroll:
@@ -247,17 +248,17 @@ class UnitScene(Scene):
                 self.equip_scroll = self.equip_focus - visible + 1
             return NONE()
         if a == actions.CONFIRM:
-            if not insts:
-                log.push("仓库无可用装备", warn=True)
+            if not defs:
+                log.push("仓库无在库可用装备", warn=True)
                 self.in_equip = None
                 return NONE()
             u = self._selected_unit()
             if u is None:
                 self.in_equip = None
                 return NONE()
-            inst = insts[self.equip_focus]
+            def_id, _art, _avail = defs[self.equip_focus]
             msg = ctrl_mod.ctrl.g.action_equip(
-                ctrl_mod.ctrl.g.player_id, u.id, inst.id, self.in_equip)
+                ctrl_mod.ctrl.g.player_id, u.id, def_id, self.in_equip)
             ok = not msg.startswith("失败")
             log.push(msg, warn=not ok)
             self.in_equip = None
@@ -363,6 +364,12 @@ class UnitScene(Scene):
         buf.put_text(x + 1, ry, f"所属部队: {army_txt}", theme.FG, theme.BG)
         node_txt = g.map.node_name(u.node_id) if u.node_id else "无"
         buf.put_text(x + 32, ry, f"位置: {node_txt}", theme.FG, theme.BG); ry += 1
+        # 装备可编辑性提示(ADR-0009):仅部队在己方据点或待命时可装/卸
+        if g._unit_in_own_stronghold(player, u):
+            buf.put_text(x + 1, ry, "装备:可编辑(在己方据点/待命)", theme.ACCENT2, theme.BG)
+        else:
+            buf.put_text(x + 1, ry, "装备:不可编辑(野外不可穿戴/卸下)", theme.WARN, theme.BG)
+        ry += 1
         # 等级/经验 | 生命
         buf.put_text(x + 1, ry, f"等级: Lv{u.level}  经验: {u.xp}/{xp_to_next(u.level)}",
                      theme.ACCENT, theme.BG)
@@ -410,25 +417,23 @@ class UnitScene(Scene):
         bw = ww - 2
         draw_box(buf, bx, top, bw, 7, title=f"装备栏{self.in_equip + 1} · 选装备(ESC 取消)",
                  fg=theme.ACCENT)
-        insts = self._available_instances()
-        if not insts:
-            buf.put_text(bx + 1, top + 1, "（仓库无可用装备）", theme.WARN, theme.BG)
+        defs = self._available_defs()
+        if not defs:
+            buf.put_text(bx + 1, top + 1, "（仓库无在库可用装备）", theme.WARN, theme.BG)
             return
-        g = ctrl_mod.ctrl.g
         visible = 5
         start = self.equip_scroll
-        end = min(len(insts), start + visible)
+        end = min(len(defs), start + visible)
         for i in range(start, end):
             row = i - start
             ry = top + 1 + row
-            inst = insts[i]
-            art = g.artifact_def_of(inst.id)
-            name = art.name if art else inst.def_id
-            label = f"{name}"
+            def_id, art, avail = defs[i]
+            name = art.name if art else def_id
+            label = f"{name}  库{avail}"
             self._draw_row(buf, bx, ry, bw, label, theme.FG, i, self.equip_focus,
                            True, truncate=True)
-        if len(insts) > visible:
-            buf.put_text(bx + bw - 8, top, f"({self.equip_focus + 1}/{len(insts)})",
+        if len(defs) > visible:
+            buf.put_text(bx + bw - 8, top, f"({self.equip_focus + 1}/{len(defs)})",
                          theme.DIM, theme.BG)
 
     def _render_buttons(self, buf, u) -> None:
@@ -452,25 +457,30 @@ class UnitScene(Scene):
 
     def _button_rects(self, yb: int) -> list:
         x, _, ww, _ = W2
-        widths = [14, 15, 15, 15]
+        # 5 个按钮(训练 + 4 装备栏),等宽分布。W2 宽 65,内宽 63。
+        # 5 按钮各 12 宽,间隔 3,总 5*12+4*3=72 略宽;改用动态等分。
+        n = 5
+        gap = 1
+        bw = (ww - 2 - (n - 1) * gap) // n
         cx = x + 1
         rects = []
-        for wdt in widths:
-            rects.append((cx, yb, wdt))
-            cx += wdt + 1
+        for _ in range(n):
+            rects.append((cx, yb, bw))
+            cx += bw + gap
         return rects
 
     def _button_labels(self, u) -> list:
         g = ctrl_mod.ctrl.g
         labels = ["训练"]
-        for slot in range(3):
+        slots = u.ARTIFACT_SLOTS if u is not None else 4
+        for slot in range(slots):
             if u is not None and slot < len(u.artifacts) and u.artifacts[slot]:
-                iid = u.artifacts[slot]
-                art = g.artifact_def_of(iid)
-                name = art.name if art else iid
+                def_id = u.artifacts[slot]
+                art = g.artifact_def_of(def_id)
+                name = art.name if art else def_id
             else:
                 name = "空"
-            labels.append(f"装备{slot + 1}:{name}")
+            labels.append(f"{slot+1}:{name}")
         return labels
 
     def _render_button(self, buf, x, y, w, label, focused, fg) -> None:

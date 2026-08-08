@@ -93,11 +93,14 @@ def run_battle(
     # 初始化战斗内状态
     for u in all_units:
         u.cur_ap = eff_map[u.id].get("ap", 0)
-        u.cur_mana = eff_map[u.id].get("mana", 0)
+        u.cur_pp = eff_map[u.id].get("pp", 0)
+        # Mana 跨场累积不回满:进场只 clamp 到当前有效上限(ADR-0008)。
+        mana_cap = eff_map[u.id].get("mana", 0)
+        u.cur_mana = mana_cap if u.cur_mana <= 0 else min(u.cur_mana, mana_cap)
         u.atb = 0.0
         u.alive = True
         # HP 跨战斗累积(不每场回满):保留进场 cur_hp,仅 clamp 到当前有效上限。
-        # AP/Mana 仍每场回满;HP 跨场消耗是"3~4 场耗死"模型的前提(见 unit_types 校准)。
+        # AP/PP 每场开打回满;HP 跨场消耗是"3~4 场耗死"模型的前提(见 unit_types 校准)。
         eff_hp = eff_map[u.id].get("hp", u.base.get("hp", 1))
         u.cur_hp = eff_hp if u.cur_hp <= 0 else min(u.cur_hp, eff_hp)
 

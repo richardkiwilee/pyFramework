@@ -1,19 +1,15 @@
-"""仓库场景（键 I）：装备实例一览 + 效果/归属详情 + 卖出/卸下（操作逻辑.md §13）。
+"""仓库场景（键 I）：装备按 def_id 库存行 + 效果/归属详情 + 卖出/卸下（ADR-0009）。
 
 左右两窗口:
-- 左侧(W1):阵营仓库内全部装备实例(最多 200,ADR-0007)。每件一行,按状态显示:
-    · 已装备 → 名字前加 "E"(equiped);行尾标所属部队·单位
-    · 在库可用 → 普通显示
-    · 在库不可用(卸下冷却中) → 名字后标 "(不可用N)"
+- 左侧(W1):阵营仓库内全部装备定义,每定义一行(取代 ADR-0007 的逐件实例列表)。
+    每行显示:定义名  库存数 + 已装备数 + 归属列表(哪些部队·单位装备了该定义)。
   焦点在左侧某装备上时:
-    · S 卖出(仅未装备且可用,固定 +10 金币,走 Game.action_sell_artifact)
-    · X 卸下(仅正在被装备,走 Game.action_unequip;装备单位不在己方据点则
-      进不可用 5 回合,见操作逻辑.md §13)
-- 右侧(W2):当前焦点装备的效果描述 + 归属(若已装备:哪个部队的哪个单位)。
+    · S 卖出(按 def_id 卖 1 件库存,固定 +10 金币,走 Game.action_sell_artifact)
+    · X 卸下(按 def_id 找一件已装备该定义的单位,卸其对应槽位;不在己方据点则提示)
+- 右侧(W2):当前焦点装备的效果描述 + 归属列表。
 
-注意:本场景用独立按键处理(直接读 CHAR 动作的 char 字段),因 S/X 在主场景
-键绑定里未绑定到游戏动作(主场景 X 绑定 OPEN_UNIT,但本场景拦截后自行处理,不
-冒泡到主场景)。S/X 仅在左侧窗口焦点时生效。
+装/卸均要求单位所在部队在己方据点内(待命单位可编辑);野外部队不可穿戴/卸下。
+注意:本场景用独立按键处理(直接读 CHAR 动作的 char 字段)。S/X 仅在左侧窗口焦点时生效。
 """
 from __future__ import annotations
 
@@ -45,6 +41,8 @@ def _describe_effect(eff: dict) -> str:
         return f"{ATTR_CN.get(p.get('attr'), p.get('attr'))} +{p.get('value', 0)}%"
     if et == "tag_grant":
         return f"赋予词条 {TAG_CN.get(p.get('tag'), p.get('tag'))}"
+    if et == "skill_grant":
+        return f"赋予技能 {p.get('skill')}"
     if et == "tag_bonus":
         return (f"有 {TAG_CN.get(p.get('tag'), p.get('tag'))} 时 "
                 f"{ATTR_CN.get(p.get('attr'), p.get('attr'))} +{p.get('value', 0)}")
@@ -67,55 +65,58 @@ class InventoryScene(Scene):
         self.list_scroll = 0
 
     # ---- 数据 ----
-    def _all_instances(self) -> list:
-        """仓库内全部装备实例(已装备 + 在库),按 def_id 再按 id 排序稳定展示。"""
-        player = ctrl_mod.ctrl.player()
-        return sorted(player.inventory, key=lambda a: (a.def_id, a.id))
-
-    def _safe_focus(self) -> list:
-        insts = self._all_instances()
-        if not insts:
-            self.focus = 0
-            return insts
-        if self.focus >= len(insts):
-            self.focus = len(insts) - 1
-        return insts
-
-    def _selected_inst(self):
-        insts = self._safe_focus()
-        if not insts:
-            return None
-        return insts[self.focus]
-
-    def _equip_owner_text(self, inst) -> str:
-        """若实例已装备,返回 "部队名·单位名";否则返回空串。"""
-        if not inst.is_equipped():
-            return ""
+    def _all_defs(self) -> list[str]:
+        """仓库内全部装备 def_id(按 id 排序稳定展示)。ADR-0009。"""
         g = ctrl_mod.ctrl.g
-        u = g.unit_index.get(inst.equipped_by)
-        if not u:
-            return "(装备单位缺失)"
-        army = g.armies.get(u.army_id) if u.army_id else None
-        if army:
-            if army.is_garrison:
-                sh = g.map.strongholds.get(army.node_id)
-                army_txt = f"{sh.name if sh else army.node_id}驻军"
-            else:
-                army_txt = army.name
-        else:
-            army_txt = "待命"
-        return f"{army_txt} · {u.name}"
+        # 列出所有已定义装备定义(含库存 0 的也显示,便于查看效果)
+        return sorted(g.artifact_defs.keys())
+
+    def _safe_focus(self) -> list[str]:
+        defs = self._all_defs()
+        if not defs:
+            self.focus = 0
+            return defs
+        if self.focus >= len(defs):
+            self.focus = len(defs) - 1
+        return defs
+
+    def _selected_def(self) -> str | None:
+        defs = self._safe_focus()
+        if not defs:
+            return None
+        return defs[self.focus]
+
+    def _equipped_owners(self, def_id: str) -> list:
+        """装备了该 def_id 的本阵营单位列表:[(army_txt, unit)]。ADR-0009 反查。"""
+        g = ctrl_mod.ctrl.g
+        player = ctrl_mod.ctrl.player()
+        out = []
+        for u in g.unit_index.values():
+            if g._unit_owner(u) != player.id:
+                continue
+            if def_id in u.artifacts:
+                army = g.armies.get(u.army_id) if u.army_id else None
+                if army:
+                    if army.is_garrison:
+                        sh = g.map.strongholds.get(army.node_id)
+                        army_txt = f"{sh.name if sh else army.node_id}驻军"
+                    else:
+                        army_txt = army.name
+                else:
+                    army_txt = "待命"
+                out.append((army_txt, u))
+        return out
 
     # ---- 输入 ----
     def handle_action(self, event) -> SceneResult:
         a = event.action
-        insts = self._safe_focus()
+        defs = self._safe_focus()
         if a == actions.BACK:
             return POP()
         if a in (actions.UP, actions.DOWN):
-            self._move_vertical(a, insts)
+            self._move_vertical(a, defs)
             return NONE()
-        # 操作逻辑.md §13:S 卖出 / X 卸下 —— 直接读字符,仅左侧列表焦点时生效。
+        # S 卖出 / X 卸下 —— 直接读字符,仅左侧列表焦点时生效。
         if a == actions.CHAR and event.char:
             ch = event.char.lower()
             if ch == "s":
@@ -126,11 +127,11 @@ class InventoryScene(Scene):
                 return NONE()
         return NONE()
 
-    def _move_vertical(self, a: str, insts: list) -> None:
-        if not insts:
+    def _move_vertical(self, a: str, defs: list) -> None:
+        if not defs:
             return
         delta = -1 if a == actions.UP else 1
-        self.focus = (self.focus + delta) % len(insts)
+        self.focus = (self.focus + delta) % len(defs)
         visible = W1[3] - 2
         if self.focus < self.list_scroll:
             self.list_scroll = self.focus
@@ -138,37 +139,27 @@ class InventoryScene(Scene):
             self.list_scroll = self.focus - visible + 1
 
     def _do_sell(self) -> None:
-        inst = self._selected_inst()
-        if inst is None:
+        def_id = self._selected_def()
+        if def_id is None:
             return
         g = ctrl_mod.ctrl.g
-        msg = g.action_sell_artifact(g.player_id, inst.id)
+        msg = g.action_sell_artifact(g.player_id, def_id)
         ok = not msg.startswith("失败")
         log.push(msg, warn=not ok)
-        # 卖出后列表缩短,夹住焦点
         self._safe_focus()
 
     def _do_unequip(self) -> None:
-        inst = self._selected_inst()
-        if inst is None:
-            return
-        if not inst.is_equipped():
-            log.push("该装备未被装备,无法卸下", warn=True)
+        def_id = self._selected_def()
+        if def_id is None:
             return
         g = ctrl_mod.ctrl.g
-        u = g.unit_index.get(inst.equipped_by)
-        if u is None:
-            log.push("装备单位缺失", warn=True)
+        # 找一件已装备该定义的单位,卸其对应槽位
+        owners = self._equipped_owners(def_id)
+        if not owners:
+            log.push("该装备无被装备件,无需卸下", warn=True)
             return
-        # 找到槽位(实例在单位 artifacts 中的位置)
-        slot = None
-        for i, iid in enumerate(u.artifacts):
-            if iid == inst.id:
-                slot = i
-                break
-        if slot is None:
-            log.push("未找到装备槽位", warn=True)
-            return
+        _army_txt, u = owners[0]
+        slot = u.artifacts.index(def_id)
         msg = g.action_unequip(g.player_id, u.id, slot)
         ok = not msg.startswith("失败")
         log.push(msg, warn=not ok)
@@ -176,81 +167,81 @@ class InventoryScene(Scene):
     # ---- 渲染 ----
     def render(self, buf: FrameBuffer) -> None:
         w, h = buf.w, buf.h
-        insts = self._safe_focus()
+        defs = self._safe_focus()
         draw_box(buf, 0, 0, w, h, title="仓库")
-        buf.put_text(2, 1, f"装备 {len(insts)}/200", theme.HEADING, theme.BG)
+        g = ctrl_mod.ctrl.g
+        player = ctrl_mod.ctrl.player()
+        stock_total = sum(player.inventory.values())
+        buf.put_text(2, 1, f"装备定义 {len(defs)} 种 · 库存 {stock_total} 件",
+                     theme.HEADING, theme.BG)
         for cx in range(1, w - 1):
             buf.set_char(cx, 2, "─", theme.BORDER, theme.BG)
-        self._render_w1(buf, insts)
+        self._render_w1(buf, defs)
         self._render_w2(buf)
         log.render_log_bar(buf, 0, h - 2, w)
 
-    def _render_w1(self, buf, insts: list) -> None:
+    def _render_w1(self, buf, defs: list) -> None:
         x, y, ww, hh = W1
         border = theme.ACCENT
-        draw_box(buf, x, y, ww, hh, title="装备列表", fg=border)
-        if not insts:
-            buf.put_text(x + 1, y + 1, "（仓库无装备）", theme.DIM, theme.BG)
+        draw_box(buf, x, y, ww, hh, title="装备列表(按定义)", fg=border)
+        if not defs:
+            buf.put_text(x + 1, y + 1, "（无装备定义）", theme.DIM, theme.BG)
             return
         g = ctrl_mod.ctrl.g
+        player = ctrl_mod.ctrl.player()
         visible = hh - 2
         start = self.list_scroll
-        end = min(len(insts), start + visible)
+        end = min(len(defs), start + visible)
         for i in range(start, end):
             ry = y + 1 + (i - start)
             if ry >= y + hh - 1:
                 break
-            inst = insts[i]
-            art = g.artifact_def_of(inst.id)
-            name = art.name if art else inst.def_id
-            # 操作逻辑.md §13:已装备名字前加 E
-            prefix = "E " if inst.is_equipped() else "  "
-            # 状态后缀
-            if inst.is_equipped():
-                owner = self._equip_owner_text(inst)
-                suffix = f"  → {owner}"
-                fg = theme.ACCENT2
-            elif inst.is_unavailable():
-                suffix = f"  (不可用{inst.cooldown})"
-                fg = theme.WARN
-            else:
-                suffix = ""
-                fg = theme.FG
-            label = f"{prefix}{name}{suffix}"
+            def_id = defs[i]
+            art = g.artifact_def_of(def_id)
+            name = art.name if art else def_id
+            stock = player.inventory.get(def_id, 0)
+            equipped = g.equipped_count(player.id, def_id)
+            avail = max(0, stock - equipped)
+            # 行:名字 + 在库/已装备
+            label = f"{name}  库{avail}/装{equipped}"
+            fg = theme.ACCENT2 if equipped > 0 else theme.FG
             self._draw_row(buf, x, ry, ww, label, fg, i, self.focus, truncate=True)
-        if len(insts) > visible:
-            buf.put_text(x + ww - 9, y, f"({self.focus + 1}/{len(insts)})",
+        if len(defs) > visible:
+            buf.put_text(x + ww - 9, y, f"({self.focus + 1}/{len(defs)})",
                          theme.DIM, theme.BG)
 
     def _render_w2(self, buf) -> None:
         x, y, ww, hh = W2
         draw_box(buf, x, y, ww, hh, title="装备详情", fg=theme.BORDER)
-        inst = self._selected_inst()
-        if inst is None:
+        def_id = self._selected_def()
+        if def_id is None:
             buf.put_text(x + 1, y + 1, "（请选择左侧装备）", theme.DIM, theme.BG)
             return
         g = ctrl_mod.ctrl.g
-        art = g.artifact_def_of(inst.id)
+        player = ctrl_mod.ctrl.player()
+        art = g.artifact_def_of(def_id)
         ry = y + 1
         # 名称
-        buf.put_text(x + 1, ry, f"名称: {art.name if art else inst.def_id}",
+        buf.put_text(x + 1, ry, f"名称: {art.name if art else def_id}",
                      theme.HEADING, theme.BG); ry += 1
-        # 状态
-        if inst.is_equipped():
-            state_txt = "已装备"
-            sfg = theme.ACCENT2
-        elif inst.is_unavailable():
-            state_txt = f"不可用(冷却 {inst.cooldown} 回合)"
-            sfg = theme.WARN
+        # 库存/已装备
+        stock = player.inventory.get(def_id, 0)
+        equipped = g.equipped_count(player.id, def_id)
+        avail = max(0, stock - equipped)
+        buf.put_text(x + 1, ry, f"库存: {stock}  在库可用: {avail}  已装备: {equipped}",
+                     theme.FG, theme.BG); ry += 1
+        # 归属列表
+        owners = self._equipped_owners(def_id)
+        if owners:
+            buf.put_text(x + 1, ry, "归属:", theme.ACCENT, theme.BG); ry += 1
+            for army_txt, u in owners:
+                if ry >= y + hh - 4:
+                    break
+                put_truncated(buf, x + 2, ry, f"· {army_txt} · {u.name}",
+                              ww - 4, theme.ACCENT2, theme.BG)
+                ry += 1
         else:
-            state_txt = "在库·可用"
-            sfg = theme.FG
-        buf.put_text(x + 1, ry, f"状态: {state_txt}", sfg, theme.BG); ry += 1
-        # 归属(若已装备)
-        if inst.is_equipped():
-            owner = self._equip_owner_text(inst)
-            buf.put_text(x + 1, ry, f"装备于: {owner}", theme.ACCENT, theme.BG)
-        ry += 1
+            buf.put_text(x + 1, ry, "归属:（无被装备件）", theme.DIM, theme.BG); ry += 1
         # 分隔
         self._hline(buf, x, ry, ww); ry += 1
         # 效果
@@ -267,12 +258,15 @@ class InventoryScene(Scene):
         # 可用操作提示(底部)
         ry = y + hh - 2
         self._hline(buf, x, ry, ww); ry += 1
-        if inst.is_equipped():
-            buf.put_text(x + 1, ry, "X 卸下(不在据点则进不可用5回合)", theme.ACCENT2, theme.BG)
-        elif inst.is_available():
-            buf.put_text(x + 1, ry, "S 卖出(+10 金币)", theme.GOLD, theme.BG)
-        else:
-            buf.put_text(x + 1, ry, "冷却中,不可操作", theme.DIM, theme.BG)
+        ops = []
+        if avail > 0:
+            ops.append("S 卖出(+10金币)")
+        if equipped > 0:
+            ops.append("X 卸下")
+        if not ops:
+            ops.append("无库存,不可操作")
+        fg = theme.DIM if not (avail or equipped) else theme.ACCENT2
+        buf.put_text(x + 1, ry, "  ".join(ops), fg, theme.BG)
 
     def _draw_row(self, buf, x, y, ww, label, fg, idx, focus_idx,
                   truncate: bool = False) -> None:

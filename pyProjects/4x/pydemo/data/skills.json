@@ -1,14 +1,14 @@
 {
-  "cavalry_charge": {"name": "骑兵冲锋", "desc": "拥有骑兵词条时 +10% 物攻",
+  "cavalry_charge": {"name": "骑兵冲锋", "kind": "perk", "desc": "拥有骑兵词条时 +10% 物攻",
     "effects": [{"type": "tag_bonus", "params": {"tag": "cavalry", "attr": "p_atk", "value": 0.10, "op": "pct"}}]},
-  "moon_mage":      {"name": "月之子", "desc": "按月相提升魔力恢复(满月最强)",
+  "moon_mage":      {"name": "月之子", "kind": "perk", "desc": "按月相提升魔力恢复(满月最强)",
     "effects": [{"type": "moon_regen", "params": {"scale": 1.0}}]},
-  "commander_aura": {"name": "统帅光环", "desc": "队长时全队 +5 物攻",
+  "commander_aura": {"name": "统帅光环", "kind": "perk", "desc": "队长时全队 +5 物攻",
     "effects": [{"type": "aura_flat", "params": {"attr": "p_atk", "value": 5}}]},
-  "night_stalker":  {"name": "夜行者", "desc": "魔法类单位 +15% 魔攻(由昼夜修正体现)",
+  "night_stalker":  {"name": "夜行者", "kind": "perk", "desc": "魔法类单位 +15% 魔攻(由昼夜修正体现)",
     "effects": [{"type": "pct_attr", "params": {"attr": "m_atk", "value": 0.05}}]},
-  "iron_body":      {"name": "铁躯", "desc": "+20 物防",
+  "iron_body":      {"name": "铁躯", "kind": "perk", "desc": "+20 物防",
     "effects": [{"type": "flat_attr", "params": {"attr": "p_def", "value": 20}}]},
-  "fireball":       {"name": "火球术", "desc": "主动:耗 3 魔力造成魔法伤害",
+  "fireball":       {"name": "火球术", "kind": "active", "desc": "主动:耗 3 魔力造成魔法伤害",
     "effects": [{"type": "ap_damage", "params": {"kind": "magic", "value": 45}, "trigger": "active", "mana_cost": 3}]}
 }
