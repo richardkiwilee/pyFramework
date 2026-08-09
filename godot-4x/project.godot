@@ -10,9 +10,25 @@ config_version=5
 
 [application]
 
-config/name="godot-4x"
+config/name="TheGreatConquest (Godot 4X)"
+config/description="TheGreatConquest - Godot 版本移植。布局/图形/数据分离：逻辑层 scripts/core，功能图形 scripts/ui，场景布局 scenes。"
+run/main_scene="res://scenes/boot.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+InputBindings="*res://autoload/input_bindings.gd"
+UiTheme="*res://autoload/ui_theme.gd"
+Loc="*res://autoload/loc.gd"
+GameController="*res://autoload/game_controller.gd"
+SceneStack="*res://autoload/scene_stack.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
 
 [physics]
 

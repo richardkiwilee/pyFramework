@@ -1,0 +1,10 @@
+{
+  "human_unity":  {"tag": "human", "kind": "tag_flat", "attr": "p_def", "per_unit_value": 2,
+    "desc": "人类协同:部队中每多1个人类单位,所有人类单位 +2 物防"},
+  "cavalry_band": {"tag": "cavalry", "kind": "tier_bonus",
+    "tiers": [{"count": 2, "attr": "p_atk", "value": 8, "op": "flat"},
+              {"count": 3, "attr": "p_atk", "value": 18, "op": "flat"}],
+    "desc": "骑兵群:2 骑兵 +8 物攻,3 骑兵 +18 物攻(分档,只给本人)"},
+  "mage_coven":  {"tag": "magic", "kind": "tag_flat", "attr": "m_atk", "per_unit_value": 5,
+    "desc": "法师盟约:部队中每多1个魔法单位,所有魔法单位 +5 魔攻"}
+}

@@ -53,10 +53,12 @@ class MainMenuScene(Scene):
         return NONE()
 
     def _activate(self, index: int) -> SceneResult:
+        # 注意：必须在本函数顶部 import（整个函数作用域都视 ctrl_mod 为局部，
+        # 若只在某个分支 import，另一分支使用会 UnboundLocalError）。
+        from .. import controller as ctrl_mod
         label = self.items[index]
         if label == "继续游戏":
             import os
-            from .. import controller as ctrl_mod
             # 有存档才进入游戏;无存档提示并留主菜单
             if os.path.isfile(ctrl_mod.ctrl._save_path()):
                 msg = ctrl_mod.ctrl.load()

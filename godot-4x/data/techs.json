@@ -1,0 +1,102 @@
+[
+  {
+    "id": "agriculture",
+    "name": "农耕术",
+    "category": "科技",
+    "desc": "改良灌溉与轮作，提升粮食产出基础。\n学习后可更高效地运营 [[农场]]，并为后勤学奠基。相关资源见 [[食物]]。",
+    "cost": {"tech": 3},
+    "prereqs": [],
+    "unlocks": ["农场产出 +1（占位）", "后勤学（前置）"],
+    "wiki_link": "farm"
+  },
+  {
+    "id": "mining",
+    "name": "采矿术",
+    "category": "科技",
+    "desc": "系统化的矿石开采技术。\n解锁高效 [[铁矿场]] 与采石场运营，为锻造术奠基。相关资源见 [[铁矿]]、[[石材]]。",
+    "cost": {"tech": 3},
+    "prereqs": [],
+    "unlocks": ["铁矿场/采石场产出 +1（占位）", "锻造术（前置）"],
+    "wiki_link": "iron_mine"
+  },
+  {
+    "id": "smithing",
+    "name": "锻造术",
+    "category": "科技",
+    "desc": "金属冶炼与兵器锻造，强化近战装备。\n前置：[[采矿术]]。学习后可为近战单位打造装备（占位）。相关见 [[铁矿场]]、[[近战]]。",
+    "cost": {"tech": 6, "iron": 5},
+    "prereqs": ["mining"],
+    "unlocks": ["近战装备 +物攻（占位）", "奥术理论（前置）"],
+    "wiki_link": "iron_mine"
+  },
+  {
+    "id": "logistics",
+    "name": "后勤学",
+    "category": "科技",
+    "desc": "组织化的补给线管理，延长部队野外续航。\n前置：[[农耕术]]。学习后部队 [[补给]] 消耗减半（占位）。相关见 [[食物]]、[[补给]]。",
+    "cost": {"tech": 6, "food": 10},
+    "prereqs": ["agriculture"],
+    "unlocks": ["小地点补给消耗 -1（占位）", "战马驯养（前置）"],
+    "wiki_link": "supply"
+  },
+  {
+    "id": "warhorse_breeding",
+    "name": "战马驯养",
+    "category": "科技",
+    "desc": "培育战马，强化骑兵编队战力。\n前置：[[后勤学]]。学习后 [[骑兵]] 与 [[骑士王]] 获得物攻加成（占位）。相关见 [[骑兵群]]。",
+    "cost": {"tech": 8, "gold": 20},
+    "prereqs": ["logistics"],
+    "unlocks": ["骑兵/骑士王 物攻 +5（占位）"],
+    "wiki_link": "cavalry"
+  },
+  {
+    "id": "arcane_theory",
+    "name": "奥术理论",
+    "category": "科技",
+    "desc": "系统化的魔法理论，提升魔法单位战力。\n前置：[[锻造术]]。学习后 [[魔法]] 类单位魔攻加成（占位），消耗 [[魔石]] 研究。相关见 [[法师盟约]]。",
+    "cost": {"tech": 10, "mana_stone": 5},
+    "prereqs": ["smithing"],
+    "unlocks": ["魔法单位魔攻 +5（占位）"],
+    "wiki_link": "magic"
+  },
+  {
+    "id": "martial_tradition",
+    "name": "武备传统",
+    "category": "科技",
+    "desc": "系统的步兵操典与建制传统，奠定常备军基础。\n学习后解锁 [[兵营]] 招募普通步兵。相关见 [[步兵]]、[[兵营]]。",
+    "cost": {"tech": 4},
+    "prereqs": [],
+    "unlocks": ["兵营（招募步兵）"],
+    "wiki_link": "infantry"
+  },
+  {
+    "id": "archery_discipline",
+    "name": "弓术纪律",
+    "category": "科技",
+    "desc": "制式弓弩与齐射操典，建立远程兵种传统。\n前置：[[武备传统]]。学习后解锁 [[靶场]] 招募普通弓兵。相关见 [[弓兵]]、[[靶场]]。",
+    "cost": {"tech": 6, "wood": 10},
+    "prereqs": ["martial_tradition"],
+    "unlocks": ["靶场（招募弓兵）"],
+    "wiki_link": "archer"
+  },
+  {
+    "id": "arcane_practice",
+    "name": "秘术研习",
+    "category": "科技",
+    "desc": "将奥术理论落地为可量产的法师训练体系。\n前置：[[奥术理论]]。学习后解锁 [[法师塔]] 招募普通魔法师。相关见 [[魔法]]、[[法师塔]]。",
+    "cost": {"tech": 8, "mana_stone": 8},
+    "prereqs": ["arcane_theory"],
+    "unlocks": ["法师塔（招募魔法师）"],
+    "wiki_link": "mage"
+  },
+  {
+    "id": "theology",
+    "name": "神学",
+    "category": "科技",
+    "desc": "系统化的信仰教义与僧侣修行体系。\n前置：[[农耕术]]。学习后解锁 [[寺院]] 招募普通僧侣。相关见 [[僧侣]]、[[寺院]]。",
+    "cost": {"tech": 7, "faith": 5},
+    "prereqs": ["agriculture"],
+    "unlocks": ["寺院（招募僧侣）"],
+    "wiki_link": "monk"
+  }
+]

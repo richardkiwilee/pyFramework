@@ -1,0 +1,102 @@
+[
+  {
+    "id": "folk_epic",
+    "name": "民间史诗",
+    "category": "文化",
+    "desc": "传唱英雄事迹，凝聚民心。\n学习后小幅提升 [[道德]] 取向（占位），为英雄叙事奠基。相关见 [[道德]]。",
+    "cost": {"culture": 3},
+    "prereqs": [],
+    "unlocks": ["道德事件收益 +（占位）", "英雄叙事（前置）"],
+    "wiki_link": "belief_morality"
+  },
+  {
+    "id": "heroic_saga",
+    "name": "英雄叙事",
+    "category": "文化",
+    "desc": "以史诗歌颂骑士与英雄，鼓舞士气。\n前置：[[民间史诗]]。学习后近战/骑兵类单位士气加成（占位）。相关见 [[骑士王]]、[[道德]]。",
+    "cost": {"culture": 6},
+    "prereqs": ["folk_epic"],
+    "unlocks": ["近战/骑兵士气 +（占位）", "宫廷礼制（前置）"],
+    "wiki_link": "belief_morality"
+  },
+  {
+    "id": "mercantile_code",
+    "name": "商法典",
+    "category": "文化",
+    "desc": "规范商贸与契约，提升功利取向。\n学习后 [[市场]]/[[商队]] 产出加成（占位）。相关见 [[功利]]、[[金币]]。",
+    "cost": {"culture": 3, "gold": 10},
+    "prereqs": [],
+    "unlocks": ["市场/商队产出 +1（占位）", "宫廷礼制（前置）"],
+    "wiki_link": "belief_utility"
+  },
+  {
+    "id": "court_rites",
+    "name": "宫廷礼制",
+    "category": "文化",
+    "desc": "建立宫廷礼仪与政令体系。\n前置：[[英雄叙事]] 与 [[商法典]]（二者皆需）。学习后 [[宫廷]] 政令产出加成（占位）。相关见 [[政令]]、[[宫廷]]。",
+    "cost": {"culture": 8, "decree": 1},
+    "prereqs": ["heroic_saga", "mercantile_code"],
+    "unlocks": ["宫廷政令产出 +1（占位）"],
+    "wiki_link": "res_decree"
+  },
+  {
+    "id": "cavalry_nobility",
+    "name": "骑兵贵族",
+    "category": "文化",
+    "desc": "以贵族骑士传统编练骑兵，奠定常备骑兵建制。\n学习后解锁 [[马厩]] 招募普通骑兵。相关见 [[骑兵]]、[[马厩]]。",
+    "cost": {"culture": 6, "gold": 15},
+    "prereqs": [],
+    "unlocks": ["马厩（招募骑兵）"],
+    "wiki_link": "cavalry"
+  },
+  {
+    "id": "forge_culture",
+    "name": "锻造文化",
+    "category": "文化",
+    "desc": "将锻造术化为匠作行会传统，可建造锻造屋批量产装备。\n学习后解锁 [[锻造屋]] 建造。相关见 [[装备]]、[[锻造屋]]。",
+    "cost": {"culture": 5, "iron": 5},
+    "prereqs": [],
+    "unlocks": ["锻造屋（每回合概率产出装备）"],
+    "wiki_link": "artifact"
+  },
+  {
+    "id": "frontier_spirit",
+    "name": "拓荒精神",
+    "category": "文化",
+    "desc": "鼓励向边境扩张的尚武民风，提升拓殖效率（占位）。\n学习后己方据点占领后的初始产出小幅提升（占位）。相关见 [[占领]]。",
+    "cost": {"culture": 4, "food": 10},
+    "prereqs": [],
+    "unlocks": ["占领据点首回合产出 +（占位）"],
+    "wiki_link": "capture"
+  },
+  {
+    "id": "mystic_rite",
+    "name": "秘仪",
+    "category": "文化",
+    "desc": "系统化的神秘仪轨，凝聚魔力与信仰。\n前置：[[宫廷礼制]]。学习后魔法/信仰类单位协同加成（占位）。相关见 [[魔力]]、[[信仰]]。",
+    "cost": {"culture": 10, "mana_stone": 5},
+    "prereqs": ["court_rites"],
+    "unlocks": ["魔法/信仰单位协同 +（占位）"],
+    "wiki_link": "mana"
+  },
+  {
+    "id": "merchant_guild",
+    "name": "商贾行会",
+    "category": "文化",
+    "desc": "组建跨据点商贾行会，强化商贸网络。\n前置：[[商法典]]。学习后 [[商队]]/[[市场]] 产出进一步提升（占位）。相关见 [[金币]]、[[商队]]。",
+    "cost": {"culture": 7, "gold": 20},
+    "prereqs": ["mercantile_code"],
+    "unlocks": ["商队/市场产出 +2（占位）"],
+    "wiki_link": "res_gold"
+  },
+  {
+    "id": "war_codex",
+    "name": "战争法典",
+    "category": "文化",
+    "desc": "成文的军法与战术操典，整合诸兵种传统。\n前置：[[英雄叙事]]。学习后全兵种协同小幅加成（占位）。相关见 [[占领]]、[[胜负]]。",
+    "cost": {"culture": 9, "decree": 1},
+    "prereqs": ["heroic_saga"],
+    "unlocks": ["全兵种协同 +（占位）"],
+    "wiki_link": "victory"
+  }
+]

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/scenes/settings_window.gd" id="1"]
+
+[node name="SettingsWindow" type="Window"]
+title = "设置"
+size = Vector2i(460, 620)
+script = ExtResource("1")
