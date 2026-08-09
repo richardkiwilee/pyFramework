@@ -8,8 +8,8 @@
 - 焦点在左侧时回车=学习；空格(SELECT)切换焦点进右侧；右侧 ↑↓ 切换跳转词条，
   回车打开百科并预填该词；右侧 ESC 回到左侧，左侧 ESC 退出本场景。
 
-业务层没有科技/文化系统，故学习记录保存在控制器（ctrl.tech_learned /
-ctrl.culture_learned），资源从玩家阵营扣除（TUI 侧，不影响战斗/经济）。
+学习记录保存在阵营 Faction.tech_learned/culture_learned(B7:移入业务层);
+学习走业务层 Game.action_learn_tech/culture(资源校验+加入 set 在业务层)。
 desc 中的 [[词]] 标记为跳转词条，渲染时去掉方括号以强调色显示。
 """
 from __future__ import annotations
@@ -120,7 +120,11 @@ class TreeScene(Scene):
 
     # ---- 子类钩子 ----
     def _learned_set(self) -> set[str]:
-        return ctrl_mod.ctrl.tech_learned
+        return ctrl_mod.ctrl.player().tech_learned
+
+    def _learn_kind(self) -> str:
+        """'tech' 或 'culture'，决定调 action_learn_tech 还是 action_learn_culture。"""
+        return "tech"
 
     # ---- 生命周期 ----
     def on_enter(self, params: Any = None) -> None:
@@ -258,17 +262,13 @@ class TreeScene(Scene):
         if it.id in learned:
             log.push(f"已学习过：{it.name}")
             return
-        if not all(p in learned for p in it.prereqs):
-            missing = [p for p in it.prereqs if p not in learned]
-            log.push(f"前置未满足：{it.name}（缺 {', '.join(missing)}）", warn=True)
-            return
-        res = ctrl_mod.ctrl.player().resources
-        if not res.can_afford(it.cost):
-            log.push(f"资源不足，无法学习 {it.name}", warn=True)
-            return
-        res.pay(it.cost)
-        learned.add(it.id)
-        log.push(f"学习了 {it.name}")
+        # 走业务层:资源校验 + 前置校验 + 扣资源 + 加入 set 统一在 action_learn_*。
+        g = ctrl_mod.ctrl.g
+        if self._learn_kind() == "tech":
+            msg = g.action_learn_tech(g.player_id, it.id)
+        else:
+            msg = g.action_learn_culture(g.player_id, it.id)
+        log.push(msg)
         self._refresh_links()
 
     # ---- 渲染 ----
@@ -447,4 +447,7 @@ class TechTreeScene(TreeScene):
     )
 
     def _learned_set(self) -> set[str]:
-        return ctrl_mod.ctrl.tech_learned
+        return ctrl_mod.ctrl.player().tech_learned
+
+    def _learn_kind(self) -> str:
+        return "tech"

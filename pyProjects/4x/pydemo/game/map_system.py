@@ -3,7 +3,8 @@
 
 据点普通建筑槽数由 size 整数字段直接给出(1~5)。建造即时:支付足额资源即建成,
 无建造回合、无"建造中"状态(ADR-0006)。
-据点不再有"失能"状态:驻军被全灭、进攻方进入据点即易主,标志建筑转进攻方版本。
+据点不再有独立驻军:无己方部队驻守时被进攻即易主;有己方部队驻守时须先击败守方,
+守方获标志建筑(landmark)的 p_def 百分比加成。标志建筑走独立专用槽,不计 size。
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -19,7 +20,7 @@ class Building:
     type_id: str          # building 定义 id
     name: str
     produces: dict[str, int] = field(default_factory=dict)   # 每回合产出资源
-    # 后期:为驻军提供 buff 等;原型不实现
+    tier: str = ""        # landmark 类建筑档位 weak/medium/strong;普通建筑为空
 
 
 @dataclass
@@ -28,12 +29,14 @@ class Stronghold:
     id: str
     name: str
     size: int            # 普通建筑槽数,整数 1~5(ADR-0006,取代 small/medium/large)
-    landmark_type: str   # 标志建筑类型 id(决定驻军编队档位 弱/中/强)
     owner: str | None    # 阵营 id,None 表示中立
     is_capital: bool = False
+    # 标志建筑:独立专用槽,不在 buildings 列表、不计 size、不计 free_slots。
+    # 给驻守该据点的己方部队提供 p_def 百分比加成(弱 0%/中 10%/强 20%)。
+    landmark: Building | None = None
     # 普通建筑(数量 <= size)
     buildings: list[Building] = field(default_factory=list)
-    # 玩家驻军部队 id(若有部队驻扎在此),由 Game 维护映射;此处仅记标记
+    # 玩家驻守部队 id(若有部队驻扎在此),由 Game 维护映射;此处仅记标记
     stationed_army_id: str | None = None
     # 坐标(仅用于展示)
     x: int = 0
@@ -63,8 +66,9 @@ class Stronghold:
         owner = self.owner if self.owner else "中立"
         cap = "(首都)" if self.is_capital else ""
         bld = "、".join(b.name for b in self.buildings) or "空"
+        lm = self.landmark.name if self.landmark else "无"
         return (f"{self.name}[槽{self.size}]{cap} 主:{owner} "
-                f"标志:{self.landmark_type} 建筑:[{bld}] 槽:{len(self.buildings)}/{self.slots()}")
+                f"标志:{lm} 建筑:[{bld}] 槽:{len(self.buildings)}/{self.slots()}")
 
 
 @dataclass

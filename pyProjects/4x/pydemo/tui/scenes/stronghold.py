@@ -10,8 +10,7 @@
 - 不在最左侧窗口时，← 回退一层；ESC 也回退一层，在 W1 时 ESC 退出本场景。
 
 业务层"拆除"已接通 Game.action_demolish(即时拆除、不退资源,并刷新下回合产出
-投影,操作逻辑.md §2.1);"指派领主"用直接 player.lords[sh.id]=hero 写入(计划中
-标注的业务层缺口)。建造走 Game.action_build(有资源/槽位校验)。
+投影,操作逻辑.md §2.1)。建造走 Game.action_build(有资源/槽位校验)。
 """
 from __future__ import annotations
 
@@ -56,7 +55,7 @@ class StrongholdScene(Scene):
         self.level = 0                 # 0..3 当前焦点所在窗口
         self.focus = [0, 0, 0, 0]      # 各层焦点下标
         self._slot_index = 0           # W2 中进入 W3 时记录的槽位下标
-        self._mode = "build"           # W4 模式：build / assign
+        self._mode = "build"           # W4 模式（build）
 
     def on_enter(self, params: Any = None) -> None:
         self.params = params
@@ -82,7 +81,7 @@ class StrongholdScene(Scene):
         return shs[self.focus[0] % len(shs)] if shs else None
 
     def _w2_rows_for(self, sh) -> list[tuple[str, Any]]:
-        """W2 行：槽位 + 该据点上的部队（含驻军）。"""
+        """W2 行：槽位 + 该据点上的部队。"""
         g = ctrl_mod.ctrl.g
         rows: list[tuple[str, Any]] = []
         if sh is None:
@@ -95,34 +94,25 @@ class StrongholdScene(Scene):
         return rows
 
     def _ops_for(self, sh, slot_idx: int) -> list[str]:
-        """W3 槽位操作：空槽→建造；有建筑→拆除；指派恒有。"""
+        """W3 槽位操作：空槽→建造；有建筑→拆除。"""
         if sh is None:
             return []
         occupied = slot_idx < len(sh.buildings)
-        return (["拆除", "指派"] if occupied else ["建造", "指派"])
+        return (["拆除"] if occupied else ["建造"])
 
     def _candidates_for(self, sh, mode: str) -> list[tuple[str, str, str, bool]]:
-        """W4 候选：(id, 显示名, 副信息, 可用)。"""
+        """W4 候选(建造模式)：(id, 显示名, 副信息, 可用)。"""
         g = ctrl_mod.ctrl.g
         player = ctrl_mod.ctrl.player()
         out: list[tuple[str, str, str, bool]] = []
         if sh is None:
             return out
-        if mode == "build":
-            for bid, bdef in g.building_defs.items():
-                name = bdef.get("name", bid)
-                cost = bdef.get("cost", {})
-                cost_str = "  ".join(f"{RESOURCE_CN.get(k, k)}:{v}" for k, v in cost.items()) or "免费"
-                ok = player.resources.can_afford(cost)
-                out.append((bid, name, cost_str, ok))
-        else:  # assign 领主
-            # 候选改为阵营级待命·可用英雄(ADR-0005):无位置,不再限"同据点无部队英雄"
-            lord_ids = set(player.lords.values())
-            captain_ids = {a.captain_id for a in g.armies.values() if a.captain_id}
-            for uid in player.standby_available_ids():
-                u = g.unit_index.get(uid)
-                if u and u.is_hero and u.alive and u.id not in lord_ids and u.id not in captain_ids:
-                    out.append((u.id, u.name, "待命·可用", True))
+        for bid, bdef in g.building_defs.items():
+            name = bdef.get("name", bid)
+            cost = bdef.get("cost", {})
+            cost_str = "  ".join(f"{RESOURCE_CN.get(k, k)}:{v}" for k, v in cost.items()) or "免费"
+            ok = player.resources.can_afford(cost)
+            out.append((bid, name, cost_str, ok))
         return out
 
     # ---- 输入 ----
@@ -179,7 +169,7 @@ class StrongholdScene(Scene):
             if op == "拆除":
                 log.push("拆除请按回车确认", warn=True)
                 return NONE()
-            self._mode = "build" if op == "建造" else "assign"
+            self._mode = "build"
             self.focus[3] = 0
             self.level = 3
             return NONE()
@@ -197,9 +187,6 @@ class StrongholdScene(Scene):
                 log.push("非己方据点，不可操作", warn=True)
                 return NONE()
             army = g.armies[key]
-            if army.is_garrison:
-                log.push("驻军不可编辑", warn=True)
-                return NONE()
             from .army import ArmyScene
             return PUSH(ArmyScene(), {"army_id": key})
         # 槽位
@@ -225,7 +212,7 @@ class StrongholdScene(Scene):
                 self._do_demolish(sh)
                 self.level = 1
                 return NONE()
-            self._mode = "build" if op == "建造" else "assign"
+            self._mode = "build"
             self.focus[3] = 0
             self.level = 3
             return NONE()
@@ -250,18 +237,8 @@ class StrongholdScene(Scene):
         if not cands or sh is None:
             return
         cid, name, _sub, _ok = cands[self.focus[3] % len(cands)]
-        if self._mode == "build":
-            msg = g.action_build(g.player_id, sh.id, cid)
-            log.push(msg)
-        else:
-            # 指派领主:候选来自待命·可用,先出待命池(ADR-0005)
-            player = ctrl_mod.ctrl.player()
-            u = g.unit_index.get(cid)
-            if u and cid in player.standby:
-                player.standby.pop(cid, None)
-                u.node_id = sh.id
-            player.lords[sh.id] = cid
-            log.push(f"指派 {name} 为 {sh.name} 的领主")
+        msg = g.action_build(g.player_id, sh.id, cid)
+        log.push(msg)
 
     # ---- 渲染 ----
     def render(self, buf: FrameBuffer) -> None:
@@ -350,8 +327,8 @@ class StrongholdScene(Scene):
                     fg = theme.DIM
             else:
                 a = ctrl_mod.ctrl.g.armies[key]
-                label = a.name + ("(驻军)" if a.is_garrison else "")
-                fg = theme.DIM if a.is_garrison else theme.ACCENT2
+                label = a.name
+                fg = theme.ACCENT2
             self._draw_row(buf, x, ry, ww, label, fg, idx, self.focus[1], active)
 
     def _render_w3(self, buf: FrameBuffer) -> None:
@@ -378,27 +355,20 @@ class StrongholdScene(Scene):
         active = self.level == 3
         border = theme.ACCENT if active else theme.BORDER
         sh = self._selected_sh()
-        title = "候选·建造" if self._mode == "build" else "候选·指派"
-        draw_box(buf, x, y, ww, hh, title=title, fg=border)
+        draw_box(buf, x, y, ww, hh, title="候选·建造", fg=border)
         if self.level < 3 or sh is None:
             buf.put_text(x + 1, y + 1, "（在 W3 操作上按 →）", theme.DIM, theme.BG)
             return
         cands = self._candidates_for(sh, self._mode)
         if not cands:
-            buf.put_text(x + 1, y + 1,
-                         "无可指派英雄" if self._mode == "assign" else "（无候选）",
-                         theme.WARN, theme.BG)
+            buf.put_text(x + 1, y + 1, "（无候选）", theme.WARN, theme.BG)
             return
         for i, (cid, name, sub, ok) in enumerate(cands):
             ry = y + 1 + i
             if ry >= y + hh - 1:
                 break
-            if self._mode == "build":
-                label = f"{name} {sub}"
-                fg = theme.GOLD if ok else theme.WARN
-            else:
-                label = name
-                fg = theme.FG
+            label = f"{name} {sub}"
+            fg = theme.GOLD if ok else theme.WARN
             self._draw_row(buf, x, ry, ww, label, fg, i, self.focus[3], active,
                            truncate=True)
 

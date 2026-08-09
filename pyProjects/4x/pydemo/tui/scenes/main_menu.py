@@ -55,9 +55,19 @@ class MainMenuScene(Scene):
     def _activate(self, index: int) -> SceneResult:
         label = self.items[index]
         if label == "继续游戏":
-            msg = ctrl_mod.ctrl.load()
+            import os
+            from .. import controller as ctrl_mod
+            # 有存档才进入游戏;无存档提示并留主菜单
+            if os.path.isfile(ctrl_mod.ctrl._save_path()):
+                msg = ctrl_mod.ctrl.load()
+                from pyconsole.scenes.message import MessageScene
+                # 读取成功则进入游戏场景
+                if msg.startswith("已读取"):
+                    from .game_scene import GameScene
+                    return PUSH(GameScene())
+                return PUSH(MessageScene(msg))
             from pyconsole.scenes.message import MessageScene
-            return PUSH(MessageScene(msg))
+            return PUSH(MessageScene("无存档（开始新游戏）"))
         if label == "开始游戏":
             ctrl_mod.ctrl.new_game()
             from .game_scene import GameScene

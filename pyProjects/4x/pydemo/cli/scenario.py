@@ -11,7 +11,7 @@
   即 N1 到 A 有两条路(m2 直达 / m3-N2-m4)。
 """
 from __future__ import annotations
-from ..game.game import Game
+from ..game.game import Game, cn_building
 from ..game.map_system import Stronghold, MinorLocation, Building
 from ..game.economy import Resources
 from ..game.hero import RecruitmentPool
@@ -20,18 +20,24 @@ from ..game.hero import RecruitmentPool
 def build_scenario() -> Game:
     game = Game(seed=20260804)
 
-    # 据点(size 为整数槽位 1~5,ADR-0006;landmark_type 仍为 weak/medium/strong 决定驻军编队)
+    # 据点(size 为整数槽位 1~5,ADR-0006;landmark 为标志性建筑实例,提供守方防御 buff)
+    # landmark 走独立专用槽(不在 buildings 列表、不计 size);首都 medium、中立 weak。
     # 首都 size=4:容纳 农场 + 信念英雄招募所需矿 + 2 个产出建筑,避免开局造满市场后
     # 再无槽位造英雄招募所需矿(玩家缺铁、AI 缺魔石)导致起始英雄战死后无法再招、
     # 陷入双方 0 部队死局(平衡修正:首都扩到 4 槽 + 各送初始矿)。
+    def _landmark(type_id: str) -> Building:
+        bdef = game.building_defs.get(type_id, {})
+        return Building(id=f"lm_{type_id}", type_id=type_id,
+                        name=cn_building(bdef), tier=bdef.get("tier", "weak"))
+
     p_cap = Stronghold(id="p_cap", name="玩家首都", size=4,
-                       landmark_type="medium", owner="player", is_capital=True, x=0, y=0)
+                       landmark=_landmark("lm_medium"), owner="player", is_capital=True, x=0, y=0)
     a_cap = Stronghold(id="a_cap", name="AI首都", size=4,
-                       landmark_type="medium", owner="ai", is_capital=True, x=8, y=0)
+                       landmark=_landmark("lm_medium"), owner="ai", is_capital=True, x=8, y=0)
     n1 = Stronghold(id="n1", name="中央堡", size=1,
-                    landmark_type="weak", owner=None, x=4, y=0)
+                    landmark=_landmark("lm_weak"), owner=None, x=4, y=0)
     n2 = Stronghold(id="n2", name="南境堡", size=1,
-                    landmark_type="weak", owner=None, x=6, y=2)
+                    landmark=_landmark("lm_weak"), owner=None, x=6, y=2)
     for s in (p_cap, a_cap, n1, n2):
         game.map.add_stronghold(s)
 
@@ -94,9 +100,8 @@ def build_scenario() -> Game:
         game.add_artifact_stock(def_id, "player", count=3)
     game.log_msg(f"玩家仓库初始装备:{sum(1 for _ in game.artifact_defs) * 3} 件")
 
-    # 据点驻军(含中立据点)
-    for sid, sh in game.map.strongholds.items():
-        game.make_garrison(sh)
+    # 据点驻军系统已废除(将来不存在玩家不能控制的部队):据点不再生成自动防御驻军,
+    # 防御靠标志性建筑给驻守部队提供 buff;中立据点开局无守军,进攻方进入即易主。
 
     # 玩家初始英雄+部队
     hero = game.make_hero("knight")
@@ -120,16 +125,9 @@ def build_scenario() -> Game:
         u.node_id = "a_cap"
         ai_army.add(u, game.unit_index)
 
-    # 初始预备兵(平衡修正):游戏原型阶段尚无"招募普通兵"动作(仅有招英雄),
-    # 起始3单位部队战死后重建部队只能塞孤身英雄,打不过首都驻军致永久僵局。
-    # 故开局给双方待命池各塞几个预备兵,使重建部队能 deploy 上场形成战力。
-    # 待命·可用(cooldown=0),阵营级无位置(ADR-0005)。后续补招兵动作后可移除。
-    for _ in range(2):
-        u = game.make_unit("infantry")
-        game._to_standby(player, u, cooldown=0)
-    for _ in range(2):
-        u = game.make_unit("archer")
-        game._to_standby(ai, u, cooldown=0)
+    # 预备兵兜底已移除(B1 招募普通兵动作已落地):
+    # 起始部队战死后可通过建造招募建筑(兵营/马厩/靶场/法师塔/寺院)+ 招兵动作
+    # 重建战力,不再需要开局硬塞预备兵。
 
     # 招募池初始化
     for fid, f in game.factions.items():

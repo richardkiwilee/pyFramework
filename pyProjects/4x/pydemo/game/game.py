@@ -7,6 +7,7 @@ Game:核心编排。
 逻辑与交互分离:本类只暴露动作接口与查询;CLI/AI 调用之。
 """
 from __future__ import annotations
+import os
 import random
 from dataclasses import dataclass, field
 from typing import Any
@@ -18,7 +19,8 @@ from .economy import (Resources, Belief, RESOURCE_TYPES, RESOURCE_CN, BELIEF_DIM
                       SOURCE_TRAIN, SOURCE_SUPPLY, SOURCE_INIT)
 from .map_system import GameMap, Stronghold, MinorLocation, Building
 from .unit import (Unit, UnitType, Artifact, load_unit_types, load_artifacts,
-                   ATTR_BOUNDS, ATTR_CN, TAG_CN, MAJOR_TAGS)
+                   ATTR_BOUNDS, ATTR_CN, TAG_CN, MAJOR_TAGS,
+                   WILL_SURVIVAL_ENABLED, WILL_BASE, WILL_GROWTH_NORMAL, WILL_GROWTH_HERO)
 from .hero import (HeroDef, load_hero_defs, make_hero_unit, meets_belief_req,
                    describe_req, RecruitmentPool)
 from .army import Army, empty_army, row_of, col_of, ROWS, ROW_CN, GRID_SIZE
@@ -36,6 +38,82 @@ def cn_building(bdef: dict) -> str:
     return bdef.get("name", bdef.get("id", "?"))
 
 
+def _load_list_defs(path: str) -> dict[str, dict]:
+    """加载 techs/cultures 等 [{id, ...}] 列表为 {id: record}。失败返回 {}。"""
+    import json
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    out: dict[str, dict] = {}
+    if isinstance(data, list):
+        for rec in data:
+            if isinstance(rec, dict) and "id" in rec:
+                out[str(rec["id"])] = rec
+    return out
+
+
+# 标志性建筑防御 buff:据点守方 p_def 百分比加成(按 landmark tier)
+LANDMARK_DEFENSE_BUFF: dict[str, float] = {"weak": 0.0, "medium": 0.10, "strong": 0.20}
+
+# 锻造屋回合产出(B10):每回合有此概率随机产出一件装备。
+FORGE_DROP_CHANCE: float = 0.05
+# 装备稀有度抽取权重(common/uncommon/rare)。
+RARITY_WEIGHTS: dict[str, int] = {"common": 60, "uncommon": 30, "rare": 10}
+
+
+def _weighted_random_artifact(rng, artifact_defs: dict) -> str | None:
+    """按 RARITY_WEIGHTS 选稀有度,再在该稀有度装备定义中随机选一个 def_id。
+    无该稀有度定义则回退 common。无任何装备定义返回 None。
+    """
+    if not artifact_defs:
+        return None
+    # 按稀有度分桶
+    buckets: dict[str, list[str]] = {"common": [], "uncommon": [], "rare": []}
+    for aid, a in artifact_defs.items():
+        r = getattr(a, "rarity", "common")
+        buckets.setdefault(r, []).append(aid)
+    # 按权重选稀有度
+    weighted = [(r, RARITY_WEIGHTS.get(r, 0)) for r in buckets if buckets[r]]
+    if not weighted:
+        return None
+    total = sum(w for _, w in weighted)
+    if total <= 0:
+        return None
+    roll = rng.random() * total
+    acc = 0.0
+    chosen_rarity = "common"
+    for r, w in weighted:
+        acc += w
+        if roll < acc:
+            chosen_rarity = r
+            break
+    pool = buckets.get(chosen_rarity) or buckets.get("common") or []
+    if not pool:
+        return None
+    return rng.choice(pool)
+
+
+def _forge_drop_handler(game: "Game", faction: "Faction", stronghold, building) -> None:
+    """锻造屋 on_turn handler:5% 概率随机产出一件装备入阵营库存。
+    装备按稀有度加权抽取(Forge drop);产出后入 faction.inventory(def_id 计数)。
+    """
+    rng = random.Random()  # 锻造屋用独立 rng;命中后随机选装备
+    if rng.random() < FORGE_DROP_CHANCE:
+        def_id = _weighted_random_artifact(rng, game.artifact_defs)
+        if def_id:
+            game.add_artifact_stock(def_id, faction.id, count=1)
+            adef = game.artifact_defs.get(def_id)
+            name = adef.name if adef else def_id
+            game.log_msg(f"{stronghold.name} 锻造屋产出 {name}")
+
+
+# 注册建筑回合事件 handler(B10):forge_drop → 锻造屋产出装备。
+# 类属性在类体执行时建立,handler 引用 Game/Faction(运行时类型,见上注解)。
+
+
+
 class Game:
     def __init__(self, defs: dict | None = None, seed: int | None = None) -> None:
         if seed is not None:
@@ -50,6 +128,11 @@ class Game:
         self.building_defs = self.defs.get("buildings", {})
         self.resource_defs = self.defs.get("resources", {})
         self.terrain_defs = self.defs.get("terrain", {})
+        # 科技/文化定义(B7):data_loader 不在 DEFINITION_FILES 中,这里直接从 data/ 读。
+        # 业务层建造门控(action_build requires)与 AI 学习逻辑查询之;TUI 树场景沿用 load_tree。
+        from .data_loader import BASE_DATA_DIR
+        self.tech_defs = _load_list_defs(os.path.join(BASE_DATA_DIR, "techs.json"))
+        self.culture_defs = _load_list_defs(os.path.join(BASE_DATA_DIR, "cultures.json"))
 
         # 状态
         self.calendar = Calendar(day=1)
@@ -118,11 +201,16 @@ class Game:
 
     def make_unit(self, type_id: str) -> Unit:
         ut = self.unit_type_defs[type_id]
+        base = dict(ut.base)
+        growth = dict(ut.growth)
+        # 意志生还(B3):普通兵覆盖 will 基准=5、增长率=0.1(数据层默认 0/0.3)
+        base["will"] = WILL_BASE
+        growth["will"] = WILL_GROWTH_NORMAL
         u = Unit(
             id=self.new_id("u"),
             type_id=type_id, name=ut.name, tags=set(ut.tags),
-            base=dict(ut.base),
-            growth=dict(ut.growth),
+            base=base,
+            growth=growth,
         )
         u.grant_tags_from_artifacts(self.artifact_defs)
         self.unit_index[u.id] = u
@@ -132,6 +220,9 @@ class Game:
         hdef = self.hero_defs[hero_def_id]
         u = make_hero_unit(hdef)
         u.id = self.new_id("u")
+        # 意志生还(B3):英雄覆盖 will 基准=5、增长率=0.2(数据层默认 0/0.3)
+        u.base["will"] = WILL_BASE
+        u.growth["will"] = WILL_GROWTH_HERO
         u.grant_tags_from_artifacts(self.artifact_defs)
         self.unit_index[u.id] = u
         return u
@@ -237,7 +328,7 @@ class Game:
                       slot: int | None = None) -> str:
         """上场:把待命·可用单位派进己方据点内的一支部队(§5)。
 
-        约束:单位必须在待命池且冷却已归零(可用);目标部队必须为本阵营非驻军部队,
+        约束:单位必须在待命池且冷却已归零(可用);目标部队必须为本阵营部队,
         且当前停在己方据点内(ADR-0005:部队必须回到己方据点才能补充人员)。
         槽位由调用方指定(空格选中的位置);不指定则按兵种角色自动落位。
         资源不做扣减(上场本身免费,招募时已付)。
@@ -253,7 +344,7 @@ class Game:
         if f.standby[unit_id] > 0:
             return "失败:单位待命·不可用"
         army = self.armies.get(army_id)
-        if not army or army.owner != faction_id or army.is_garrison:
+        if not army or army.owner != faction_id:
             return "失败:无此部队"
         if army.node_id not in f.stronghold_ids:
             return "失败:部队不在己方据点"
@@ -285,7 +376,7 @@ class Game:
         if not f:
             return "失败:无此阵营"
         army = self.armies.get(army_id)
-        if not army or army.owner != faction_id or army.is_garrison:
+        if not army or army.owner != faction_id:
             return "失败:无此部队"
         u = self.unit_index.get(unit_id)
         if not u or u.army_id != army_id:
@@ -384,8 +475,8 @@ class Game:
         if not u.army_id:
             return True   # 待命单位
         army = self.armies.get(u.army_id)
-        if not army or army.is_garrison:
-            return False  # 驻军不可编辑装备
+        if not army:
+            return False
         return army.node_id in f.stronghold_ids
 
     def action_sell_artifact(self, faction_id: str, def_id: str) -> str:
@@ -538,41 +629,16 @@ class Game:
             all_mods.extend(self.collect_unit_mods(u, army, calendar, terrain))
         return all_mods
 
-    # ---------- 据点驻军 ----------
-    def make_garrison(self, stronghold: Stronghold) -> Army:
-        """根据标志建筑类型生成据点驻军(由建筑决定编队,玩家不可编辑)。"""
-        gtype = stronghold.landmark_type   # weak/medium/strong
-        # 驻军编队:弱=2 步兵;中=3 步兵+1 弓兵;强=4 步兵+2 弓兵+1 骑兵
-        comps = {
-            "weak": [("infantry", 2)],
-            "medium": [("infantry", 3), ("archer", 1)],
-            "strong": [("infantry", 4), ("archer", 2), ("cavalry", 1)],
-        }.get(gtype, [("infantry", 2)])
-        aid = self.new_army_id()
-        army = Army(id=aid, name=f"{stronghold.name}驻军", owner=stronghold.owner,
-                    node_id=stronghold.id, is_garrison=True)
-        # 按角色自动落位(近战前排、远程后排),不做规模检查
-        for type_id, count in comps:
-            for _ in range(count):
-                u = self.make_unit(type_id)
-                army.place_for_garrison(u, self.unit_index)
-        # 驻军设一个虚拟队长(取前排第一个单位,提其 leadership 以容纳全队)
-        for uid in army.grid:
-            if uid:
-                army.captain_id = uid
-                self.unit_index[uid].base["leadership"] = 999
-                break
-        self.armies[aid] = army
-        return army
-
     # ---------- 回合驱动 ----------
     def start_turn(self, faction: Faction) -> None:
         """每阵营回合开始(规范入口):待命冷却推进 → 经济结算(含维护费/回血) →
-        招募池刷新检查。
+        招募池刷新检查 → 建筑回合事件 dispatch。
 
         AI 阵营与玩家阵营都走此入口。CLI/TUI 的回合编排应调用 start_turn,
         不再直接调 tick_economy(后者仅为经济结算子步,供 start_turn 内部调用)。
         回血前必须先扣维护费并打好断粮标记(断粮单位本回合不回血,见 §1)。
+        建筑回合事件在 tick_economy 之后、招募池刷新之后 dispatch(产出已结算,
+        事件可能产出装备入库存)。
         """
         # 待命冷却推进(ADR-0005):不可用单位 -1,到 0 转可用
         self._tick_standby(faction)
@@ -590,6 +656,27 @@ class Game:
                 pool.refresh(list(self.hero_defs.keys()), self.calendar.day)
             elif self.calendar.day >= pool.refresh_day:
                 pool.refresh(list(self.hero_defs.keys()), self.calendar.day)
+        # 建筑回合事件 dispatch(B10):遍历己方据点建筑,触发 on_turn handler。
+        self._dispatch_building_turn_events(faction)
+
+    # ---------- 建筑回合事件(B10) ----------
+    # 建筑定义的 on_turn 字段指向注册表中的 handler 名;start_turn 在 tick_economy 后 dispatch。
+    # 扩展点:新事件在 BUILDING_TURN_EVENTS 注册 handler 即可,不改 start_turn。
+    BUILDING_TURN_EVENTS: dict = {"forge_drop": _forge_drop_handler}  # event_name -> handler(game, faction, stronghold, building)
+
+    def _dispatch_building_turn_events(self, faction: Faction) -> None:
+        for sid in list(faction.stronghold_ids):
+            sh = self.map.strongholds.get(sid)
+            if not sh:
+                continue
+            for b in list(sh.buildings):
+                bdef = self.building_defs.get(b.type_id, {})
+                event = bdef.get("on_turn")
+                if not event:
+                    continue
+                handler = self.BUILDING_TURN_EVENTS.get(event)
+                if handler:
+                    handler(self, faction, sh, b)
 
     def end_turn_advance(self) -> None:
         """回合结束推进时间。"""
@@ -599,10 +686,9 @@ class Game:
     def tick_economy(self, faction: Faction) -> None:
         """经济结算(由 start_turn 调用,也可单独调用以重算)。时序(见 §1 Maintenance):
         建筑产出 → 扣维护费(打断粮标记) → 补给补充 → 补给消耗/野外回血(5%)
-        → 据点内回血(10%) → 驻军回血(10%)。
+        → 据点内回血(10%)。
 
         所有回血阶段均跳过本回合断粮(_starved_this_turn)的单位(不掉血,仅跳过)。
-        驻军免维护费故不会断粮,其回血跳过检查仅为守一致口径。
         """
         # 1. 建筑产出(§2 delta:来源 build + 据点+建筑名)
         for sid in list(faction.stronghold_ids):
@@ -621,7 +707,7 @@ class Game:
         # 3. 补给补充:在己方据点的部队(§2 delta:来源 supply)
         for aid in list(faction.army_ids):
             army = self.armies.get(aid)
-            if not army or army.is_garrison:
+            if not army:
                 continue
             if army.node_id in faction.stronghold_ids:
                 need = army.supply_max - army.supply
@@ -635,7 +721,7 @@ class Game:
         # 4. 补给消耗 + 野外回血(ADR-0004):在小地点的部队
         for aid in list(faction.army_ids):
             army = self.armies.get(aid)
-            if not army or army.is_garrison:
+            if not army:
                 continue
             if army.node_id in self.map.minors:
                 army.supply -= 1
@@ -650,10 +736,10 @@ class Game:
                             continue
                         u.cur_hp = min(u.base.get("hp", 1),
                                        u.cur_hp + u.base.get("hp", 1) * 0.05)
-        # 5. 据点内回血(ADR-0004):非驻军部队在己方据点内每回合回血 10%;断粮单位跳过
+        # 5. 据点内回血(ADR-0004):在己方据点内每回合回血 10%;断粮单位跳过
         for aid in list(faction.army_ids):
             army = self.armies.get(aid)
-            if not army or army.is_garrison:
+            if not army:
                 continue
             if army.node_id not in faction.stronghold_ids:
                 continue
@@ -662,25 +748,11 @@ class Game:
                     continue
                 u.cur_hp = min(u.base.get("hp", 1),
                                u.cur_hp + u.base.get("hp", 1) * 0.1)
-        # 6. 驻军回血补兵(未全灭):驻军免维护费不会断粮,此处仍守一致口径跳过断粮
-        for sid in list(faction.stronghold_ids):
-            sh = self.map.strongholds.get(sid)
-            if not sh:
-                continue
-            for a in self.armies.values():
-                if a.is_garrison and a.node_id == sid and a.owner == faction.id:
-                    if not a.is_wiped(self.unit_index):
-                        for u in a.alive_units(self.unit_index):
-                            if getattr(u, "_starved_this_turn", False):
-                                continue
-                            u.cur_hp = min(u.base.get("hp", 1),
-                                           u.cur_hp + u.base.get("hp", 1) * 0.1)
-                        # 补兵:原型简化为不补新单位,仅回血
 
     # ---------- 维护费(§1) ----------
     def _deduct_maintenance(self, faction: Faction) -> None:
         """扣各单位维护费(§1)。单位级判定:逐资源尝试扣(允许部分扣),但只要任一
-        资源没扣足,即标记该单位本回合断粮(不回血)。标志性建筑驻军免维护费。
+        资源没扣足,即标记该单位本回合断粮(不回血)。
 
         待命中的单位需不需要维护费?——需要。待命不是免维护状态(只免去上场冷却);
         静养不进食说不通,且会让待命池成为躲避维护费的漏洞。故待命单位照常扣维护费,
@@ -689,7 +761,7 @@ class Game:
         数据来源:UnitType.maintenance / HeroDef.maintenance(数据驱动)。
         原型默认:普通人类兵种 {food:1},魔法兵种追加魔石,英雄约为普通 4 倍。
         """
-        # 先把阵营所有非驻军单位打上未断粮默认(含上回合已断粮的,每回合重判);
+        # 先把阵营所有单位打上未断粮默认(含上回合已断粮的,每回合重判);
         # 同时复位训练标记(§3:每回合每单位最多训练 1 次)
         for uid, u in self.unit_index.items():
             if u.alive and self._unit_owner(u) == faction.id:
@@ -700,8 +772,6 @@ class Game:
             if not u.alive:
                 continue
             army = self.armies.get(u.army_id) if u.army_id else None
-            if army and army.is_garrison:
-                continue   # 驻军免维护费
             # 只管该阵营的单位(队长/成员归属由 army.owner 决定;待命单位也属本阵营)
             owner = self._unit_owner(u)
             if owner != faction.id:
@@ -795,14 +865,12 @@ class Game:
         # 在部队中:检查部队是否在己方据点且该据点无敌方部队
         if u.army_id and u.army_id in self.armies:
             army = self.armies[u.army_id]
-            if army.is_garrison:
-                return False, "驻军不可训练"
             if army.node_id not in f.stronghold_ids:
                 return False, "部队不在己方据点"
-            # 该据点是否有任何敌方部队(非驻军)
+            # 该据点是否有任何敌方部队
             for a in self.armies.values():
                 if (a.node_id == army.node_id and a.owner not in (None, owner)
-                        and not a.is_garrison and not a.is_wiped(self.unit_index)):
+                        and not a.is_wiped(self.unit_index)):
                     return False, "据点有敌方部队"
             return True, ""
         return False, "单位不在部队也不在待命"
@@ -853,6 +921,13 @@ class Game:
         bdef = self.building_defs.get(building_id)
         if not bdef:
             return "失败:未知建筑"
+        # 建造门控(B7):recruit/special 类建筑需 requires 中列出的科技/文化已学。
+        # 产出建筑(produce)免门控——保「独特建筑→独特兵种→战略位置」设计意图。
+        requires = bdef.get("requires", [])
+        if requires:
+            missing = self._unmet_requires(faction_id, requires)
+            if missing:
+                return f"失败:需先研究 {'、'.join(missing)}"
         cost = bdef.get("cost", {})
         if not f.resources.can_afford(cost):
             return "失败:资源不足"
@@ -916,10 +991,98 @@ class Game:
         self._to_standby(f, u, cooldown=0)
         return f"招募了 {u.name}，进入待命·可用"
 
+    def _unmet_requires(self, faction_id: str, requires: list[str]) -> list[str]:
+        """建筑 requires 列表中尚未满足的科技/文化名(返回中文名便于提示)。"""
+        f = self.factions[faction_id]
+        learned = f.tech_learned | f.culture_learned
+        out: list[str] = []
+        for rid in requires:
+            if rid in learned:
+                continue
+            tdef = self.tech_defs.get(rid) or self.culture_defs.get(rid)
+            out.append(tdef.get("name", rid) if tdef else rid)
+        return out
+
+    def action_learn_tech(self, faction_id: str, tech_id: str) -> str:
+        """学习科技:校验前置已学 + 资源够 → 扣资源 → 加入 tech_learned。
+        学习只扣资源,无即时战斗/经济效果(通过建造门控间接生效)。
+        """
+        return self._learn_tree(faction_id, tech_id, "tech")
+
+    def action_learn_culture(self, faction_id: str, culture_id: str) -> str:
+        """学习文化:同 action_learn_tech,记录到 culture_learned。"""
+        return self._learn_tree(faction_id, culture_id, "culture")
+
+    def _learn_tree(self, faction_id: str, item_id: str, kind: str) -> str:
+        f = self.factions[faction_id]
+        defs = self.tech_defs if kind == "tech" else self.culture_defs
+        learned = f.tech_learned if kind == "tech" else f.culture_learned
+        label = "科技" if kind == "tech" else "文化"
+        idef = defs.get(item_id)
+        if not idef:
+            return f"失败:未知{label}"
+        if item_id in learned:
+            return f"已学习过:{idef.get('name', item_id)}"
+        prereqs = idef.get("prereqs", [])
+        all_learned = f.tech_learned | f.culture_learned
+        missing = [p for p in prereqs if p not in all_learned]
+        if missing:
+            names = []
+            for p in missing:
+                pdef = self.tech_defs.get(p) or self.culture_defs.get(p)
+                names.append(pdef.get("name", p) if pdef else p)
+            return f"失败:前置未满足({', '.join(names)})"
+        cost = idef.get("cost", {})
+        if not f.resources.can_afford(cost):
+            return f"失败:资源不足,无法学习 {idef.get('name', item_id)}"
+        f.resources.pay(cost, source=SOURCE_BUILD, building=idef.get("name", item_id))
+        learned.add(item_id)
+        return f"学习了 {idef.get('name', item_id)}"
+
+    def action_recruit_unit(self, faction_id: str, unit_type_id: str) -> str:
+        """招募普通兵(B1):全局存在性 + 资源 → make_unit → 待命池(cooldown=0)。
+
+        全局存在性:任一己方据点 sh.buildings 含该兵种对应的 recruit 建筑
+        (building def 的 recruits 含 unit_type_id);不必在招募据点建造。
+        校验 unit_types 的 recruit_cost,资源够 → pay → make_unit → _to_standby。
+        招募建筑本身是否可建由科技/文化门控(action_build requires)把关,此处只查存在。
+        """
+        f = self.factions[faction_id]
+        # 1. 找到 recruits 含 unit_type_id 的建筑 def(及其 id)
+        recruiting_bid = None
+        recruiting_bdef = None
+        for bid, bdef in self.building_defs.items():
+            if unit_type_id in bdef.get("recruits", []):
+                recruiting_bid = bid
+                recruiting_bdef = bdef
+                break
+        if recruiting_bdef is None:
+            return f"失败:无招募 {unit_type_id} 的建筑定义"
+        # 2. 全局存在性:任一己方据点含该建筑 type_id
+        has_building = any(
+            any(b.type_id == recruiting_bid for b in sh.buildings)
+            for sid in f.stronghold_ids
+            for sh in [self.map.strongholds.get(sid)] if sh
+        )
+        if not has_building:
+            return f"失败:需先建造 {recruiting_bdef.get('name', '招募建筑')}"
+        # 3. 兵种定义与招募成本
+        ut = self.unit_type_defs.get(unit_type_id)
+        if ut is None:
+            return f"失败:未知兵种 {unit_type_id}"
+        cost = ut.recruit_cost
+        if not f.resources.can_afford(cost):
+            return f"失败:资源不足,无法招募 {ut.name}"
+        f.resources.pay(cost, source=SOURCE_RECRUIT, building=ut.name)
+        u = self.make_unit(unit_type_id)
+        # 招后进待命·可用(cooldown=0),阵营级无位置(ADR-0005)。
+        self._to_standby(f, u, cooldown=0)
+        return f"招募了 {u.name},进入待命·可用"
+
     def action_move(self, faction_id: str, army_id: str, to_node: str) -> str:
         f = self.factions[faction_id]
         army = self.armies.get(army_id)
-        if not army or army.owner != faction_id or army.is_garrison:
+        if not army or army.owner != faction_id:
             return "失败:无此部队"
         if army.node_id == to_node:
             return "失败:已在目标结点"
@@ -932,10 +1095,14 @@ class Game:
         return f"{army.name} 移动到 {self.map.node_name(to_node)}"
 
     def action_move_attack(self, faction_id: str, army_id: str, to_node: str) -> str:
-        """移动到邻接结点;若该结点有敌方部队则触发战斗。"""
+        """移动到邻接结点;若该结点有敌方部队则触发战斗。
+
+        占领机制(驻军系统已废除):据点无己方部队驻守时,进攻方进入即易主(无战斗);
+        有敌方部队驻守时,进攻方须先击败守方(守方获标志性建筑防御 buff),胜则据点易主。
+        """
         f = self.factions[faction_id]
         army = self.armies.get(army_id)
-        if not army or army.owner != faction_id or army.is_garrison:
+        if not army or army.owner != faction_id:
             return "失败:无此部队"
         if army.has_acted_this_turn:
             return "失败:本部队本回合已行动"
@@ -947,35 +1114,35 @@ class Game:
         for uid in army.grid:
             if uid and uid in self.unit_index:
                 self.unit_index[uid].node_id = to_node
-        # 检查目标结点是否有敌方/中立据点或敌方部队
+        # 检查目标结点是否有敌方部队
         target_sh = self.map.strongholds.get(to_node)
         defender_army: Army | None = None
         is_siege = False
-        # 1. 若是据点且有玩家驻军(敌方),先打玩家驻军
         if target_sh and target_sh.owner not in (None, faction_id):
             is_siege = True
-            # 找该据点的敌方非驻军部队
+            # 找该据点的敌方部队
             for a in self.armies.values():
                 if (a.node_id == to_node and a.owner == target_sh.owner
-                        and not a.is_garrison and not a.is_wiped(self.unit_index)):
+                        and not a.is_wiped(self.unit_index)):
                     defender_army = a
                     break
-        # 2. 若是据点无玩家驻军,或玩家驻军已全灭,打据点驻军
-        # 3. 野外小地点:遇敌方部队
+        # 野外小地点:遇敌方部队
         if not defender_army and to_node in self.map.minors:
             for a in self.armies.values():
                 if (a.node_id == to_node and a.owner not in (None, faction_id)
-                        and not a.is_garrison and not a.is_wiped(self.unit_index)):
+                        and not a.is_wiped(self.unit_index)):
                     defender_army = a
                     break
 
-        if defender_army is None and is_siege:
-            # 据点无玩家驻军:打据点驻军
-            garrison = self._find_garrison(to_node)
-            if garrison:
-                defender_army = garrison
-
         if defender_army is None:
+            # 无防守部队:据点直接易主(驻军系统已废除,无守则直接占)
+            if is_siege and target_sh:
+                self._capture_stronghold(target_sh, faction_id)
+                army.has_acted_this_turn = True
+                cap_msg = ""
+                if target_sh.is_capital:
+                    self._on_capital_fallen(target_sh)
+                return f"{army.name} 占领了 {target_sh.name}!"
             army.has_acted_this_turn = True
             return f"{army.name} 移动到 {self.map.node_name(to_node)}"
 
@@ -985,12 +1152,6 @@ class Game:
         army.has_acted_this_turn = True
         return result
 
-    def _find_garrison(self, stronghold_id: str) -> Army | None:
-        for a in self.armies.values():
-            if a.is_garrison and a.node_id == stronghold_id and not a.is_wiped(self.unit_index):
-                return a
-        return None
-
     def _do_battle(self, attacker: Army, defender: Army, from_node: str,
                   is_siege: bool, target_sh: Stronghold | None) -> str:
         # 收集修正
@@ -999,12 +1160,15 @@ class Game:
         cal = self.calendar
         a_mods = self.collect_army_mods(attacker, cal, a_terrain)
         d_mods = self.collect_army_mods(defender, cal, d_terrain)
-        # 攻城 buff:据点有玩家驻军时,防守方(玩家驻军)获小幅 buff
-        if is_siege and target_sh:
-            buff_val = {"weak": 0.05, "medium": 0.10, "strong": 0.15}.get(target_sh.landmark_type, 0.05)
-            for u in defender.alive_units(self.unit_index):
-                d_mods.append(Modifier(ModifierSource.LANDMARK, target_sh.landmark_type,
-                                       u.id, "p_def", buff_val, op="pct"))
+        # 攻城 buff:据点守方获标志性建筑防御加成(弱 0%/中 10%/强 20% p_def)
+        landmark = getattr(target_sh, "landmark", None) if (is_siege and target_sh) else None
+        if landmark is not None:
+            tier = getattr(landmark, "tier", "weak")
+            buff_val = LANDMARK_DEFENSE_BUFF.get(tier, 0.0)
+            if buff_val > 0:
+                for u in defender.alive_units(self.unit_index):
+                    d_mods.append(Modifier(ModifierSource.LANDMARK, landmark.name,
+                                           u.id, "p_def", buff_val, op="pct"))
         all_mods = a_mods + d_mods
         # 策略
         skill_defs = self.defs.get("skills", {})
@@ -1017,9 +1181,11 @@ class Game:
         aside = BattleSide(army=attacker, is_attacker=True, home_node=from_node,
                             units=attacker.alive_units(self.unit_index))
         dside = BattleSide(army=defender, is_attacker=False,
+                           home_node=defender.node_id,
                            units=defender.alive_units(self.unit_index))
         result = run_battle(aside, dside, strats, all_mods, log_detail=False,
-                            rng=random.Random(), skill_defs=skill_defs)
+                            rng=random.Random(), skill_defs=skill_defs,
+                            player_faction_id=self.player_id)
         # 处理结局
         msgs: list[str] = []
         if result.attacker_wiped:
@@ -1055,21 +1221,11 @@ class Game:
     def _capture_stronghold(self, sh: Stronghold, new_owner: str) -> None:
         old_owner = sh.owner
         sh.owner = new_owner
-        # 转移标志建筑为进攻方版本(同档位,原型不换类型)
-        # 转移据点归属列表
+        # 转移据点归属列表(标志建筑随据点归属,原型不换类型)
         if old_owner and old_owner in self.factions:
             if sh.id in self.factions[old_owner].stronghold_ids:
                 self.factions[old_owner].stronghold_ids.remove(sh.id)
         self.factions[new_owner].stronghold_ids.append(sh.id)
-        # 清除旧驻军,生成新驻军
-        for a in list(self.armies.values()):
-            if a.is_garrison and a.node_id == sh.id:
-                # 解放旧驻军单位
-                for uid in a.grid:
-                    if uid:
-                        self.unit_index.pop(uid, None)
-                del self.armies[a.id]
-        self.make_garrison(sh)
         self.log_msg(f"{sh.name} 由 {old_owner} 转归 {new_owner}")
 
     def _on_capital_fallen(self, capital: Stronghold) -> None:
@@ -1116,8 +1272,8 @@ class Game:
 
     def _cleanup_wiped(self) -> None:
         for a in list(self.armies.values()):
-            if a.is_wiped(self.unit_index) and not a.is_garrison:
-                # 玩家部队全灭:解散(装备回库·可用)
+            if a.is_wiped(self.unit_index):
+                # 部队全灭:解散(装备回库·可用)
                 owner_f = self.factions.get(a.owner)
                 for uid in list(a.grid):
                     if uid:
@@ -1184,3 +1340,184 @@ class Game:
 
     def is_over(self) -> bool:
         return self.winner is not None
+
+    # ---------- 存档读档(B5) ----------
+    # 完整 JSON 序列化:所有跨对象链接均为字符串 id,可直接序列化;
+    # set(tags/tech_learned/culture_learned/statuses keys)→list,还原时转回 set。
+    # 存档始终写 pydemo/saves/save001.dat(单存档);Game() 重载定义后重建对象图。
+
+    def snapshot(self) -> dict:
+        """全状态 JSON 化为可序列化 dict。"""
+        return {
+            "version": 1,
+            "day": self.calendar.day,
+            "player_id": self.player_id,
+            "winner": self.winner,
+            "log": list(self.log),
+            "counters": {"army": self._army_counter, "unit": self._unit_counter},
+            "pending_event_id": self.pending_event.id if self.pending_event else None,
+            "map": {
+                "strongholds": {sid: self._stronghold_to_dict(s)
+                                for sid, s in self.map.strongholds.items()},
+                "minors": {mid: {"id": m.id, "name": m.name, "terrain": m.terrain,
+                                 "x": m.x, "y": m.y}
+                           for mid, m in self.map.minors.items()},
+                "adj": {a: list(b) for a, b in self.map.adj.items()},
+            },
+            "factions": {fid: self._faction_to_dict(f)
+                         for fid, f in self.factions.items()},
+            "armies": {aid: self._army_to_dict(a)
+                       for aid, a in self.armies.items()},
+            "units": {uid: self._unit_to_dict(u)
+                      for uid, u in self.unit_index.items()},
+        }
+
+    @staticmethod
+    def _building_to_dict(b: Building) -> dict:
+        return {"id": b.id, "type_id": b.type_id, "name": b.name,
+                "produces": dict(b.produces), "tier": b.tier}
+
+    @staticmethod
+    def _building_from_dict(d: dict) -> Building:
+        return Building(id=d["id"], type_id=d["type_id"], name=d["name"],
+                        produces=dict(d.get("produces", {})),
+                        tier=d.get("tier", ""))
+
+    def _stronghold_to_dict(self, sh: Stronghold) -> dict:
+        return {
+            "id": sh.id, "name": sh.name, "size": sh.size, "owner": sh.owner,
+            "is_capital": sh.is_capital,
+            "landmark": self._building_to_dict(sh.landmark) if sh.landmark else None,
+            "buildings": [self._building_to_dict(b) for b in sh.buildings],
+            "stationed_army_id": sh.stationed_army_id,
+            "x": sh.x, "y": sh.y,
+        }
+
+    def _faction_to_dict(self, f: Faction) -> dict:
+        return {
+            "id": f.id, "name": f.name, "is_ai": f.is_ai,
+            "resources": dict(f.resources.amounts),
+            "belief": dict(f.belief.values),
+            "capital_id": f.capital_id,
+            "army_ids": list(f.army_ids),
+            "hero_ids": list(f.hero_ids),
+            "stronghold_ids": list(f.stronghold_ids),
+            "standby": dict(f.standby),
+            "inventory": dict(f.inventory),
+            "recruitment_pools": {
+                sid: {"stronghold_id": p.stronghold_id,
+                      "offerings": list(p.offerings), "refresh_day": p.refresh_day}
+                for sid, p in f.recruitment_pools.items()},
+            "tech_learned": list(f.tech_learned),
+            "culture_learned": list(f.culture_learned),
+            "alive": f.alive,
+        }
+
+    @staticmethod
+    def _army_to_dict(a: Army) -> dict:
+        return {"id": a.id, "name": a.name, "captain_id": a.captain_id,
+                "grid": list(a.grid), "owner": a.owner, "node_id": a.node_id,
+                "has_acted_this_turn": a.has_acted_this_turn,
+                "supply": a.supply, "supply_max": a.supply_max}
+
+    @staticmethod
+    def _unit_to_dict(u: Unit) -> dict:
+        return {
+            "id": u.id, "type_id": u.type_id, "name": u.name,
+            "tags": list(u.tags), "base": dict(u.base),
+            "artifacts": list(u.artifacts), "is_hero": u.is_hero,
+            "skills": list(u.skills), "granted_skills": list(u.granted_skills),
+            "cur_hp": u.cur_hp, "army_id": u.army_id,
+            "cur_ap": u.cur_ap, "cur_pp": u.cur_pp, "cur_mana": u.cur_mana,
+            "atb": u.atb, "alive": u.alive,
+            "statuses": dict(u.statuses), "node_id": u.node_id,
+            "level": u.level, "xp": u.xp, "growth": dict(u.growth),
+        }
+
+    @classmethod
+    def restore(cls, data: dict) -> "Game":
+        """从 snapshot() 产生的 dict 反序列化重建 Game 对象图。
+        重新加载定义(definitions),按 id 重建引用;list→set 还原 tags/学习记录。
+        """
+        g = cls()  # 重新加载定义;seed=None 不重置全局 random
+        g.calendar = Calendar(day=data["day"])
+        g.player_id = data.get("player_id")
+        g.winner = data.get("winner")
+        g.log = list(data.get("log", []))
+        counters = data.get("counters", {})
+        g._army_counter = counters.get("army", 0)
+        g._unit_counter = counters.get("unit", 0)
+        g.pending_event = None
+        # 地图
+        m = data["map"]
+        for sid, sd in m["strongholds"].items():
+            sh = Stronghold(
+                id=sd["id"], name=sd["name"], size=sd["size"],
+                owner=sd["owner"], is_capital=sd["is_capital"],
+                landmark=cls._building_from_dict(sd["landmark"]) if sd.get("landmark") else None,
+                buildings=[cls._building_from_dict(b) for b in sd.get("buildings", [])],
+                stationed_army_id=sd.get("stationed_army_id"),
+                x=sd.get("x", 0), y=sd.get("y", 0))
+            g.map.add_stronghold(sh)
+        for mid, md in m["minors"].items():
+            g.map.add_minor(MinorLocation(
+                id=md["id"], name=md["name"], terrain=md["terrain"],
+                x=md.get("x", 0), y=md.get("y", 0)))
+        for a, nbrs in m.get("adj", {}).items():
+            g.map.adj[a] = list(nbrs)   # 直接还原邻接表(保留顺序,connect 会重排)
+        # 单位先建(army/faction 引用 unit id)
+        for uid, ud in data["units"].items():
+            # __post_init__ 会在 cur_hp<=0 时重置为 base.hp,故先用占位 cur_hp 再覆盖
+            u = Unit(
+                id=ud["id"], type_id=ud["type_id"], name=ud["name"],
+                tags=set(ud["tags"]), base=dict(ud["base"]),
+                artifacts=list(ud["artifacts"]), is_hero=ud["is_hero"],
+                skills=list(ud["skills"]),
+                granted_skills=list(ud.get("granted_skills", [])),
+                cur_hp=1.0, army_id=ud.get("army_id"),
+                cur_ap=ud.get("cur_ap", 0), cur_pp=ud.get("cur_pp", 0),
+                cur_mana=ud.get("cur_mana", 0), atb=ud.get("atb", 0),
+                alive=ud.get("alive", True),
+                statuses=dict(ud.get("statuses", {})),
+                node_id=ud.get("node_id"),
+                level=ud.get("level", 1), xp=ud.get("xp", 0),
+                growth=dict(ud.get("growth", {})),
+            )
+            u.cur_hp = ud["cur_hp"]   # 覆盖占位,保留真实(可能 <=0 的)血量
+            g.unit_index[u.id] = u
+        # 阵营
+        for fid, fd in data["factions"].items():
+            f = Faction(id=fd["id"], name=fd["name"], is_ai=fd["is_ai"])
+            f.resources = Resources(amounts=dict(fd["resources"]))
+            f.belief = Belief(values=dict(fd["belief"]))
+            f.capital_id = fd.get("capital_id")
+            f.army_ids = list(fd["army_ids"])
+            f.hero_ids = list(fd["hero_ids"])
+            f.stronghold_ids = list(fd["stronghold_ids"])
+            f.standby = dict(fd["standby"])
+            f.inventory = dict(fd["inventory"])
+            for sid, pd in fd.get("recruitment_pools", {}).items():
+                pool = RecruitmentPool(stronghold_id=pd["stronghold_id"])
+                pool.offerings = list(pd["offerings"])
+                pool.refresh_day = pd["refresh_day"]
+                f.recruitment_pools[sid] = pool
+            f.tech_learned = set(fd.get("tech_learned", []))
+            f.culture_learned = set(fd.get("culture_learned", []))
+            f.alive = fd.get("alive", True)
+            g.factions[fid] = f
+        # 部队
+        for aid, ad in data["armies"].items():
+            a = Army(id=ad["id"], name=ad["name"],
+                     captain_id=ad.get("captain_id"),
+                     grid=list(ad["grid"]), owner=ad.get("owner"),
+                     node_id=ad.get("node_id"),
+                     has_acted_this_turn=ad.get("has_acted_this_turn", False),
+                     supply=ad.get("supply", 10),
+                     supply_max=ad.get("supply_max", 10))
+            g.armies[aid] = a
+        # 待处理事件(按 id 从定义重建)
+        pid = data.get("pending_event_id")
+        if pid:
+            g.pending_event = next((e for e in g.event_defs if e.id == pid), None)
+        return g
+

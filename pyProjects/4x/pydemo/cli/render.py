@@ -64,14 +64,13 @@ def render_strongholds(game: Game, faction_id: str) -> str:
                         offs.append(f"{hdef.name}(需{hdef.recruit_cost} 信念:{describe_req(hdef.belief_req)})")
                 if offs:
                     lines.append("    可招募:" + " | ".join(offs))
-            # 驻军信息
-            g = game._find_garrison(sid)
-            if g:
-                lines.append(f"    驻军:存活{len(g.alive_units(game.unit_index))}人")
-            # 领主
-            lord = f.lords.get(sid)
-            if lord and lord in game.unit_index:
-                lines.append(f"    领主:{game.unit_index[lord].name}")
+            # 驻守部队信息（驻军系统已废除：列出停在该据点的本方部队）
+            stationed = []
+            for a in game.armies.values():
+                if a.node_id == sid and not a.is_wiped(game.unit_index):
+                    stationed.append(f"{a.name}({len(a.alive_units(game.unit_index))}人)")
+            if stationed:
+                lines.append("    驻守:" + " | ".join(stationed))
     return "\n".join(lines) if len(lines) > 1 else f"{f.name} 无据点"
 
 

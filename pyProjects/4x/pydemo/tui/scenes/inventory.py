@@ -113,11 +113,7 @@ class InventoryScene(Scene):
             if def_id in u.artifacts:
                 army = g.armies.get(u.army_id) if u.army_id else None
                 if army:
-                    if army.is_garrison:
-                        sh = g.map.strongholds.get(army.node_id)
-                        army_txt = f"{sh.name if sh else army.node_id}驻军"
-                    else:
-                        army_txt = army.name
+                    army_txt = army.name
                 else:
                     army_txt = "待命"
                 out.append((army_txt, u))

@@ -35,14 +35,44 @@ def ai_take_turn(faction: Faction, game) -> list[tuple[str, dict]]:
         sh = game.map.strongholds.get(sid)
         if not sh or sh.free_slots() <= 0:
             continue
-        # 选一个能造得起的产出建筑
+        # 选一个能造得起的建筑:产出建筑免门控;recruit/special 类需 requires 已学。
         for bid, bdef in game.building_defs.items():
-            if bdef.get("kind") != "produce":
+            kind = bdef.get("kind")
+            if kind not in ("produce", "recruit", "special"):
                 continue
+            # 门控:recruit/special 需 requires 已学(产出建筑免)
+            requires = bdef.get("requires", [])
+            if requires:
+                learned = faction.tech_learned | faction.culture_learned
+                if not all(r in learned for r in requires):
+                    continue
             cost = bdef.get("cost", {})
             if faction.resources.can_afford(cost):
                 actions.append(("build", {"stronghold": sid, "building": bid}))
                 break
+
+    # 1.5 学习科技/文化(B7:记录在 Faction,AI 也学习):资源充足时按 prereqs 可学的选一个学。
+    learned_all = faction.tech_learned | faction.culture_learned
+    # 先扫科技
+    for tid, tdef in game.tech_defs.items():
+        if tid in faction.tech_learned:
+            continue
+        prereqs = tdef.get("prereqs", [])
+        if not all(p in learned_all for p in prereqs):
+            continue
+        if faction.resources.can_afford(tdef.get("cost", {})):
+            actions.append(("learn_tech", {"tech": tid}))
+            break
+    # 再扫文化(独立一条动作;同回合可学一个科技 + 一个文化)
+    for cid, cdef in game.culture_defs.items():
+        if cid in faction.culture_learned:
+            continue
+        prereqs = cdef.get("prereqs", [])
+        if not all(p in learned_all for p in prereqs):
+            continue
+        if faction.resources.can_afford(cdef.get("cost", {})):
+            actions.append(("learn_culture", {"culture": cid}))
+            break
 
     # 2. 招英雄:若部队数 < 据点数 且 能招募
     for sid in list(faction.stronghold_ids):
@@ -66,7 +96,7 @@ def ai_take_turn(faction: Faction, game) -> list[tuple[str, dict]]:
 
     # 2.5 重建兜底:无玩家编组部队但有待命·可用英雄 → 在己方据点新建部队
     player_armies = [game.armies.get(aid) for aid in faction.army_ids
-                     if game.armies.get(aid) and not game.armies[aid].is_garrison]
+                     if game.armies.get(aid)]
     if not player_armies:
         # 找一个己方据点作为建队地点(优先首都)
         node_id = faction.capital_id
@@ -101,6 +131,29 @@ def ai_take_turn(faction: Faction, game) -> list[tuple[str, dict]]:
                     actions.append(("deploy", {"army": army.id, "unit": uid}))
                     break  # 一支部队本回合先派一个,避免超占
 
+    # 2.7 招普通兵(B1):有已建招募建筑且资源够 → 招一个兵补待命池。
+    #     不必在建造据点招(全局存在性);招后进待命池 cooldown=0,下回合可上场。
+    for bid, bdef in game.building_defs.items():
+        recruits = bdef.get("recruits", [])
+        if not recruits:
+            continue
+        # 全局存在性:任一己方据点含该建筑
+        has_building = any(
+            any(b.type_id == bid for b in game.map.strongholds.get(sid).buildings)
+            for sid in faction.stronghold_ids
+            if game.map.strongholds.get(sid)
+        )
+        if not has_building:
+            continue
+        for tid in recruits:
+            ut = game.unit_type_defs.get(tid)
+            if not ut:
+                continue
+            if faction.resources.can_afford(ut.recruit_cost):
+                actions.append(("recruit_unit", {"unit": tid}))
+                break  # 本建筑本回合先招一个
+        break  # 本回合先处理第一个可招兵种
+
     # 3 & 5. 移动与进攻:遍历部队,向敌方首都推进。
     # 先算到敌方首都的距离图(BFS),让部队朝距离更小的邻接点走,避免来回反弹。
     enemy_capital = None
@@ -114,7 +167,7 @@ def ai_take_turn(faction: Faction, game) -> list[tuple[str, dict]]:
 
     for aid in list(faction.army_ids):
         army = game.armies.get(aid)
-        if not army or army.is_wiped(game.unit_index) or army.is_garrison:
+        if not army or army.is_wiped(game.unit_index):
             continue
         if army.has_acted_this_turn:
             continue

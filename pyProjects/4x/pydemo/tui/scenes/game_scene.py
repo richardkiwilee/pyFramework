@@ -39,7 +39,7 @@ C_LOSS = C_ENEMY  # 196 红
 
 # 默认操作提示：游戏主场景下可用的绑定键（省略 ↑↓/回车 提示）。
 DEFAULT_HINTS: list[tuple[str, str]] = [
-    ("K", "科技"), ("W", "文化"), ("H", "百科"), ("J", "外交"),
+    ("K", "科技"), ("W", "文化"), ("H", "百科"),
     ("C", "据点"), ("A", "部队"), ("Z", "招募"), ("X", "单位"),
     ("V", "据点总览"), ("I", "仓库"),
     ("M", "地图"), ("T", "下一回合"), ("ESC", "选单"), ("Tab", "总览"),
@@ -99,9 +99,6 @@ class GameScene(Scene):
         if a == actions.OPEN_WIKI:
             from .wiki import GameWikiScene
             return PUSH(GameWikiScene())
-        if a == g_actions.OPEN_DIPLOMACY:
-            from .diplomacy import DiplomacyScene
-            return PUSH(DiplomacyScene())
         if a == g_actions.OPEN_STRONGHOLD:
             from .stronghold import StrongholdScene
             return PUSH(StrongholdScene())
@@ -120,6 +117,9 @@ class GameScene(Scene):
         if a == g_actions.OPEN_RECRUIT:
             from .recruit import RecruitScene
             return PUSH(RecruitScene())
+        if a == g_actions.OPEN_RECRUIT_UNIT:
+            from .recruit_unit import RecruitUnitScene
+            return PUSH(RecruitUnitScene())
         if a == g_actions.OPEN_MAP:
             from .map_scene import MapScene
             return PUSH(MapScene())

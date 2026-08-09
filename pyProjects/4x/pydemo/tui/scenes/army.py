@@ -1,9 +1,9 @@
 """部队场景：3 窗口 + 九宫格编辑（§5）+ N 新建 + 移动/攻击。
 
 按 操作逻辑.md（部队界面）+ 修正稿1.md §5：
-- 3 个左右排列窗口。W1=部队名称列表（数字 1/2/4 筛选 我方/敌方/全部，3=驻军），
+- 3 个左右排列窗口。W1=部队名称列表（数字 1/3 筛选 我方/全部，2=敌方），
   W2=部队操作 / 单元格操作，W3=部队规模 + 九宫格单位。
-- 方向键右逐层进入：W1→W2→W3；方向键左回退。非本方/驻军部队 W2 不可操作。
+- 方向键右逐层进入：W1→W2→W3；方向键左回退。非本方部队 W2 不可操作。
 - §5：在第三个窗口（W3 九宫格），上下左右控制选择九宫格的位置（含空格），
   空格进入该格的详细操作（W1 变为该格单位详情，W2 列出可用操作）：
     · 单位格 → [移动, 下场, 编辑装备]
@@ -19,7 +19,7 @@
 - N 新建部队：仅 W1 且本方据点英雄可用；阵营级待命·可用英雄任队长（ADR-0005）。
 
 注意：可由 StrongholdScene 通过 PUSH(ArmyScene(), {"army_id":...}) 委托进入，
-聚焦到指定部队。
+聚焦到指定部队。驻军系统已废除，所有部队均为玩家编组部队（可编辑）。
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ W1 = (1, 3, 33, 25)
 W2 = (34, 3, 32, 25)
 W3 = (66, 3, 33, 25)
 
-FILTER_LABELS = ["我方", "敌方", "驻军", "全部"]
+FILTER_LABELS = ["我方", "敌方", "全部"]
 
 
 class ArmyScene(Scene):
@@ -51,7 +51,7 @@ class ArmyScene(Scene):
 
     def __init__(self) -> None:
         super().__init__()
-        self.filter = 0          # 0=我方 1=敌方 2=驻军 3=全部
+        self.filter = 0          # 0=我方 1=敌方 2=全部
         self.focus = 0           # W1 当前列表焦点
         self.list_scroll = 0
         self.level = 0           # 0=W1 1=W2 2=W3
@@ -92,11 +92,9 @@ class ArmyScene(Scene):
         g = ctrl_mod.ctrl.g
         pid = g.player_id
         if self.filter == 0:    # 我方
-            return [a for a in self._all_armies() if a.owner == pid and not a.is_garrison]
+            return [a for a in self._all_armies() if a.owner == pid]
         if self.filter == 1:    # 敌方
-            return [a for a in self._all_armies() if a.owner != pid and not a.is_garrison and a.owner is not None]
-        if self.filter == 2:    # 驻军
-            return [a for a in self._all_armies() if a.is_garrison]
+            return [a for a in self._all_armies() if a.owner != pid and a.owner is not None]
         return [a for a in self._all_armies()]
 
     def _selected_army(self):
@@ -104,7 +102,7 @@ class ArmyScene(Scene):
         return armies[self.focus % len(armies)] if armies else None
 
     def _is_ours(self, army) -> bool:
-        return army is not None and army.owner == ctrl_mod.ctrl.g.player_id and not army.is_garrison
+        return army is not None and army.owner == ctrl_mod.ctrl.g.player_id
 
     def _army_ops(self) -> list[str]:
         return ["移动", "编辑", "解散"]
@@ -129,8 +127,6 @@ class ArmyScene(Scene):
             return self._set_filter(1)
         if a == g_actions.FILTER_3:
             return self._set_filter(2)
-        if a == g_actions.FILTER_4:
-            return self._set_filter(3)
 
         # N 新建：仅 W1（level 0、非单元格模式）
         if a == g_actions.NEW_ARMY and self.level == 0 and not self.cell_mode:
@@ -284,7 +280,7 @@ class ArmyScene(Scene):
             return self._activate_cell_op(army)
         # 部队级操作
         if not self._is_ours(army):
-            log.push("非本方/驻军部队，不可操作", warn=True)
+            log.push("非本方部队，不可操作", warn=True)
             return NONE()
         ops = self._army_ops()
         op = ops[self.w2_focus % len(ops)]
@@ -310,7 +306,7 @@ class ArmyScene(Scene):
     def _activate_cell_op(self, army) -> SceneResult:
         """单元格操作（§5）：移动/下场/编辑装备（单位格）；上场（空格）。"""
         if not self._is_ours(army):
-            log.push("非本方/驻军部队，不可编辑", warn=True)
+            log.push("非本方部队，不可编辑", warn=True)
             return NONE()
         ops = self._cell_ops()
         if not ops:
@@ -381,7 +377,7 @@ class ArmyScene(Scene):
         out = []
         for nid in nbrs:
             has_enemy = any(a.node_id == nid and a.owner not in (None, army.owner)
-                            and not a.is_garrison and not a.is_wiped(g.unit_index)
+                            and not a.is_wiped(g.unit_index)
                             for a in g.armies.values())
             target_sh = g.map.strongholds.get(nid)
             is_siege = target_sh and target_sh.owner not in (None, army.owner)
@@ -609,8 +605,6 @@ class ArmyScene(Scene):
             ours = a.owner == ctrl_mod.ctrl.g.player_id
             fg = theme.ACCENT2 if ours else (theme.WARN if a.owner and a.owner != ctrl_mod.ctrl.g.player_id else theme.DIM)
             label = a.name
-            if a.is_garrison:
-                label += "(驻军)"
             if a.is_wiped(ctrl_mod.ctrl.g.unit_index):
                 label += "(全灭)"
             self._draw_row(buf, x, ry, ww, label, fg, i, self.focus, active)
@@ -636,7 +630,7 @@ class ArmyScene(Scene):
                 else:
                     buf.put_text(x + 1, ry, "部队不在己方据点", theme.WARN, theme.BG)
             else:
-                buf.put_text(x + 1, ry, "非本方/驻军，不可编辑", theme.WARN, theme.BG)
+                buf.put_text(x + 1, ry, "非本方，不可编辑", theme.WARN, theme.BG)
             return
         u = g.unit_index[uid]
         buf.put_text(x + 1, ry, u.name, theme.HEADING, theme.BG); ry += 1
@@ -680,7 +674,7 @@ class ArmyScene(Scene):
                 break
             self._draw_row(buf, x, ry, ww, op, theme.FG, i, self.w2_focus, active)
         if not self._is_ours(army) and self.level >= 1:
-            buf.put_text(x + 1, y + hh - 2, "（非本方/驻军，仅可查看）", theme.WARN, theme.BG)
+            buf.put_text(x + 1, y + hh - 2, "（非本方，仅可查看）", theme.WARN, theme.BG)
 
     def _render_w3(self, buf: FrameBuffer) -> None:
         x, y, ww, hh = W3
@@ -708,7 +702,7 @@ class ArmyScene(Scene):
         if army.has_acted_this_turn:
             buf.put_text(x + 18, y + 2, "(已行动)", theme.WARN, theme.BG)
         if not self._is_ours(army):
-            buf.put_text(x + 1, y + 3, "（非本方/驻军，仅可查看）", theme.WARN, theme.BG)
+            buf.put_text(x + 1, y + 3, "（非本方，仅可查看）", theme.WARN, theme.BG)
 
         if self.in_move:
             self._render_move_targets(buf, x, y, ww, hh, army)
@@ -786,7 +780,7 @@ class ArmyScene(Scene):
         player = ctrl_mod.ctrl.player()
         avail = player.standby_available_ids()
         if not self._is_ours(army):
-            buf.put_text(x + 1, y + 4, "（非本方/驻军，不可上场）", theme.WARN, theme.BG)
+            buf.put_text(x + 1, y + 4, "（非本方，不可上场）", theme.WARN, theme.BG)
             return
         if army.node_id not in player.stronghold_ids:
             buf.put_text(x + 1, y + 4, "部队不在己方据点，无法上场", theme.WARN, theme.BG)

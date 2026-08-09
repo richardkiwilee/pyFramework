@@ -50,6 +50,14 @@ ATTR_CN = {
 
 LEVEL_CAP = 99
 
+# 意志生还(B3):隐藏属性,仅真人玩家单位有效。
+# 单位当前 HP>1 且将致死时掷骰,rng < will% → 保留 1 HP;每单位每场最多 1 次。
+# 基准 will=5(即 5%),增长率普通兵 0.1、英雄 0.2(脱离 demo 阶段由用户调整)。
+WILL_SURVIVAL_ENABLED: bool = True
+WILL_BASE: float = 5.0
+WILL_GROWTH_NORMAL: float = 0.1
+WILL_GROWTH_HERO: float = 0.2
+
 
 def xp_to_next(level: int) -> int:
     """从 level 升到 level+1 所需经验。公差 5 的等差数列:1->2 需 5,2->3 需 10..."""
@@ -99,12 +107,14 @@ class Artifact:
     id: str
     name: str
     effects: list[dict] = field(default_factory=list)   # 同 skills 的 effect 原始 dict
+    rarity: str = "common"   # common/uncommon/rare,缺省 common(B10 锻造屋按稀有度加权抽取)
 
 
 def load_artifacts(d: dict) -> dict[str, Artifact]:
     out: dict[str, Artifact] = {}
     for aid, a in d.items():
-        out[aid] = Artifact(id=aid, name=a["name"], effects=a.get("effects", []))
+        out[aid] = Artifact(id=aid, name=a["name"], effects=a.get("effects", []),
+                            rarity=a.get("rarity", "common"))
     return out
 
 

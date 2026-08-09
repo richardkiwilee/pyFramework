@@ -61,6 +61,9 @@ class EscMenuScene(Scene):
             from pyconsole.scenes.message import MessageScene
             msg = ctrl_mod.ctrl.load()
             log.push(msg, warn=True)
+            # 读取成功则关掉选单回到游戏场景(状态已替换)
+            if msg.startswith("已读取"):
+                return POP()
             return PUSH(MessageScene(msg))
         if label == "返回主菜单":
             return POP("to_menu")

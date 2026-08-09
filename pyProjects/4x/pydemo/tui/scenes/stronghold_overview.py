@@ -2,7 +2,7 @@
 
 按 修正稿1.md §4：
 - 一个表格。最左列=据点名称（颜色区分归属：我方绿/敌方红/中立白），
-  其后是"标志性建筑"列（显示据点的 landmark_type 标识），再后是槽位 1..5 共 5 列。
+  其后是"标志建筑"列（显示据点标志性建筑的中文名），再后是槽位 1..5 共 5 列。
 - 据点最多 5 个普通槽位（Stronghold.size 为 1..5 整数，ADR-0006）。
   · 已建造的槽位 → 显示建筑名；
   · 空槽位（i < size 且无建筑）→ 显示"空"；
@@ -11,9 +11,8 @@
 - ↑↓ 选择行；回车进入该据点的据点详情（委托 StrongholdScene，预选到该据点）；
   ESC 返回。
 
-说明：原型阶段 landmark 仅有 type id（weak/medium/strong，决定驻军编队档位），
-无独立的"标志性建筑名"数据，故该列直接展示 landmark_type 字符串（占位，
-后续若加 landmark 命名表再替换为名称）。
+标志建筑为独立 Building 实例（Stronghold.landmark，专用槽、不计 size），
+按档位（弱/中/强）给驻守部队 p_def 加成。本列展示其名称。
 """
 from __future__ import annotations
 
@@ -195,9 +194,9 @@ class StrongholdOverviewScene(Scene):
             buf.put_text(x, y, name_txt, theme.SELECTED_FG, theme.SELECTED_BG)
         else:
             buf.put_text(x, y, name_txt, name_fg, theme.BG)
-        # 标志性建筑列：landmark_type（占位：原型无 landmark 命名表）
+        # 标志建筑列：显示 landmark 中文名（独立 Building，专用槽）
         x, ww = COL_LANDMARK
-        lm_txt = sh.landmark_type
+        lm_txt = sh.landmark.name if sh.landmark else "无"
         lm_fg = theme.SELECTED_FG if focused else theme.ACCENT2
         buf.put_text(x, y, lm_txt, lm_fg, theme.SELECTED_BG if focused else theme.BG)
         # 槽位 1..5

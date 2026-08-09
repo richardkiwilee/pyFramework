@@ -4,12 +4,12 @@
 必须由英雄任队长,队长的 Leadership(领导力)决定部队可承载的 Occupy(占用)总和。
 每个单位在九宫格恒占 1 格,但消耗的占用不同(强/大单位占用更高)。
 部队必须始终有队长;队长离队须同据点指派接任,否则解散。
-英雄可任领主(与队长互斥)。
 
 九宫格行列决定攻击可达性与掩拦:
 近战只能打同列或邻列前排;远程/魔法可越排;前排掩护同列后排。
 
-分两类:玩家编组部队(可编辑)与据点驻军(建筑定义,不可编辑)。
+部队均为玩家编组部队(可编辑);据点不再拥有独立的不可编辑驻军(驻军系统已废除,
+据点防御靠标志性建筑给驻守部队提供 buff)。
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -42,7 +42,6 @@ class Army:
     grid: list[str | None] = field(default_factory=lambda: [None] * GRID_SIZE)  # 单位 id
     owner: str | None = None           # 阵营 id
     node_id: str | None = None         # 当前所在结点
-    is_garrison: bool = False          # 据点驻军(建筑定义,不可编辑)
     # 战斗内标记
     has_acted_this_turn: bool = False  # 本回合是否已主动发起战斗
     supply: int = 10                   # 部队补给携带量
@@ -93,18 +92,6 @@ class Army:
                 return False
         if self.grid[slot] is not None:
             return False
-        self.grid[slot] = unit.id
-        unit.army_id = self.id
-        return True
-
-    def place_for_garrison(self, unit: Unit, unit_index: dict[str, Unit]) -> bool:
-        """驻军专用:按角色选槽位直接放置,不做占用检查。"""
-        slot = self._pick_slot(unit)
-        if slot < 0 or self.grid[slot] is not None:
-            try:
-                slot = self.grid.index(None)
-            except ValueError:
-                return False
         self.grid[slot] = unit.id
         unit.army_id = self.id
         return True

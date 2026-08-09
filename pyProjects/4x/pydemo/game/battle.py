@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .army import Army, row_of, col_of, ROWS, ROW_CN, GRID_SIZE
-from .unit import Unit, ATTR_BOUNDS
+from .unit import Unit, ATTR_BOUNDS, WILL_SURVIVAL_ENABLED
 from .modifier import Modifier, ModifierCollection, compute_attribute, ModifierSource
 from .formation import UnitStrategy, choose_target_with_slots
 from .effects import (
@@ -97,6 +97,10 @@ class BattleContext:
     block_eva_enabled: bool = BLOCK_EVA_ENABLED
     # 本轮攻击已触发的时点集合(按时点各自计,防同一时点重复触发,ADR-0011)
     trigger_fired_this_attack: set = field(default_factory=set)
+    # 意志生还:本场已生还过的单位 id(每单位每场最多 1 次,B3 Stage6)
+    survived_this_battle: set = field(default_factory=set)
+    # 真人玩家阵营 id(意志生还仅对真人玩家生效,B3 Stage6)
+    player_faction_id: str | None = None
 
 
 def collect_all_mods(
@@ -170,6 +174,18 @@ def resolve_strike(ctx: BattleContext, attacker: Unit, target: Unit,
         res.crit = True
         dmg = int(math.floor(dmg * 1.5))
     res.dmg = max(0, dmg) if res.evaded else max(1, dmg)
+    # 意志生还(B3):仅真人玩家单位;HP>1 且将致死时 rng<will% → 保留 1 HP;
+    # 每单位每场最多 1 次(记入 ctx.survived_this_battle)。判定统一覆盖所有致死伤害。
+    if WILL_SURVIVAL_ENABLED and res.dmg > 0:
+        new_hp = target.cur_hp - res.dmg
+        if (new_hp <= 0 and target.cur_hp > 1
+                and target.id not in ctx.survived_this_battle
+                and _unit_side_faction(ctx, target) == ctx.player_faction_id):
+            will = ctx.eff_map.get(target.id, {}).get("will", 0)
+            if will > 0 and ctx.rng.random() < (will / 100.0):
+                res.dmg = max(0, int(target.cur_hp) - 1)
+                ctx.survived_this_battle.add(target.id)
+                ctx.result.log.append(f"意志生还:{target.name} 保留 1 HP")
     target.cur_hp -= res.dmg
     # 命中分支:受击消耗(冻结受击破冰,ADR-0010)
     consume_on_self_hit(target)
@@ -224,6 +240,13 @@ def _unit_side(ctx: BattleContext, u: Unit) -> BattleSide:
     if u in ctx.attacker_side.units:
         return ctx.attacker_side
     return ctx.defender_side
+
+
+def _unit_side_faction(ctx: BattleContext, u: Unit) -> str | None:
+    """单位所属阵营 id(意志生还用:判单位是否属于真人玩家方)。
+    BattleSide.army.owner 即阵营 id。"""
+    side = _unit_side(ctx, u)
+    return side.army.owner
 
 
 def _passive_candidates(ctx: BattleContext, tp: TriggerPoint, actor: Unit | None,
@@ -346,12 +369,15 @@ def run_battle(
     log_detail: bool = True,
     rng: random.Random | None = None,
     skill_defs: dict[str, dict] | None = None,
+    player_faction_id: str | None = None,
 ) -> BattleResult:
     """执行一场战斗,返回 BattleResult。strategies 含双方所有单位的策略。
 
     rng:注入随机数(脱离全局 random.seed,便于测试定种子);None 用 random.Random()。
     skill_defs:技能定义(A1/A2 调度需要);None 时主动/被动不触发(退化旧行为,
     主动区为空则只普通攻击)。
+    player_faction_id:真人玩家阵营 id,用于意志生还等"仅真人偏袒"机制(B3,
+    Stage6 接入);本阶段仅记录到 ctx,resolve_strike 的意志钩子在 Stage6 落地。
     """
     result = BattleResult()
     all_units = attacker.units + defender.units
@@ -384,6 +410,8 @@ def run_battle(
         strategies=strategies, eff_map=eff_map, skill_defs=skill_defs or {},
         result=result, log_detail=log_detail, rng=rng,
         block_eva_enabled=BLOCK_EVA_ENABLED,
+        survived_this_battle=set(),
+        player_faction_id=player_faction_id,
     )
     # 把 resolve_strike 挂到 ctx,供 effects.py 的 execute_active/passive_effect
     # 通过 ctx.resolve_strike(ctx, ...) 调用(避免 effects.py 顶层 import battle.py

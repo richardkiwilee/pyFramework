@@ -1,11 +1,12 @@
-"""地图场景：ASCII 拓扑图 + 各据点驻军数量。
+"""地图场景：ASCII 拓扑图 + 各据点驻守部队数量。
 
-按 操作逻辑.md：用简单 ASCII 画出据点拓扑，在据点旁标明该据点内的驻军数量。
+按 操作逻辑.md：用简单 ASCII 画出据点拓扑，在据点旁标明该据点内的部队存活单位数。
 
 实现要点：
 - 据/小地点按 scenario 的固定 (x,y) 坐标做紧凑缩放（x 拉满宽度、y 用小刻度），
   避免纵向过疏导致连线拉得过长。
-- 节点用 ◆ 据点 / · 小地点 + 名称；据点名称后内联 [驻军数]，颜色按归属。
+- 节点用 ◆ 据点 / · 小地点 + 名称；据点名称后内联 [N]（该节点部队存活单位数），
+  颜色按归属。
 - 边用 Bresenham 画 ─│╲╱ + 拐角，相邻节点间连一条线。
 - ESC 返回，只读视图。
 
@@ -34,16 +35,16 @@ C_MINOR = 245    # 暗灰白
 
 
 def _field_unit_counts(g, nid: str) -> tuple[int, int]:
-    """该节点的野战部队存活单位数：(我方, 敌方)。
+    """该节点的驻守部队存活单位数：(我方, 敌方)。
 
-    仅计非驻军、未全灭、且 node_id==nid 的部队。每帧从 g 现算，故部队
+    仅计未全灭、且 node_id==nid 的部队。每帧从 g 现算，故部队
     创建/移动后即时反映（action_move_attack 直接改 army.node_id）。
     """
     n_own = 0
     n_enemy = 0
     pid = g.player_id
     for a in g.armies.values():
-        if a.is_garrison or a.node_id != nid:
+        if a.node_id != nid:
             continue
         if a.is_wiped(g.unit_index):
             continue
@@ -67,7 +68,7 @@ def _field_color(n_own: int, n_enemy: int) -> int:
 
 
 def render_topology(buf: FrameBuffer, rect: tuple[int, int, int, int], g) -> None:
-    """把据点拓扑图（节点 + 连线 + 驻军数）画进矩形 rect=(x, y, w, h)。
+    """把据点拓扑图（节点 + 连线 + 驻守部队数）画进矩形 rect=(x, y, w, h)。
 
     节点标签会被夹在 [x, x+w-1] 内，避免越出给定区域。
     """
@@ -195,7 +196,7 @@ def _render_legend(buf: FrameBuffer, x: int, y: int, w: int) -> None:
     cx = x
     for txt, fg in parts:
         cx = buf.put_text(cx, y, txt, fg, theme.BG)
-    buf.put_text(cx + 2, y, "[N]=该节点野战部队存活单位数(绿我红敌黄接触)", theme.DIM, theme.BG)
+    buf.put_text(cx + 2, y, "[N]=该节点部队存活单位数(绿我红敌黄接触)", theme.DIM, theme.BG)
 
 
 class MapScene(Scene):

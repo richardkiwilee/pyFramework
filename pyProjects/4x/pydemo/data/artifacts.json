@@ -1,8 +1,37 @@
 {
-  "sword_of_might": {"name": "力量之剑", "effects": [
+  "sword_of_might": {"name": "力量之剑", "rarity": "common", "effects": [
     {"type": "flat_attr", "params": {"attr": "p_atk", "value": 10}}
   ]},
-  "cavalry_banner": {"name": "骑兵战旗", "effects": [
+  "cavalry_banner": {"name": "骑兵战旗", "rarity": "uncommon", "effects": [
     {"type": "tag_grant", "params": {"tag": "cavalry"}}
+  ]},
+  "iron_shield": {"name": "铁壁之盾", "rarity": "common", "effects": [
+    {"type": "flat_attr", "params": {"attr": "p_def", "value": 8}}
+  ]},
+  "hunter_bow": {"name": "猎手之弓", "rarity": "common", "effects": [
+    {"type": "flat_attr", "params": {"attr": "p_atk", "value": 6}},
+    {"type": "flat_attr", "params": {"attr": "acc", "value": 5}}
+  ]},
+  "mage_staff": {"name": "秘法法杖", "rarity": "uncommon", "effects": [
+    {"type": "flat_attr", "params": {"attr": "m_atk", "value": 12}}
+  ]},
+  "speed_boots": {"name": "疾行靴", "rarity": "uncommon", "effects": [
+    {"type": "flat_attr", "params": {"attr": "speed", "value": 10}}
+  ]},
+  "vital_charm": {"name": "生命护符", "rarity": "uncommon", "effects": [
+    {"type": "flat_attr", "params": {"attr": "hp", "value": 80}}
+  ]},
+  "dragon_scale": {"name": "龙鳞甲", "rarity": "rare", "effects": [
+    {"type": "flat_attr", "params": {"attr": "p_def", "value": 15}},
+    {"type": "flat_attr", "params": {"attr": "m_def", "value": 10}},
+    {"type": "flat_attr", "params": {"attr": "hp", "value": 50}}
+  ]},
+  "excalibur": {"name": "圣王之剑", "rarity": "rare", "effects": [
+    {"type": "flat_attr", "params": {"attr": "p_atk", "value": 25}},
+    {"type": "flat_attr", "params": {"attr": "crit", "value": 10}}
+  ]},
+  "archmage_orb": {"name": "大法师之球", "rarity": "rare", "effects": [
+    {"type": "flat_attr", "params": {"attr": "m_atk", "value": 25}},
+    {"type": "flat_attr", "params": {"attr": "mana", "value": 10}}
   ]}
 }

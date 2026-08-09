@@ -1,4 +1,4 @@
-"""控制器：持有 Game 单例 + 回合编排 + TUI 侧状态（科技/文化已学集合）。
+"""控制器：持有 Game 单例 + 回合编排。
 
 框架 pyconsole 的 App 是框架持有的，我们不打算改框架；也不打算通过
 on_enter(params) 把 Game 逐层传递（兄弟场景懒导入时还要传参会很繁琐）。
@@ -8,6 +8,9 @@ on_enter(params) 把 Game 逐层传递（兄弟场景懒导入时还要传参会
 回合编排复制自 python-demo/pydemo/cli/fsm.py::_end_turn / _begin_player_turn：
 业务层没有"下一回合"入口，故由控制器拼装（AI 行动 → 日历推进 → 复位部队
 行动标记 → 胜负判定）。
+
+科技/文化学习记录(B7)已移入 Faction(tech_learned/culture_learned);
+控制器不再持有 TUI 侧学习集合,学习走业务层 Game.action_learn_tech/culture。
 """
 from __future__ import annotations
 
@@ -23,16 +26,11 @@ from . import log
 class _Controller:
     def __init__(self) -> None:
         self.game: Game | None = None
-        # TUI 侧状态：业务层没有科技/文化树系统，学习记录保存在此
-        self.tech_learned: set[str] = set()
-        self.culture_learned: set[str] = set()
 
     # ---- 生命周期 ----
     def new_game(self) -> Game:
         """开新局：重建场景。"""
         self.game = build_scenario()
-        self.tech_learned = set()
-        self.culture_learned = set()
         log.clear()
         log.push("新游戏开始：攻破 AI 首都即获胜")
         # 玩家第 1 回合开始结算
@@ -112,6 +110,15 @@ class _Controller:
                 log.push(f"AI 新建部队:失败({payload.get('hero')})")
             else:
                 log.push(f"AI 新建部队:{army.name}(队长 {hero.name})")
+        elif kind == "learn_tech":
+            msg = g.action_learn_tech(fid, payload["tech"])
+            log.push(f"AI 研究科技:{msg}")
+        elif kind == "learn_culture":
+            msg = g.action_learn_culture(fid, payload["culture"])
+            log.push(f"AI 研究文化:{msg}")
+        elif kind == "recruit_unit":
+            msg = g.action_recruit_unit(fid, payload["unit"])
+            log.push(f"AI 招兵:{msg}")
 
     def _log_winner(self) -> None:
         w = self.g.winner
@@ -120,21 +127,41 @@ class _Controller:
         else:
             log.push("游戏结束（无胜者）")
 
-    # ---- 存档（占位）----
+    # ---- 存档读档(B5) ----
+    # 完整 JSON 序列化到 pydemo/saves/save001.dat(单存档);Game.snapshot/restore 重建对象图。
+    # 路径相对 pydemo 包根(随 __file__ 定位),确保任意 cwd 可用。
+    def _save_path(self) -> str:
+        import os
+        pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(pkg_root, "saves", "save001.dat")
+
     def save(self) -> str:
         import json
         import os
-        path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "save.json")
-        data = {"day": self.g.calendar.day, "saved_at": "占位存档"}
+        path = self._save_path()
         try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            data = self.g.snapshot()
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            return "已保存（占位：仅记录天数）"
-        except OSError as e:
+            return f"已保存(第 {self.g.calendar.day} 天)"
+        except (OSError, ValueError) as e:
             return f"保存失败：{e}"
 
     def load(self) -> str:
-        return "读取功能为占位（完整序列化待业务层支持）"
+        import json
+        import os
+        from pydemo.game.game import Game
+        path = self._save_path()
+        if not os.path.isfile(path):
+            return "无存档（开始新游戏）"
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.game = Game.restore(data)
+            return f"已读取(第 {self.game.calendar.day} 天)"
+        except (OSError, ValueError, KeyError) as e:
+            return f"读取失败：{e}"
 
 
 ctrl = _Controller()

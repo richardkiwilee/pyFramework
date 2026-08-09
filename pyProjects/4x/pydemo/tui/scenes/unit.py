@@ -1,7 +1,7 @@
 """单位场景（键 X）：己方所有单位一览 + 单体详情 + 训练/装备按钮。
 
 按 修正稿1.md §3：
-- 左右两窗口。左侧列己方所有单位（场上部队成员 + 待命 + 己方据点驻军）；
+- 左右两窗口。左侧列己方所有单位（场上部队成员 + 待命）；
   右侧展示单位详情：所有属性、所属部队、当前位置、等级与经验、训练所需资源、装备栏。
 - 空格在左窗口时把焦点切进右侧详情；右侧有 5 个可交互"按钮"：训练 + 4 装备栏。
 - 训练：消费资源直接获 +5 XP（走 Game.action_train）；可训练位见 is_trainable
@@ -79,7 +79,7 @@ class UnitScene(Scene):
 
     # ---- 数据 ----
     def _all_player_units(self) -> list:
-        """己方所有单位：(Unit, 显示标签)。顺序：部队成员 → 待命 → 驻军。"""
+        """己方所有单位：(Unit, 显示标签)。顺序：部队成员 → 待命。"""
         g = ctrl_mod.ctrl.g
         player = ctrl_mod.ctrl.player()
         entries: list = []
@@ -102,18 +102,6 @@ class UnitScene(Scene):
                 else:
                     lbl = f"{u.name} · 待命·不可用{cd}"
                 entries.append((u, lbl))
-        # 3. 己方据点驻军
-        for sid in player.stronghold_ids:
-            sh = g.map.strongholds.get(sid)
-            if not sh:
-                continue
-            for a in g.armies.values():
-                if a.is_garrison and a.node_id == sid and a.owner == player.id:
-                    for uid in a.grid:
-                        if uid and uid in g.unit_index:
-                            u = g.unit_index[uid]
-                            if u.alive:
-                                entries.append((u, f"{u.name} · {sh.name}驻军"))
         return entries
 
     def _safe_focus(self) -> list:
@@ -351,11 +339,7 @@ class UnitScene(Scene):
         # 所属部队 | 位置
         if u.army_id and u.army_id in g.armies:
             a = g.armies[u.army_id]
-            if a.is_garrison:
-                sh = g.map.strongholds.get(a.node_id)
-                army_txt = f"{sh.name if sh else a.node_id}驻军"
-            else:
-                army_txt = a.name
+            army_txt = a.name
         elif u.id in player.standby:
             cd = player.standby[u.id]
             army_txt = f"待命·{'可用' if cd <= 0 else '不可用' + str(cd)}"

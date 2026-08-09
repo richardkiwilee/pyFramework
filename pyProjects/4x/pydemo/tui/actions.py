@@ -12,10 +12,10 @@ from __future__ import annotations
 # 主场景绑定按键 → 打开子场景
 OPEN_TECH = "open_tech"            # K 科技树
 OPEN_CULTURE = "open_culture"      # W 文化树
-OPEN_DIPLOMACY = "open_diplomacy"  # J 外交
 OPEN_STRONGHOLD = "open_stronghold"  # C 据点一览
 OPEN_ARMY = "open_army"            # A 部队一栏
 OPEN_RECRUIT = "open_recruit"       # Z 招募一览
+OPEN_RECRUIT_UNIT = "open_recruit_unit"  # Q 招募普通兵(B1)
 OPEN_MAP = "open_map"              # M 地图一览
 OPEN_UNIT = "open_unit"             # X 单位一览(§3)
 OPEN_STRONGHOLD_OVERVIEW = "open_stronghold_overview"  # V 据点总览(§4)

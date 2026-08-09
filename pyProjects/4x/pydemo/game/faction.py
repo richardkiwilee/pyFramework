@@ -31,8 +31,10 @@ class Faction:
     inventory: dict[str, int] = field(default_factory=dict)   # def_id -> 库存数(含在库+已装备)
     # 每据点的招募池
     recruitment_pools: dict[str, RecruitmentPool] = field(default_factory=dict)
-    # 领主任命:据点 id -> 英雄单位 id(领主职责待重定义,见 ADR-0006)
-    lords: dict[str, str] = field(default_factory=dict)
+    # 已学科技/文化 id(B7:学习记录移入 Faction,离开 TUI 控制器;AI 也学习)。
+    # 建造门控:recruit/special 类建筑需 requires 中列出的科技/文化已学。
+    tech_learned: set[str] = field(default_factory=set)
+    culture_learned: set[str] = field(default_factory=set)
     alive: bool = True
 
     def standby_available_ids(self) -> list[str]:
