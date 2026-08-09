@@ -1,10 +1,11 @@
 # battle_scene.gd
 # 战斗场景 — 自动回合制对战
+# 双方队伍左右排列，前排靠中间、后排靠两侧
 extends Control
 
 # UI 引用
-var _blue_formation: GridContainer
-var _red_formation: GridContainer
+var _blue_zone: Control
+var _red_zone: Control
 var _combatant_nodes: Dictionary = {}  # key: unit_id -> CombatantNode
 var _turn_label: Label
 var _current_unit_label: Label
@@ -18,12 +19,18 @@ var _stats_label: Label
 
 var _current_speed: int = 1  # 1x, 2x, 4x
 
+# 阵型布局常量 — 每个TeamZone内部定位
+# 前排(row=0)离中间近, 后排(row=1)离两侧远
+const CARD_W: int = 140
+const CARD_H: int = 220
+const ZONE_W: int = 440
+
 
 func _ready() -> void:
 	_build_ui()
 	_connect_signals()
 
-	# 开始战斗
+	# 开始战斗（_build_ui 中已调用 _populate_combatants）
 	BattleManager.start_battle(self)
 
 
@@ -38,12 +45,13 @@ func _build_ui() -> void:
 
 	var main_vbox = VBoxContainer.new()
 	main_vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
-	main_vbox.add_theme_constant_override("separation", 8)
+	main_vbox.add_theme_constant_override("separation", 6)
 	add_child(main_vbox)
 
 	# 顶部信息栏
 	var top_bar = HBoxContainer.new()
 	top_bar.add_theme_constant_override("separation", 20)
+	top_bar.custom_minimum_size = Vector2(0, 36)
 	main_vbox.add_child(top_bar)
 
 	_turn_label = Label.new()
@@ -58,27 +66,31 @@ func _build_ui() -> void:
 	_current_unit_label.add_theme_color_override("font_color", Color.WHITE)
 	top_bar.add_child(_current_unit_label)
 
-	# 战场区域
+	# 战场区域 — 蓝方(左) | VS | 红方(右)
 	var battlefield = HBoxContainer.new()
 	battlefield.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	battlefield.add_theme_constant_override("separation", 20)
+	battlefield.add_theme_constant_override("separation", 0)
 	battlefield.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_vbox.add_child(battlefield)
 
-	# 蓝方阵型（左侧，反转：前排在下后排在上）
-	_blue_formation = _create_formation_grid()
-	battlefield.add_child(_blue_formation)
+	# 蓝方区域（左半）
+	_blue_zone = _create_team_zone("blue")
+	battlefield.add_child(_blue_zone)
 
-	# VS标签
+	# VS 标签
+	var vs_panel = Control.new()
+	vs_panel.custom_minimum_size = Vector2(60, 0)
 	var vs_label = Label.new()
 	vs_label.text = "⚔"
+	vs_label.position = Vector2(10, 200)
 	vs_label.add_theme_font_size_override("font_size", 36)
 	vs_label.add_theme_color_override("font_color", Color("#ffd700"))
-	battlefield.add_child(vs_label)
+	vs_panel.add_child(vs_label)
+	battlefield.add_child(vs_panel)
 
-	# 红方阵型（右侧，正常：前排在前排在后）
-	_red_formation = _create_formation_grid()
-	battlefield.add_child(_red_formation)
+	# 红方区域（右半）
+	_red_zone = _create_team_zone("red")
+	battlefield.add_child(_red_zone)
 
 	# 底部面板
 	var bottom = VBoxContainer.new()
@@ -101,7 +113,7 @@ func _build_ui() -> void:
 	# 战斗日志
 	var log_panel = Panel.new()
 	log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	log_panel.custom_minimum_size = Vector2(0, 140)
+	log_panel.custom_minimum_size = Vector2(0, 120)
 	var log_style = StyleBoxFlat.new()
 	log_style.bg_color = Color("#0d0d20")
 	log_style.border_width_left = 1
@@ -123,6 +135,7 @@ func _build_ui() -> void:
 	var control_bar = HBoxContainer.new()
 	control_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	control_bar.add_theme_constant_override("separation", 16)
+	control_bar.custom_minimum_size = Vector2(0, 44)
 	bottom.add_child(control_bar)
 
 	_pause_btn = Button.new()
@@ -150,65 +163,97 @@ func _build_ui() -> void:
 	_populate_combatants()
 
 
-func _create_formation_grid() -> GridContainer:
-	var grid = GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
-	grid.custom_minimum_size = Vector2(480, 480)
-	return grid
+func _create_team_zone(team: String) -> Control:
+	var zone = Control.new()
+	zone.custom_minimum_size = Vector2(ZONE_W, 530)
+	zone.set_size(Vector2(ZONE_W, 530))
+
+	# 队伍底色
+	var bg = ColorRect.new()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color("#111133") if team == "blue" else Color("#331111")
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	zone.add_child(bg)
+
+	# 前后排分隔线
+	var sep = ColorRect.new()
+	sep.color = Color("#333355") if team == "blue" else Color("#553333")
+	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	zone.add_child(sep)
+
+	# 前后排标签
+	var front_lbl = Label.new()
+	front_lbl.add_theme_font_size_override("font_size", 11)
+	front_lbl.add_theme_color_override("font_color", Color("#888888"))
+	zone.add_child(front_lbl)
+
+	var back_lbl = Label.new()
+	back_lbl.add_theme_font_size_override("font_size", 11)
+	back_lbl.add_theme_color_override("font_color", Color("#888888"))
+	zone.add_child(back_lbl)
+
+	if team == "blue":
+		# 蓝方：前排靠右(近中间)，后排靠左(远离中间)
+		sep.position = Vector2(220, 30)
+		sep.set_size(Vector2(2, 480))
+		front_lbl.text = "前排→"
+		front_lbl.position = Vector2(235, 10)
+		back_lbl.text = "←后排"
+		back_lbl.position = Vector2(180, 10)
+	else:
+		# 红方：前排靠左(近中间)，后排靠右(远离中间)
+		sep.position = Vector2(218, 30)
+		sep.set_size(Vector2(2, 480))
+		front_lbl.text = "←前排"
+		front_lbl.position = Vector2(195, 10)
+		back_lbl.text = "后排→"
+		back_lbl.position = Vector2(230, 10)
+
+	return zone
 
 
 func _populate_combatants() -> void:
-	# 蓝方：填充阵型（前排0-2放后排行，后排0-2放前排行，形成互相面对的效果）
-	# 阵型格：前排行(col0-2), 后排行(col0-2)
-	# 蓝方左侧，前排(下方)对着红方
-	_populate_team_formation(BattleManager.team_blue, _blue_formation)
-	_populate_team_formation(BattleManager.team_red, _red_formation)
+	# 清除上一场战斗的节点（防御性，防止重复叠加）
+	for child in _blue_zone.get_children():
+		if child is CombatantNode:
+			child.queue_free()
+	for child in _red_zone.get_children():
+		if child is CombatantNode:
+			child.queue_free()
+	_combatant_nodes.clear()
+
+	# 从 BattleData 读取队伍数据
+	_populate_team_zone(BattleData.team_blue, _blue_zone, "blue")
+	_populate_team_zone(BattleData.team_red, _red_zone, "red")
 
 
-func _populate_team_formation(team: Array[Dictionary], grid: GridContainer) -> void:
-	# 创建6个槽位（前排3+后排3）
-	# Godot GridContainer: 从左到右，从上到下填充
-	# 前排(index 0): 后排row=1, 前排(index 1): 前排row=0
-	# 对于蓝方：上方显示后排，下方显示前排
-	# 对于红方：上方显示前排，下方显示后排
+# 在队伍区域内按行列摆放单位
+# 蓝方: 前排(row=0)靠右(x=240), 后排(row=1)靠左(x=80)
+# 红方: 前排(row=0)靠左(x=80), 后排(row=1)靠右(x=240)
+func _populate_team_zone(team: Array[Dictionary], zone: Control, team_color: String) -> void:
+	var is_blue: bool = (team_color == "blue")
 
-	var is_blue = team.size() > 0 and team[0].get("team", "") == "blue"
+	# 前后排 X 坐标
+	var front_x: int = 240 if is_blue else 80
+	var back_x: int = 80 if is_blue else 240
 
-	for slot_row in range(2):  # 0=显示上方, 1=显示下方
-		for col in range(3):
-			var node = _create_empty_slot(slot_row, col, is_blue)
-			grid.add_child(node)
-
-	# 放置单位到对应槽位
+	# 为每个存活单位创建 CombatantNode
 	for unit in team:
-		var unit_row = unit.get("row", 0)  # 0=前排, 1=后排
-		var unit_col = unit.get("col", 0)
-		var node_index: int
+		var row: int = unit.get("row", 0)
+		var col: int = unit.get("col", 0)
 
-		if is_blue:
-			# 蓝方：前排在下(display_row=1), 后排在上(display_row=0)
-			node_index = (1 - unit_row) * 3 + unit_col
-		else:
-			# 红方：前排在下(display_row=1), 后排在上(display_row=0)
-			node_index = (1 - unit_row) * 3 + unit_col
+		var pos_x: int = front_x if row == 0 else back_x
+		# Y 坐标：根据列号垂直分布（0=下, 1=中, 2=上）
+		var pos_y: int
+		match col:
+			0: pos_y = 300
+			1: pos_y = 155
+			_: pos_y = 10
 
-		if node_index < grid.get_child_count():
-			var old = grid.get_child(node_index)
-			if old:
-				old.queue_free()
-			var combatant = CombatantNode.new(unit, unit_col)
-			grid.add_child(combatant)
-			grid.move_child(combatant, node_index)
-			_combatant_nodes[unit.get("id", "")] = combatant
-
-
-func _create_empty_slot(slot_row: int, col: int, is_blue: bool) -> Control:
-	var placeholder = Control.new()
-	placeholder.custom_minimum_size = Vector2(140, 220)
-	placeholder.size = Vector2(140, 220)
-	return placeholder
+		var combatant = CombatantNode.new(unit, col)
+		combatant.position = Vector2(pos_x, pos_y)
+		zone.add_child(combatant)
+		_combatant_nodes[unit.get("id", "")] = combatant
 
 
 func _connect_signals() -> void:
@@ -231,53 +276,76 @@ func _on_turn_started(unit_data: Dictionary) -> void:
 	_current_unit_label.text = "当前: %s" % unit_data.get("name", "???")
 	_turn_label.text = "第 %d 回合" % BattleManager.current_round
 
-	# 高亮当前单位
-	for id in _combatant_nodes:
+	# 高亮当前单位，取消其他（跳过已释放的节点）
+	for id in _combatant_nodes.keys():
 		var node = _combatant_nodes[id]
-		if node.unit_data == unit_data:
-			node.set_highlight(true)
-		else:
-			node.set_highlight(false)
+		if not is_instance_valid(node):
+			_combatant_nodes.erase(id)
+			continue
+		node.set_highlight(node.unit_data == unit_data)
 
-	# 更新速度条
 	_update_speed_bar()
 
 
 func _on_turn_ended(unit_data: Dictionary) -> void:
 	var node = _combatant_nodes.get(unit_data.get("id", ""))
-	if node:
+	if node and is_instance_valid(node):
 		node.set_highlight(false)
 		node.refresh_display()
 
 
 func _on_skill_used(caster: Dictionary, skill: Dictionary, target: Dictionary, result: Dictionary) -> void:
-	# 刷新相关单位显示
+	# 施法者闪光
+	var caster_node = _combatant_nodes.get(caster.get("id", ""))
+	if caster_node and is_instance_valid(caster_node):
+		caster_node.play_caster_flash()
+
+	await get_tree().create_timer(0.15).timeout
+
+	# 目标闪光 + 受击动画
+	var target_node = _combatant_nodes.get(target.get("id", ""))
+	if target_node and is_instance_valid(target_node):
+		if result.get("hit", false):
+			var is_heal: bool = (skill.get("damage_type", "") == "heal")
+			target_node.play_target_flash(skill.get("damage_type", "physical"), is_heal)
+			if not is_heal:
+				target_node.play_hit_shake()
+			if result.get("damage", 0) > 0 or is_heal:
+				target_node.play_damage_number(result.get("damage", 0), result.get("crit", false), is_heal)
+		else:
+			target_node.play_damage_number(0, false, false, true)  # MISS
+
 	_refresh_unit_display(caster)
 	_refresh_unit_display(target)
 
 
 func _on_passive_triggered(unit: Dictionary, skill: Dictionary, target: Dictionary, result: Dictionary) -> void:
+	# 被动触发方闪光
+	var unit_node = _combatant_nodes.get(unit.get("id", ""))
+	if unit_node and is_instance_valid(unit_node):
+		unit_node.play_caster_flash()
+
+	await get_tree().create_timer(0.1).timeout
+
+	var target_node = _combatant_nodes.get(target.get("id", ""))
+	if target_node and is_instance_valid(target_node) and result.get("hit", false) and result.get("damage", 0) > 0:
+		target_node.play_target_flash(skill.get("damage_type", "physical"), false)
+		target_node.play_hit_shake()
+		target_node.play_damage_number(result.get("damage", 0), result.get("crit", false), false)
+
 	_refresh_unit_display(unit)
 	_refresh_unit_display(target)
 
 
 func _on_damage_dealt(target: Dictionary, damage: int) -> void:
-	var node = _combatant_nodes.get(target.get("id", ""))
-	if node:
-		node.play_hit_shake()
-		await get_tree().create_timer(0.05).timeout
-		node.refresh_display()
-		node.play_damage_number(damage, false)
-
-	# 同步更新HP显示
 	_refresh_unit_display(target)
 
 
 func _on_unit_died(unit: Dictionary) -> void:
-	var node = _combatant_nodes.get(unit.get("id", ""))
-	if node:
-		node.play_death()
-		node.refresh_display()
+	var unit_id = unit.get("id", "")
+	var node = _combatant_nodes.get(unit_id)
+	if node and is_instance_valid(node):
+		node.play_death()  # 内部会调 refresh_display 设灰色
 
 
 func _on_battle_ended(winner: String, stats: Dictionary) -> void:
@@ -322,7 +390,7 @@ func _on_return_pressed() -> void:
 
 func _create_result_popup() -> void:
 	_result_popup = PopupPanel.new()
-	_result_popup.size = Vector2(400, 280)
+	_result_popup.set_size(Vector2(400, 280))
 	_result_popup.popup_window = true
 	add_child(_result_popup)
 
@@ -391,5 +459,5 @@ func _update_speed_bar() -> void:
 
 func _refresh_unit_display(unit_data: Dictionary) -> void:
 	var node = _combatant_nodes.get(unit_data.get("id", ""))
-	if node:
+	if node and is_instance_valid(node):
 		node.refresh_display()

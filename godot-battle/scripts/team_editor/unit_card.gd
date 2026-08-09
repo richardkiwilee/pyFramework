@@ -56,7 +56,7 @@ func _build_ui() -> void:
 	# 左侧：角色图像占位符
 	_sprite_rect = ColorRect.new()
 	_sprite_rect.custom_minimum_size = Vector2(64, 64)
-	_sprite_rect.size = Vector2(64, 64)
+	_sprite_rect.set_size(Vector2(64, 64))
 	hbox.add_child(_sprite_rect)
 
 	# 右侧：信息区

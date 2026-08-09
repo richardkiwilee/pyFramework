@@ -226,7 +226,7 @@ func _create_team_panel(team: String, title_text: String) -> Panel:
 
 func _create_equipment_popup() -> void:
 	_equip_popup = PopupPanel.new()
-	_equip_popup.size = Vector2(420, 480)
+	_equip_popup.set_size(Vector2(420, 480))
 	_equip_popup.popup_window = true
 	add_child(_equip_popup)
 
