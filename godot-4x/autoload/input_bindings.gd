@@ -22,6 +22,7 @@ const DEFAULT_BINDINGS: Dictionary = {
 	"open_stronghold_overview": [KEY_V],
 	"open_inventory": [KEY_I],
 	"end_turn": [KEY_T],
+	"focus_capital": [KEY_HOME],
 	"new_army": [KEY_N],
 	"filter_1": [KEY_1],
 	"filter_2": [KEY_2],
@@ -54,6 +55,7 @@ const HINTS: Array = [
 	["open_inventory", "hint_inventory"],
 	["open_map", "hint_map"],
 	["end_turn", "hint_end_turn"],
+	["focus_capital", "hint_focus_capital"],
 ]
 
 ## 把动作注册进 InputMap（幂等）。

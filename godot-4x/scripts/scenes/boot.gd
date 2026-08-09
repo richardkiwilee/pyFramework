@@ -127,6 +127,59 @@ func _run_ui_smoke() -> void:
 		built_slot.call("_gui_input", rel)
 		await _frames(2)
 		_ok(sh.buildings.size() == before_demo - 1, "点右上角红×拆除建筑")
+	# 建造弹窗：按 kind 分组着色 + 分类标签（TW3K 五色分类）
+	gs.call("_show_build_popup", "p_cap")
+	await _frames(2)
+	var kind_seen: Dictionary = {}
+	var tag_seen := false
+	for ch in gs._build_box.get_children():
+		if ch is Label and ch.text == Loc.t("kind_produce"):
+			kind_seen["produce"] = true
+		elif ch is Label and ch.text == Loc.t("kind_recruit"):
+			kind_seen["recruit"] = true
+		elif ch is Label and ch.text == Loc.t("kind_special"):
+			kind_seen["special"] = true
+		if ch is Button and (ch.text as String).begins_with("["):
+			tag_seen = true
+	_ok(kind_seen.size() == 3, "建造弹窗按分类分组(产/募/特)")
+	_ok(tag_seen, "建造候补带分类标签")
+	gs.call("_hide_build_popup")
+	await _frames(1)
+	# Home: 镜头聚焦首都并选中（键盘事件真实路径）
+	var off0: Vector2 = gs._map_view._offset
+	var home_ev := InputEventKey.new()
+	home_ev.keycode = KEY_HOME
+	home_ev.physical_keycode = KEY_HOME
+	home_ev.pressed = true
+	gs.call("handle_input", home_ev)
+	await _frames(2)
+	var cap_id: String = GameController.player().capital_id
+	_ok(gs._map_view._offset != off0, "Home 触发镜头移动")
+	_ok(gs._sel_node == cap_id and gs._info_panel.visible, "Home 选中首都")
+	# Ctrl+T: 循环据点（唯一据点=首都，保持选中不崩溃）
+	gs.call("_cycle_stronghold")
+	await _frames(2)
+	_ok(gs._sel_node == cap_id, "Ctrl+T 循环据点")
+	# 小队行：显示编成人数 + 队长名 + 星标（圣兽之王风格）
+	gs.call("_open_page", load("res://scenes/windows/army.tscn").instantiate())
+	await _frames(4)
+	var ap2: Node = gs._pages.back()
+	var row_ok := false
+	for panel in ap2._left_box.get_children():
+		if panel.get_child_count() == 0:
+			continue
+		var vbox0: Control = panel.get_child(0)
+		if vbox0.get_child_count() == 0:
+			continue
+		var head0: Control = vbox0.get_child(0)
+		for l in head0.get_children():
+			if l is Label:
+				var t: String = l.text
+				if t.contains("/9") and t.contains("★"):
+					row_ok = true
+	gs.call("_close_page")
+	await _frames(2)
+	_ok(row_ok, "小队行含人数与队长标记")
 	# 部队地图移动（直接调动作）
 	var aid: String = ""
 	for a in GameController.game.armies:
@@ -162,6 +215,42 @@ func _run_ui_smoke() -> void:
 		SceneStack.close_window()
 		await _frames(3)
 	_ok(GameController.game.calendar.day >= 2, "结束回合后天数推进")
+	# 装备选择器：单击即装备（鼠标等价于回车）
+	var picker: Window = load("res://scenes/windows/equip_picker.tscn").instantiate()
+	picker.unit_id = aid
+	picker.slot = 0
+	picker.ids = ["sword_basic", "shield_basic"]
+	picker.labels = ["Sword", "Shield"]
+	SceneStack.open_window(picker)
+	await _frames(3)
+	SceneStack.top_window()._list.call("_gui_input", _left_click_at(Vector2(10, 10)))
+	await _frames(3)
+	_ok(SceneStack.top_window() == null, "装备选择单击即装备")
+	# 消息框：OK 按钮鼠标关闭
+	SceneStack.open_window(load("res://scenes/windows/message.tscn").instantiate(),
+		{"text": "smoke_msg", "close_hint": "close_hint"})
+	await _frames(3)
+	var msg_win: Window = SceneStack.top_window()
+	var ok_found := false
+	for ch in msg_win.get_children():
+		ok_found = _find_button_recursive(ch, "OK") or ok_found
+	_ok(ok_found, "消息框有 OK 鼠标按钮")
+	SceneStack.close_window()
+	await _frames(2)
+	# 更多弹窗：键盘页面的鼠标入口
+	gs.call("_show_more_popup")
+	await _frames(2)
+	_ok(gs._more_popup.visible, "更多弹窗打开")
+	_ok(gs._more_box.get_child_count() >= 7, "更多弹窗含全部页面入口")
+	gs._more_popup.visible = false
+	await _frames(1)
+	# 返回主菜单：change_scene 必须关掉残留窗口（ESC→主菜单鼠标失效的回归测试）
+	SceneStack.open_window(load("res://scenes/windows/settings_window.tscn").instantiate())
+	await _frames(3)
+	SceneStack.close_window("to_menu")
+	await _frames(4)
+	_ok(SceneStack.main_scene is MainMenu, "设置→返回主菜单成功")
+	_ok(SceneStack.window_stack.is_empty(), "切换场景后无残留窗口(鼠标不被吞)")
 	print("=== UI 冒烟结束，错误 %d ===" % _smoke_errors.size())
 	for e in _smoke_errors:
 		print("FAIL: ", e)
@@ -170,6 +259,23 @@ func _run_ui_smoke() -> void:
 func _frames(n: int) -> void:
 	for i in range(n):
 		await get_tree().process_frame
+
+## 合成一次左键按下事件（用于直接调 _gui_input 模拟鼠标）。
+func _left_click_at(pos: Vector2) -> InputEventMouseButton:
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = true
+	ev.position = pos
+	return ev
+
+## 递归查找文本匹配的 Button。
+func _find_button_recursive(node: Node, text: String) -> bool:
+	if node is Button and node.text == text:
+		return true
+	for ch in node.get_children():
+		if _find_button_recursive(ch, text):
+			return true
+	return false
 
 func _ok(cond: bool, msg: String) -> void:
 	print(("  ✓ " if cond else "  ✗ ") + msg)

@@ -28,6 +28,8 @@ var _slot_box: HBoxContainer
 var _build_popup: Control
 var _build_box: VBoxContainer
 var _popup_for_stronghold := ""
+var _more_popup: Control
+var _more_box: VBoxContainer
 
 ## 资源条图标色（图标占位：彩色方块，日后换美术图标）。
 const RES_ICON: Dictionary = {
@@ -42,6 +44,14 @@ const LANDMARK_TIER_CN: Dictionary = {
 	"weak": "弱地标", "medium": "中地标", "strong": "强地标",
 }
 
+## 建筑分类（TW3K 五色分类简化版）：产出=绿 / 招募=红 / 特殊=金。
+## label/tag 为 i18n msgid。
+const KIND_GROUP: Dictionary = {
+	"produce": {"label": "kind_produce", "tag": "kind_tag_produce", "color": UiTheme.C_OWN},
+	"recruit": {"label": "kind_recruit", "tag": "kind_tag_recruit", "color": UiTheme.C_ENEMY},
+	"special": {"label": "kind_special", "tag": "kind_tag_special", "color": UiTheme.GOLD},
+}
+
 func build() -> void:
 	# 地图（主画面，最底层）
 	_map_view = MapView.new()
@@ -53,11 +63,11 @@ func build() -> void:
 	_map_view.army_move_requested.connect(_on_army_move)
 	_map_view.army_cancelled.connect(func(): _toast_msg(Loc.t("move_cancel")))
 	add_child(_map_view)
-	# 左下角图标按钮：科技文化 / 管理小队 / 招募单位
+	# 左下角图标按钮：科技文化 / 管理小队 / 招募单位 / 更多
 	var left_btns := VBoxContainer.new()
 	left_btns.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	left_btns.offset_left = 10
-	left_btns.offset_top = -158
+	left_btns.offset_top = -264
 	left_btns.offset_bottom = -10
 	left_btns.add_theme_constant_override("separation", 6)
 	add_child(left_btns)
@@ -70,6 +80,41 @@ func build() -> void:
 	var recruit_btn := IconButton.new(IconButton.Kind.RECRUIT, Loc.t("recruit"))
 	recruit_btn.pressed.connect(_open_recruit)
 	left_btns.add_child(recruit_btn)
+	var more_btn := IconButton.new(IconButton.Kind.MORE, Loc.t("more"))
+	more_btn.pressed.connect(_show_more_popup)
+	left_btns.add_child(more_btn)
+	# 右下角：结束回合按钮（T 键的鼠标等价物；TW3K 结束回合常驻按钮）
+	var end_btn := IconButton.new(IconButton.Kind.END_TURN, Loc.t("end_turn"))
+	end_btn.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	end_btn.offset_left = -70
+	end_btn.offset_top = -70
+	end_btn.offset_right = -12
+	end_btn.offset_bottom = -12
+	end_btn.pressed.connect(_end_turn)
+	add_child(end_btn)
+	# 更多弹窗（键盘页面的鼠标入口：单位名册/据点总览/背包/据点/地图/招募单位/菜单）
+	_more_popup = Control.new()
+	_more_popup.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_more_popup.mouse_filter = Control.MOUSE_FILTER_STOP
+	_more_popup.visible = false
+	add_child(_more_popup)
+	var more_dim := ColorRect.new()
+	more_dim.color = Color(0, 0, 0, 0.45)
+	more_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_more_popup.add_child(more_dim)
+	more_dim.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed:
+			_more_popup.visible = false)
+	var more_center := CenterContainer.new()
+	more_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	more_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_more_popup.add_child(more_center)
+	var more_frame := Frame.new(Loc.t("more"))
+	more_frame.custom_minimum_size = Vector2(300, 0)
+	more_center.add_child(more_frame)
+	_more_box = VBoxContainer.new()
+	_more_box.add_theme_constant_override("separation", 6)
+	more_frame.add_child(_more_box)
 	# Toast（左下角，最近日志反馈，3 秒隐藏）
 	_toast = Label.new()
 	_toast.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
@@ -114,10 +159,16 @@ func build() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不挡事件：外部点击透传到遮罩关闭
 	_build_popup.add_child(center)
 	var frame := Frame.new(Loc.t("build_candidates"))
-	frame.custom_minimum_size = Vector2(420, 0)
+	frame.custom_minimum_size = Vector2(420, 320)
 	center.add_child(frame)
+	# 分组后候补可能超出高度：内容放滚动容器
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	frame.add_child(scroll)
 	_build_box = VBoxContainer.new()
-	frame.add_child(_build_box)
+	_build_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_build_box.add_theme_constant_override("separation", 4)
+	scroll.add_child(_build_box)
 	# 帝国总览 overlay（按住 Tab 显示）
 	_overlay = _build_overlay()
 	add_child(_overlay)
@@ -397,33 +448,22 @@ func _show_build_popup(sid: String) -> void:
 	title.add_theme_font_size_override("font_size", 14)
 	title.add_theme_color_override("font_color", UiTheme.HEADING)
 	_build_box.add_child(title)
-	var has := false
+	# 按 kind 分组（TW3K 五色分类简化版：产出=绿 / 招募=红 / 特殊=金）
+	var groups: Dictionary = {}   # kind -> [bid]
 	for bid in g.building_defs:
 		var bdef: Dictionary = g.building_defs[bid]
 		var kind: String = bdef.get("kind", "")
-		if kind not in ["produce", "recruit", "special"]:
+		if not KIND_GROUP.has(kind):
 			continue
-		var requires: Array = bdef.get("requires", [])
-		var unmet := g._unmet_requires(g.player_id, requires)
-		var affordable := p.resources.can_afford(bdef.get("cost", {}))
+		if not groups.has(kind):
+			groups[kind] = []
+		(groups[kind] as Array).append(bid)
+	var has := false
+	for kind in ["produce", "recruit", "special"]:
+		if not groups.has(kind) or (groups[kind] as Array).is_empty():
+			continue
 		has = true
-		var btn := Button.new()
-		var cost := _cost_str(bdef.get("cost", {}))
-		var extra: String = ""
-		if not unmet.is_empty():
-			extra = Loc.t("req_not_met")
-		elif not affordable:
-			extra = Loc.t("req_poor")
-		btn.text = "%s  %s%s" % [Loc.t(bdef.get("name", bid)), cost,
-			("  [%s]" % extra if extra != "" else "")]
-		btn.disabled = not unmet.is_empty() or not affordable
-		btn.tooltip_text = bdef.get("desc", "")
-		btn.pressed.connect(func():
-			var msg := g.action_build(g.player_id, _popup_for_stronghold, bid)
-			GameController.push_log(msg, msg.begins_with("失败"))
-			_hide_build_popup()
-			refresh())
-		_build_box.add_child(btn)
+		_add_build_kind_group(g, p, kind, groups[kind])
 	if not has:
 		var nl := Label.new()
 		nl.text = Loc.t("no_items")
@@ -436,6 +476,37 @@ func _show_build_popup(sid: String) -> void:
 	hint.add_theme_color_override("font_color", UiTheme.DIM)
 	_build_box.add_child(hint)
 	_build_popup.visible = true
+
+## 一组同 kind 的建造候补：彩色分组标题 + 带 [分类] 标签的候补按钮。
+func _add_build_kind_group(g: Game, p: Faction.Faction_, kind: String, bids: Array) -> void:
+	var cfg: Dictionary = KIND_GROUP[kind]
+	var head := Label.new()
+	head.text = Loc.t(cfg["label"])
+	head.add_theme_font_size_override("font_size", 13)
+	head.add_theme_color_override("font_color", cfg["color"])
+	_build_box.add_child(head)
+	for bid in bids:
+		var bdef: Dictionary = g.building_defs[bid]
+		var requires: Array = bdef.get("requires", [])
+		var unmet := g._unmet_requires(g.player_id, requires)
+		var affordable := p.resources.can_afford(bdef.get("cost", {}))
+		var btn := Button.new()
+		var cost := _cost_str(bdef.get("cost", {}))
+		var extra: String = ""
+		if not unmet.is_empty():
+			extra = Loc.t("req_not_met")
+		elif not affordable:
+			extra = Loc.t("req_poor")
+		btn.text = "[%s] %s  %s%s" % [Loc.t(cfg["tag"]), Loc.t(bdef.get("name", bid)),
+			cost, ("  [%s]" % extra if extra != "" else "")]
+		btn.disabled = not unmet.is_empty() or not affordable
+		btn.tooltip_text = bdef.get("desc", "")
+		btn.pressed.connect(func():
+			var msg := g.action_build(g.player_id, _popup_for_stronghold, bid)
+			GameController.push_log(msg, msg.begins_with("失败"))
+			_hide_build_popup()
+			refresh())
+		_build_box.add_child(btn)
 
 func _hide_build_popup() -> void:
 	_build_popup.visible = false
@@ -516,6 +587,49 @@ func _open_army() -> void:
 func _open_recruit() -> void:
 	_open_page(load("res://scenes/windows/recruit.tscn").instantiate())
 
+# ---------- 更多弹窗（键盘页面的鼠标入口） ----------
+## 打开"更多"弹窗：列出所有仅键盘可达的页面 + 暂停菜单。
+func _show_more_popup() -> void:
+	for ch in _more_box.get_children():
+		ch.queue_free()
+	var entries: Array = [
+		["unit_roster", func(): _open_page(load("res://scenes/windows/unit_roster.tscn").instantiate())],
+		["stronghold_overview", func(): _open_page(load("res://scenes/windows/stronghold_overview.tscn").instantiate())],
+		["inventory", func(): _open_page(load("res://scenes/windows/inventory.tscn").instantiate())],
+		["stronghold", func(): _open_page(load("res://scenes/windows/stronghold.tscn").instantiate())],
+		["map_overview", func(): _open_page(load("res://scenes/windows/map_screen.tscn").instantiate())],
+		["recruit_unit", func(): _open_page(load("res://scenes/windows/recruit_unit.tscn").instantiate())],
+		["esc_menu", func(): SceneStack.open_window(load("res://scenes/windows/esc_menu.tscn").instantiate())],
+	]
+	for e in entries:
+		var btn := Button.new()
+		btn.text = Loc.t(e[0])
+		btn.custom_minimum_size = Vector2(0, 36)
+		btn.pressed.connect(func():
+			_more_popup.visible = false
+			(e[1] as Callable).call())
+		_more_box.add_child(btn)
+	_more_popup.visible = true
+
+# ---------- 据点循环切换 ----------
+## Ctrl+T：按己方据点列表循环选中下一个（镜头聚焦 + 打开信息栏）。
+func _cycle_stronghold() -> void:
+	var g := GameController.game
+	if g == null or _map_view == null:
+		return
+	var p := GameController.player()
+	var owned: Array = []
+	for sid in p.stronghold_ids:
+		if g.map.strongholds.has(sid):
+			owned.append(sid)
+	if owned.is_empty():
+		return
+	var idx := owned.find(_sel_node)
+	var next_id: String = owned[(idx + 1) % owned.size()] if idx >= 0 else owned[0]
+	_map_view.center_on(next_id)
+	if _sel_node != next_id:
+		_on_node_clicked(next_id)
+
 # ---------- Toast ----------
 func _toast_msg(msg: String) -> void:
 	_toast.text = msg
@@ -530,12 +644,18 @@ func enter_scene(params: Variant = null) -> void:
 	refresh()
 
 func return_window(value: Variant = null) -> void:
-	# 页面内嵌窗口（如装备选择）关闭的回值 → 转发给当前顶层页面
-	if not _pages.is_empty() and value is Array:
-		var top: Node = _pages.back()
-		if top.has_method("return_page"):
-			top.return_page(value)
-			return
+	# 页面内嵌窗口（如装备选择）关闭的回值 → 转发给当前顶层页面；
+	# 无页面时 Array 回值无意义，丢弃（不参与字符串比较，避免类型报错）
+	if value is Array:
+		if not _pages.is_empty():
+			var top: Node = _pages.back()
+			if top.has_method("return_page"):
+				top.return_page(value)
+		return
+	# 仅字符串/空回值参与分支；其他类型只刷新
+	if not (value is String or value == null):
+		refresh()
+		return
 	refresh()
 	if value == "end_turn":
 		_end_turn()
@@ -590,6 +710,20 @@ func handle_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		SceneStack.open_window(load("res://scenes/windows/esc_menu.tscn").instantiate())
+		return
+	# Ctrl+T: 在己方据点间循环切换（TW3K: Ctrl+T 切换城镇标签）——
+	# 必须在 end_turn(T) 之前检查，否则 Ctrl+T 会先触发结束回合
+	if event is InputEventKey and event.keycode == KEY_T and event.pressed \
+			and Input.is_key_pressed(KEY_CTRL):
+		_cycle_stronghold()
+		return
+	# Home: 镜头切到首都并选中（TW3K: Home 切首都）——已是首都则保持选中（不触发反选）
+	if event.is_action_pressed("focus_capital"):
+		var cap: String = GameController.player().capital_id
+		if cap != "" and _map_view != null:
+			_map_view.center_on(cap)
+			if _sel_node != cap:
+				_on_node_clicked(cap)
 		return
 	for action in ["open_tech", "open_culture", "open_wiki", "open_stronghold",
 			"open_army", "open_unit", "open_inventory", "open_stronghold_overview",

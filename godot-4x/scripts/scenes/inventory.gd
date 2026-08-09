@@ -27,7 +27,20 @@ func build() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(right)
 	_detail = TextInfo.new()
+	_detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(_detail)
+	# 操作按钮（S 卖出 / X 卸下的鼠标等价物）
+	var ops := HBoxContainer.new()
+	ops.add_theme_constant_override("separation", 8)
+	right.add_child(ops)
+	var sell_btn := Button.new()
+	sell_btn.text = Loc.t("sell")
+	sell_btn.pressed.connect(func(): _sell_focused())
+	ops.add_child(sell_btn)
+	var unequip_btn := Button.new()
+	unequip_btn.text = Loc.t("unequip")
+	unequip_btn.pressed.connect(func(): _unequip_focused())
+	ops.add_child(unequip_btn)
 
 func enter_page(params: Variant = null) -> void:
 	_rebuild()
@@ -101,23 +114,30 @@ func get_hints() -> Array:
 
 func handle_input(event: InputEvent) -> void:
 	if event.is_action_pressed("sell_artifact"):
-		if _def_ids.is_empty():
-			return
-		var def_id: String = _def_ids[_list.focused]
-		var msg := GameController.game.action_sell_artifact(GameController.game.player_id, def_id)
-		GameController.push_log(msg, msg.begins_with("失败"))
-		_rebuild()
+		_sell_focused()
 	elif event.is_action_pressed("unequip_artifact"):
-		if _def_ids.is_empty():
-			return
-		var def_id2: String = _def_ids[_list.focused]
-		_unequip_one(def_id2)
+		_unequip_focused()
 	elif event.is_action_pressed("ui_up"):
 		_list.move_focus(-1)
 		_show(_list.focused)
 	elif event.is_action_pressed("ui_down"):
 		_list.move_focus(1)
 		_show(_list.focused)
+
+## 卖出当前聚焦行（S 键与卖出按钮共用）。
+func _sell_focused() -> void:
+	if _def_ids.is_empty():
+		return
+	var def_id: String = _def_ids[_list.focused]
+	var msg := GameController.game.action_sell_artifact(GameController.game.player_id, def_id)
+	GameController.push_log(msg, msg.begins_with("失败"))
+	_rebuild()
+
+## 卸下当前聚焦行（X 键与卸下按钮共用）。
+func _unequip_focused() -> void:
+	if _def_ids.is_empty():
+		return
+	_unequip_one(_def_ids[_list.focused])
 
 ## 找一件装备该定义的单位卸其槽（须该单位在己方据点）。
 func _unequip_one(def_id: String) -> void:

@@ -22,6 +22,13 @@ func build() -> void:
 	hint.add_theme_color_override("font_color", UiTheme.DIM)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(hint)
+	# 鼠标关闭（回车之外的等价物）
+	var ok_btn := Button.new()
+	ok_btn.text = Loc.t("ok")
+	ok_btn.custom_minimum_size = Vector2(120, 34)
+	ok_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	ok_btn.pressed.connect(func(): SceneStack.close_window())
+	vbox.add_child(ok_btn)
 
 func enter_window(params: Variant = null) -> void:
 	if params is Dictionary:

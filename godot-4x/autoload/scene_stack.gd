@@ -16,7 +16,10 @@ var main_scene: Node = null
 var window_stack: Array = []
 
 ## 切换主场景：销毁旧主场景，实例化新场景并加入树。
+## 必须先关闭全部子窗口——否则模态 Window 残留盖在新场景上，
+## 吞掉所有鼠标事件（"返回主菜单后鼠标失效"的根因）。
 func change_scene(scene: Node) -> void:
+	close_all_windows()
 	if main_scene != null:
 		main_scene.queue_free()
 		main_scene = null

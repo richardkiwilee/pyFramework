@@ -139,7 +139,7 @@ func _make_squad_row(a: Armies.Army) -> Control:
 	var head := HBoxContainer.new()
 	vbox.add_child(head)
 	var name := Label.new()
-	name.text = "%s (%s)" % [Loc.t(a.name), Loc.t(GameController.game.map.node_name(a.node_id))]
+	name.text = _squad_row_title(a)
 	name.add_theme_font_size_override("font_size", 14)
 	name.add_theme_color_override("font_color", UiTheme.HEADING)
 	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -177,6 +177,22 @@ func _tag_abbr(u: Units.Unit) -> String:
 	for t in u.tags:
 		parts.append(Units.TAG_CN.get(t, t))
 	return "/".join(parts)
+
+## 小队行标题（圣兽之王风格）：`先锋军 (3/9) ★[队长:关羽] · 玩家首都`。
+func _squad_row_title(a: Armies.Army) -> String:
+	var g := GameController.game
+	var occupied := 0
+	for s in a.grid:
+		if s != null:
+			occupied += 1
+	var title := "%s (%d/%d)" % [Loc.t(a.name), occupied, Armies.GRID_SIZE]
+	# 队长（UO: 队长标识 + 队长名）
+	if a.captain_id != "" and g.unit_index.has(a.captain_id):
+		var cap: Units.Unit = g.unit_index[a.captain_id]
+		title += "  ★[%s: %s]" % [Loc.t("captain"), Loc.t(cap.name)]
+	if a.node_id != "":
+		title += " · %s" % Loc.t(g.map.node_name(a.node_id))
+	return title
 
 # ---------- 右侧单位详情 ----------
 func _render_detail() -> void:

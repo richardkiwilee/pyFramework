@@ -65,6 +65,13 @@ func _ensure_visible() -> void:
 	elif focused >= scroll + _rows_visible:
 		scroll = focused - _rows_visible + 1
 
+## 滚轮滚动（不移动焦点）。
+func scroll_by(delta: int) -> void:
+	if items.is_empty() or items.size() <= _rows_visible:
+		return
+	scroll = clampi(scroll + delta, 0, items.size() - _rows_visible)
+	queue_redraw()
+
 func _draw() -> void:
 	var font := get_theme_default_font()
 	var fsize := 14
@@ -103,6 +110,12 @@ func _gui_input(event: InputEvent) -> void:
 				row_selected.emit(idx)          # 单击 = 选中
 			elif event.button_index == MOUSE_BUTTON_RIGHT:
 				row_activated.emit(idx)         # 右键 = 确认
+		accept_event()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		scroll_by(-3)
+		accept_event()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		scroll_by(3)
 		accept_event()
 	elif event is InputEventMouseButton and event.double_click 			and event.button_index == MOUSE_BUTTON_LEFT:
 		var idx2 := scroll + int(event.position.y / ROW_H)

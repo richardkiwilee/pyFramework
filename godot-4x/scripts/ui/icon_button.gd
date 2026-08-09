@@ -5,7 +5,7 @@ extends Control
 
 signal pressed
 
-enum Kind { TECH, SQUAD, RECRUIT, WIKI, LOG, SETTINGS }
+enum Kind { TECH, SQUAD, RECRUIT, WIKI, LOG, SETTINGS, END_TURN, MORE }
 
 var kind := Kind.TECH
 var label := ""
@@ -53,6 +53,10 @@ func _draw() -> void:
 			_draw_log(c)
 		Kind.SETTINGS:
 			_draw_gear(c)
+		Kind.END_TURN:
+			_draw_fast_forward(c)
+		Kind.MORE:
+			_draw_more(c)
 	# 文字
 	var font := get_theme_default_font()
 	var tw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
@@ -85,6 +89,18 @@ func _draw_log(c: Color) -> void:
 	draw_line(Vector2(20, 17), Vector2(36, 17), UiTheme.PANEL_BG.darkened(0.3), 2.0)
 	draw_line(Vector2(20, 23), Vector2(36, 23), UiTheme.PANEL_BG.darkened(0.3), 2.0)
 	draw_line(Vector2(20, 29), Vector2(32, 29), UiTheme.PANEL_BG.darkened(0.3), 2.0)
+
+## 快进双三角（结束回合）。
+func _draw_fast_forward(c: Color) -> void:
+	for k in range(2):
+		var ox: float = 20.0 + k * 9
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(ox, 14), Vector2(ox + 9, 22), Vector2(ox, 30)]), c)
+
+## 三个点（更多）。
+func _draw_more(c: Color) -> void:
+	for k in range(3):
+		draw_circle(Vector2(18 + k * 10, 23), 3.0, c)
 
 ## 齿轮（设置）。
 func _draw_gear(c: Color) -> void:

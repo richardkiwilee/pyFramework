@@ -16,7 +16,8 @@ func build() -> void:
 	_list.custom_minimum_size = Vector2(380, 320)
 	_list.set_items(labels)
 	_list.color_fn = func(d): return UiTheme.FG
-	_list.row_selected.connect(func(idx): pass)
+	# 单击即装备（简单选择器无详情页；与事件弹窗同语义）
+	_list.row_selected.connect(func(idx): _confirm(idx))
 	_list.row_activated.connect(func(idx): _confirm(idx))
 	vbox.add_child(_list)
 

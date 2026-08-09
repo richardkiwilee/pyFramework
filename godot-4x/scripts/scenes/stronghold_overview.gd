@@ -19,7 +19,8 @@ func build() -> void:
 	frame.add_child(_list)
 	_list.text_fn = func(d): return _row_text(d)
 	_list.color_fn = func(d): return _row_color(d)
-	_list.row_selected.connect(func(idx): pass)
+	# 单击即进入（与双击/回车一致；无独立详情视图）
+	_list.row_selected.connect(func(idx): _open(idx))
 	_list.row_activated.connect(func(idx): _open(idx))
 
 func _row_text(id: String) -> String:

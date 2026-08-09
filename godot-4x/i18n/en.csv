@@ -277,6 +277,18 @@ none,-
 not_yours,Not yours (view only)
 click_build,Click to open build options
 click_x_demolish,Click the red × to demolish
+kind_produce,Production
+kind_recruit,Recruitment
+kind_special,Special
+kind_tag_produce,Prod
+kind_tag_recruit,Recruit
+kind_tag_special,Special
+hint_focus_capital,Focus capital
+end_turn,End Turn
+more,More
+sell,Sell
+unequip,Unequip
+ok,OK
 building_slots,Building Slots
 click_empty_close,Click outside to close
 army_selected,Selected

@@ -126,6 +126,15 @@ func _pan(delta: Vector2) -> void:
 	_clamp_camera()
 	queue_redraw()
 
+## 镜头立即居中到指定节点的世界坐标（TW3K: Home 切首都 / Ctrl+T 循环据点）。
+func center_on(nid: String) -> void:
+	if not _screen.has(nid):
+		return
+	var wp: Vector2 = _screen[nid]
+	_offset = size / 2.0 - wp * _zoom()
+	_clamp_camera()
+	queue_redraw()
+
 # ---------- 绘制 ----------
 func _draw() -> void:
 	if game == null:
