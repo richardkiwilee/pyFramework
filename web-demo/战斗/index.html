@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>战斗演示 · 自动回合制</title>
+<style>
+:root{
+  --bg:#0c0a08; --bg-2:#14110d; --panel:#241d14; --panel-2:#2e2519;
+  --line:#4a3a24; --line-2:#6a5436; --ink:#e8dcc4; --ink-2:#c4b596;
+  --ink-dim:#8a7a5c; --gold:#d4af37; --gold-bright:#f0d264; --glow:#ffd86b;
+  --red:#c2553a; --green:#7ab85a; --blue:#4a90c2;
+  --font-display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Microsoft YaHei",serif;
+  --font-body:Georgia,"Times New Roman","Microsoft YaHei",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;background:var(--bg);
+  font-family:var(--font-body);color:var(--ink);user-select:none;}
+body{display:flex;flex-direction:column;}
+
+.top-bar{flex:0 0 auto;height:36px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#1d1812,#14110d);border-bottom:1px solid var(--line);
+  font-family:var(--font-display);font-size:14px;letter-spacing:4px;color:var(--gold-bright);}
+
+.battlefield{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;padding:8px 14px;gap:8px;}
+
+.teams-row{flex:1 1 auto;display:flex;gap:16px;justify-content:center;align-items:stretch;min-height:0;}
+.team-zone{flex:1;max-width:520px;border:2px solid var(--line);border-radius:10px;
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));overflow:hidden;
+  display:flex;flex-direction:column;}
+.team-zone.blue{border-color:rgba(74,144,194,.4);}
+.team-zone.red{border-color:rgba(194,85,58,.4);}
+.team-head{padding:5px 12px;font-family:var(--font-display);font-weight:700;font-size:12px;
+  letter-spacing:2px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;}
+.team-zone.blue .team-head{background:linear-gradient(180deg,#1a2530,#141d26);color:var(--blue);}
+.team-zone.red .team-head{background:linear-gradient(180deg,#301a18,#261412);color:var(--red);}
+.team-head .count{font-size:10px;color:var(--ink-dim);font-style:italic;font-weight:400;}
+
+.unit-cards{flex:1 1 auto;display:flex;gap:6px;padding:8px;flex-wrap:wrap;align-content:flex-start;}
+.unit-card{flex:1;min-width:125px;max-width:165px;border:1px solid var(--line);
+  border-radius:8px;padding:7px 9px;background:rgba(0,0,0,.25);
+  transition:border-color .3s,box-shadow .3s,opacity .4s;}
+.unit-card.dead{opacity:.3;border-color:var(--line)!important;box-shadow:none!important;}
+.unit-card.acting{border-color:var(--glow)!important;
+  box-shadow:0 0 14px rgba(255,216,107,.4),inset 0 0 6px rgba(255,216,107,.1);}
+.unit-card .u-top{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.unit-card .u-ico{font-size:20px;}
+.unit-card .u-name{font-family:var(--font-display);font-weight:700;font-size:11px;color:var(--ink);}
+.unit-card .u-lv{font-size:9px;color:var(--ink-dim);margin-left:auto;}
+.unit-card .u-hp-bar{height:5px;border-radius:3px;background:rgba(0,0,0,.4);margin:3px 0;overflow:hidden;}
+.unit-card .u-hp-fill{height:100%;border-radius:3px;transition:width .35s;}
+.unit-card .u-hp-txt{font-size:9px;color:var(--ink-dim);text-align:right;}
+.unit-card .u-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px 6px;font-size:9px;margin:3px 0;}
+.unit-card .u-stats span{display:flex;justify-content:space-between;}
+.unit-card .u-stats .sl{color:var(--ink-dim);} .u-stats .sv{color:var(--ink-2);font-weight:700;}
+.unit-card .u-ap-pp{display:flex;gap:6px;font-size:9px;margin-top:3px;}
+.unit-card .u-ap{color:#ff6644;} .unit-card .u-pp{color:#4488ff;}
+.unit-card .u-status{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
+.stag{font-size:8px;padding:1px 4px;border-radius:3px;font-weight:700;}
+.stag.poison{background:rgba(136,68,204,.4);color:#cc88ff;}
+.stag.burn{background:rgba(255,102,34,.4);color:#ff8844;}
+.stag.freeze{background:rgba(102,170,255,.4);color:#88ccff;}
+.stag.stun{background:rgba(255,204,0,.4);color:#ffdd44;}
+
+.vs-divider{display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:24px;font-weight:700;
+  color:var(--gold-bright);text-shadow:0 0 10px rgba(240,210,100,.5);padding:12px 0;}
+
+.log-zone{flex:0 0 auto;height:175px;border:1px solid var(--line);border-radius:8px;
+  background:rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;}
+.log-head{padding:3px 10px;font-size:10px;letter-spacing:2px;color:var(--ink-dim);
+  border-bottom:1px solid var(--line);background:rgba(0,0,0,.2);}
+.log-body{flex:1;overflow-y:auto;padding:5px 10px;font-size:11px;line-height:1.75;
+  font-family:"Courier New",Consolas,monospace;}
+.log-body::-webkit-scrollbar{width:5px;}
+.log-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px;}
+.l-turn{color:var(--ink-dim);margin:3px 0 1px;}
+.l-act{color:#ffcc00;}
+.l-dmg{color:#ff6644;}
+.l-crit{color:#ffd700;font-weight:700;}
+.l-heal{color:#44ff44;}
+.l-miss{color:var(--ink-dim);}
+.l-info{color:#88ccff;}
+.l-dead{color:#ff2222;}
+.l-win{color:var(--gold-bright);font-weight:700;font-size:13px;}
+
+.ctrl-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px;
+  border-top:1px solid var(--line);background:linear-gradient(180deg,#1a140d,#120e08);}
+.ctrl-btn{font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;
+  border:1px solid var(--line-2);border-radius:5px;padding:5px 12px;background:#2a2114;color:var(--ink);
+  transition:.15s;white-space:nowrap;}
+.ctrl-btn:hover{border-color:var(--gold-bright);color:var(--gold-bright);background:#3a2d1a;}
+.ctrl-btn.primary{background:linear-gradient(180deg,#d4af37,#a8862a);color:#2c1c0e;border-color:#6a5436;}
+.ctrl-btn.primary:hover{filter:brightness(1.1);}
+.ctrl-btn:disabled{opacity:.4;cursor:not-allowed;}
+.ctrl-info{font-size:10px;color:var(--ink-dim);font-style:italic;margin-left:auto;}
+.spd-active{border-color:var(--gold-bright)!important;color:var(--gold-bright)!important;background:#3a2d1a!important;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">⚔ 战 斗 演 示 · 自 动 回 合 制</div>
+
+<div class="battlefield">
+  <div class="teams-row">
+    <div class="team-zone blue" id="zone-blue">
+      <div class="team-head">🔵 我方 — 前锋阵<span class="count" id="blue-count"></span></div>
+      <div class="unit-cards" id="blue-cards"></div>
+    </div>
+    <div class="vs-divider">⚔</div>
+    <div class="team-zone red" id="zone-red">
+      <div class="team-head">🔴 敌方 — 铁壁阵<span class="count" id="red-count"></span></div>
+      <div class="unit-cards" id="red-cards"></div>
+    </div>
+  </div>
+
+  <div class="log-zone">
+    <div class="log-head">📜 战斗日志 — 回合制 · 自动推演</div>
+    <div class="log-body" id="log-body"></div>
+  </div>
+</div>
+
+<div class="ctrl-bar">
+  <button class="ctrl-btn primary" id="btn-start">▶ 开始</button>
+  <button class="ctrl-btn" id="btn-pause" disabled>⏸ 暂停</button>
+  <span style="font-size:10px;color:var(--ink-dim)">速度:</span>
+  <button class="ctrl-btn spd-active" id="btn-spd-1">1×</button>
+  <button class="ctrl-btn" id="btn-spd-2">2×</button>
+  <button class="ctrl-btn" id="btn-spd-4">4×</button>
+  <button class="ctrl-btn" id="btn-reset">↺ 重置</button>
+  <span class="ctrl-info" id="ctrl-info">点击「开始」启动自动回合制战斗</span>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+
+// ============================================================
+// 技能数据库 — 覆盖全部时点
+// ============================================================
+const SKILL_DB={
+  // ——— 主动技能（消耗AP）———
+  heavy_slash:{id:"heavy_slash",name:"重斩",type:"active",cost_type:"AP",cost:1,power:150,
+    dmg_type:"physical",target:"single_enemy",range:"melee",effects:[],desc:"单体150%物理"},
+  wide_slash:{id:"wide_slash",name:"横扫",type:"active",cost_type:"AP",cost:1,power:120,
+    dmg_type:"physical",target:"row_enemy",range:"melee",effects:[],desc:"一排120%物理"},
+  poison_slash:{id:"poison_slash",name:"毒刃",type:"active",cost_type:"AP",cost:1,power:100,
+    dmg_type:"physical",target:"single_enemy",range:"melee",
+    effects:[{type:"poison",dur:3}],desc:"单体100%+中毒(3回合)"},
+  fireball:{id:"fireball",name:"火球术",type:"active",cost_type:"AP",cost:1,power:130,
+    dmg_type:"magical",target:"single_enemy",range:"any",
+    effects:[{type:"burn",dur:3}],desc:"单体130%魔法+灼烧(3回合)"},
+  icebolt:{id:"icebolt",name:"冰箭",type:"active",cost_type:"AP",cost:1,power:110,
+    dmg_type:"magical",target:"single_enemy",range:"any",
+    effects:[{type:"freeze",dur:1}],desc:"单体110%魔法+冰冻(1回合)"},
+  heal:{id:"heal",name:"治疗",type:"active",cost_type:"AP",cost:1,power:120,
+    dmg_type:"heal",target:"single_ally",range:"any",effects:[],desc:"恢复单体HP(MATK×120%)"},
+  group_heal:{id:"group_heal",name:"群体治疗",type:"active",cost_type:"AP",cost:2,power:80,
+    dmg_type:"heal",target:"row_ally",range:"any",effects:[],desc:"恢复一排HP(MATK×80%)"},
+  precise_shot:{id:"precise_shot",name:"精准射击",type:"active",cost_type:"AP",cost:1,power:120,
+    dmg_type:"physical",target:"single_enemy",range:"any",sure_hit:true,effects:[],desc:"必中120%物理"},
+  shadow_strike:{id:"shadow_strike",name:"暗杀",type:"active",cost_type:"AP",cost:1,power:180,
+    dmg_type:"physical",target:"single_enemy",range:"melee",effects:[],desc:"单体180%物理"},
+  flame_storm:{id:"flame_storm",name:"烈焰风暴",type:"active",cost_type:"AP",cost:2,power:120,
+    dmg_type:"magical",target:"row_enemy",range:"any",
+    effects:[{type:"burn",dur:2}],desc:"一排120%魔法+灼烧(2回合)"},
+  shield_bash:{id:"shield_bash",name:"盾击",type:"active",cost_type:"AP",cost:1,power:100,
+    dmg_type:"physical",target:"single_enemy",range:"melee",
+    effects:[{type:"stun",dur:1}],desc:"单体100%+眩晕(1回合)"},
+  paralyze_arrow:{id:"paralyze_arrow",name:"麻醉箭",type:"active",cost_type:"AP",cost:1,power:80,
+    dmg_type:"physical",target:"single_enemy",range:"any",
+    effects:[{type:"stun",dur:1}],desc:"单体80%+眩晕(1回合)"},
+  drain_blade:{id:"drain_blade",name:"吸血刃",type:"active",cost_type:"AP",cost:1,power:120,
+    dmg_type:"physical",target:"single_enemy",range:"melee",drain:50,effects:[],desc:"单体120%+吸取50%伤害"},
+
+  // ——— 被动技能（消耗PP）———
+  guard:{id:"guard",name:"格挡",type:"passive",cost_type:"PP",cost:1,power:0,dmg_type:"none",
+    target:"self",range:"self",trigger:"before_take_damage",effects:[],desc:"格挡物理攻击减伤"},
+  heavy_cover:{id:"heavy_cover",name:"重装掩护",type:"passive",cost_type:"PP",cost:1,power:0,dmg_type:"none",
+    target:"single_ally",range:"any",trigger:"ally_attacked",effects:[],desc:"前排替同列后排承伤50%"},
+  follow_slash:{id:"follow_slash",name:"追击",type:"passive",cost_type:"PP",cost:1,power:75,
+    dmg_type:"physical",target:"single_enemy",range:"melee",trigger:"ally_attacked",effects:[],desc:"友方攻击时追击75%"},
+  counter:{id:"counter",name:"反击",type:"passive",cost_type:"PP",cost:1,power:120,
+    dmg_type:"physical",target:"single_enemy",range:"melee",trigger:"after_take_damage",effects:[],desc:"受伤后反击120%"},
+  evade:{id:"evade",name:"闪避",type:"passive",cost_type:"PP",cost:1,power:0,dmg_type:"none",
+    target:"self",range:"self",trigger:"before_take_damage",effects:[],desc:"闪避一次攻击"},
+};
+
+// ============================================================
+// 单位模板 — 9 个单位，含技能 + 策略
+// ============================================================
+const UNIT_TMPL={
+  u1:{id:"u1",name:"十字军骑士",icon:"⚔️",team:"blue",lv:12,cls:"knight",tags:["cavalry","infantry"],
+    base:{hp:180,atk:35,def:25,matk:10,mdef:15,hit:90,eva:10,crt:10,grd:25,grd_red:25,spd:20},
+    apm:3,ppm:2,active:["heavy_slash","wide_slash"],passive:["guard"],
+    tactics:[{sk:"wide_slash",c1:{t:"armored",m:"only"},c2:{}},
+             {sk:"heavy_slash",c1:{t:"hp_lowest",m:"priority"},c2:{}},
+             {sk:"heavy_slash",c1:{},c2:{}}]},
+  u2:{id:"u2",name:"圣殿弓手",icon:"🏹",team:"blue",lv:10,cls:"archer",tags:["infantry"],
+    base:{hp:140,atk:30,def:15,matk:10,mdef:12,hit:100,eva:18,crt:15,grd:0,grd_red:0,spd:25},
+    apm:3,ppm:2,active:["precise_shot","poison_slash"],passive:[],
+    tactics:[{sk:"precise_shot",c1:{t:"flying",m:"only"},c2:{t:"hp_lowest",m:"priority"}},
+             {sk:"poison_slash",c1:{t:"armored",m:"only"},c2:{}},
+             {sk:"precise_shot",c1:{},c2:{}}]},
+  u3:{id:"u3",name:"治愈祭司",icon:"✨",team:"blue",lv:11,cls:"cleric",tags:["healer","infantry"],
+    base:{hp:130,atk:10,def:12,matk:32,mdef:35,hit:95,eva:10,crt:5,grd:0,grd_red:0,spd:16},
+    apm:3,ppm:3,active:["heal","group_heal"],passive:[],
+    tactics:[{sk:"heal",c1:{t:"hp_below_50",m:"only"},c2:{t:"hp_lowest",m:"priority"}},
+             {sk:"group_heal",c1:{},c2:{}},
+             {sk:"heal",c1:{t:"hp_lowest",m:"priority"},c2:{}}]},
+  u4:{id:"u4",name:"暗影刺客",icon:"🗡️",team:"red",lv:9,cls:"thief",tags:["scout","infantry"],
+    base:{hp:120,atk:32,def:10,matk:5,mdef:10,hit:95,eva:25,crt:20,grd:0,grd_red:0,spd:28},
+    apm:3,ppm:2,active:["shadow_strike","poison_slash"],passive:["evade"],
+    tactics:[{sk:"shadow_strike",c1:{t:"hp_below_50",m:"priority"},c2:{}},
+             {sk:"poison_slash",c1:{t:"hp_lowest",m:"priority"},c2:{}},
+             {sk:"shadow_strike",c1:{},c2:{}}]},
+  u5:{id:"u5",name:"魔法师",icon:"🪄",team:"red",lv:10,cls:"mage",tags:["caster","infantry"],
+    base:{hp:110,atk:8,def:10,matk:42,mdef:30,hit:95,eva:12,crt:8,grd:0,grd_red:0,spd:18},
+    apm:3,ppm:2,active:["fireball","icebolt","flame_storm"],passive:[],
+    tactics:[{sk:"icebolt",c1:{t:"speed_fastest",m:"priority"},c2:{}},
+             {sk:"flame_storm",c1:{t:"front_row",m:"only"},c2:{}},
+             {sk:"fireball",c1:{t:"hp_lowest",m:"priority"},c2:{}},
+             {sk:"fireball",c1:{},c2:{}}]},
+  u6:{id:"u6",name:"铁卫",icon:"🛡️",team:"red",lv:13,cls:"hoplite",tags:["armored","infantry"],
+    base:{hp:200,atk:28,def:30,matk:5,mdef:20,hit:85,eva:5,crt:5,grd:50,grd_red:50,spd:12},
+    apm:3,ppm:3,active:["shield_bash","heavy_slash"],passive:["guard","heavy_cover"],
+    tactics:[{sk:"shield_bash",c1:{t:"atk_highest",m:"priority"},c2:{}},
+             {sk:"heavy_slash",c1:{t:"hp_lowest",m:"priority"},c2:{}},
+             {sk:"heavy_slash",c1:{},c2:{}}]},
+  u7:{id:"u7",name:"狂战士",icon:"🪓",team:"bench",lv:11,cls:"berserker",tags:["infantry"],
+    base:{hp:170,atk:38,def:18,matk:5,mdef:10,hit:85,eva:8,crt:15,grd:10,grd_red:25,spd:22},
+    apm:3,ppm:2,active:["heavy_slash","wide_slash"],passive:["counter"],
+    tactics:[{sk:"wide_slash",c1:{t:"front_row",m:"priority"},c2:{}},
+             {sk:"heavy_slash",c1:{t:"hp_lowest",m:"priority"},c2:{}},
+             {sk:"heavy_slash",c1:{},c2:{}}]},
+  u8:{id:"u8",name:"圣骑士",icon:"🛡️",team:"bench",lv:12,cls:"paladin",tags:["cavalry","infantry"],
+    base:{hp:160,atk:28,def:22,matk:28,mdef:25,hit:90,eva:8,crt:8,grd:20,grd_red:25,spd:15},
+    apm:3,ppm:3,active:["heal","shield_bash"],passive:["guard"],
+    tactics:[{sk:"heal",c1:{t:"hp_below_50",m:"only"},c2:{t:"hp_lowest",m:"priority"}},
+             {sk:"shield_bash",c1:{t:"atk_highest",m:"priority"},c2:{}},
+             {sk:"shield_bash",c1:{},c2:{}}]},
+  u9:{id:"u9",name:"游侠",icon:"🏹",team:"bench",lv:10,cls:"ranger",tags:["infantry"],
+    base:{hp:130,atk:25,def:12,matk:10,mdef:15,hit:100,eva:22,crt:18,grd:0,grd_red:0,spd:26},
+    apm:3,ppm:2,active:["precise_shot","paralyze_arrow","drain_blade"],passive:["evade"],
+    tactics:[{sk:"paralyze_arrow",c1:{t:"speed_fastest",m:"priority"},c2:{}},
+             {sk:"precise_shot",c1:{t:"hp_lowest",m:"priority"},c2:{}},
+             {sk:"drain_blade",c1:{},c2:{}}]}
+};
+
+// ============================================================
+// 战斗引擎
+// ============================================================
+
+function hitTable(d){
+  if(d>=100)return 100;if(d>=80)return 95;if(d>=60)return 90;
+  if(d>=50)return 84;if(d>=40)return 78;if(d>=30)return 72;
+  if(d>=20)return 65;if(d>=10)return 57;if(d>=0)return 50;
+  if(d>=-10)return 43;if(d>=-20)return 35;if(d>=-30)return 28;
+  if(d>=-40)return 22;if(d>=-50)return 16;if(d>=-80)return 8;
+  return 0;
+}
+
+function isCounter(caster,target){
+  const ct=caster.tags||[],tt=target.tags||[];
+  if(ct.includes("cavalry")&&tt.includes("infantry")&&!tt.includes("cavalry")){
+    if(target.cls==="soldier")return false;return true;
+  }
+  if(caster.cls==="archer"&&tt.includes("flying"))return true;
+  if(ct.includes("caster")&&tt.includes("armored"))return true;
+  return false;
+}
+
+function hasStatus(u,t){return(u.status||[]).some(s=>s.type===t);}
+function statusName(t){return{poison:"中毒",burn:"灼烧",freeze:"冰冻",stun:"眩晕",darkness:"黑暗"}[t]||t;}
+
+function calcDamage(caster,target,skill){
+  const r={hit:false,dmg:0,crit:false,guard:false,drain:0,msg:""};
+  if(skill.dmg_type==="heal"){
+    r.hit=true;r.dmg=Math.max(1,Math.floor((caster.matk||10)*skill.power/100));
+    r.msg="恢复 "+r.dmg+" HP";return r;
+  }
+  if(hasStatus(target,"darkness")){r.msg="黑暗状态 — 攻击未命中！";return r;}
+
+  // 1.命中
+  let hd=(caster.hit||90)-(target.eva||10);
+  if(skill.range==="melee"&&target.cls!=="soldier")hd-=(target.eva||10);
+  if(hasStatus(target,"stun")||hasStatus(target,"freeze"))hd=caster.hit||90;
+  if(skill.sure_hit)hd=999;
+  if(Math.random()*100>hitTable(hd)){r.msg="未命中！";return r;}
+  r.hit=true;
+
+  // 2.基础伤害
+  const phys=skill.dmg_type==="physical";
+  const atk=(phys?caster.atk:caster.matk)+(caster.buffs?.[phys?"atk":"matk"]||0);
+  const def=(phys?target.def:target.mdef)+(target.buffs?.[phys?"def":"mdef"]||0);
+  let d=atk*skill.power/100;
+
+  // 3.克制
+  if(isCounter(caster,target)){d*=2;r.msg="属性克制！";}
+
+  // 4.暴击
+  const cr=(caster.crt||5)+(caster.buffs?.crt||0);
+  if(Math.random()*100<cr){r.crit=true;d*=1.5;}
+
+  // 5.防御/格挡
+  if(phys){
+    d-=def;
+    if(!hasStatus(target,"guard_seal")){
+      const gr=(target.grd||0)+(caster.buffs?.grd||0);
+      if(gr>0&&Math.random()*100<gr){
+        r.guard=true;d*=(1-(target.grd_red||25)/100);
+      }
+    }
+  }else{d-=def;}
+
+  d=Math.max(1,Math.floor(d));r.dmg=d;
+  if(skill.drain)r.drain=Math.floor(d*skill.drain/100);
+  if(!r.msg)r.msg="造成 "+d+" 伤害";
+  if(r.crit)r.msg="暴击！"+r.msg;
+  if(r.guard)r.msg="格挡！"+r.msg;
+  return r;
+}
+
+function applyDmg(u,dmg){
+  u.hp-=dmg;if(u.hp<=0){u.hp=0;u.alive=false;}
+}
+
+function getTargets(caster,skill,enemies,allies){
+  const t=skill.target;
+  if(skill.dmg_type==="heal"){
+    if(t==="single_ally")return [caster,...allies].filter(u=>u.alive);
+    if(t==="row_ally")return [caster,...allies].filter(u=>u.alive&&u.col===caster.col);
+    if(t==="all_ally")return [caster,...allies].filter(u=>u.alive);
+    return [caster,...allies].filter(u=>u.alive);
+  }
+  const alive=enemies.filter(u=>u.alive);
+  if(t==="single_enemy")return alive;
+  if(t==="row_enemy")return alive.filter(u=>u.row===0); // 默认前排
+  if(t==="column_enemy")return alive.filter(u=>u.col===caster.col);
+  if(t==="all_enemy")return alive;
+  return alive;
+}
+
+// ============================================================
+// 条件评估
+// ============================================================
+
+function evalSingle(cond,caster,targets){
+  if(!cond||!cond.t)return targets.slice();
+  const T=targets.filter(u=>u.alive);
+  let r;
+  switch(cond.t){
+    case"hp_lowest":r=T.sort((a,b)=>a.hp-b.hp);break;
+    case"hp_highest":r=T.sort((a,b)=>b.hp-a.hp);break;
+    case"hp_below_50":r=T.filter(u=>u.hp/u.mhp*100<50);break;
+    case"hp_below_25":r=T.filter(u=>u.hp/u.mhp*100<25);break;
+    case"hp_full":r=T.filter(u=>u.hp>=u.mhp);break;
+    case"def_lowest":r=T.sort((a,b)=>a.def-b.def);break;
+    case"atk_highest":r=T.sort((a,b)=>b.atk-a.atk);break;
+    case"speed_fastest":r=T.sort((a,b)=>b.spd-a.spd);break;
+    case"eva_lowest":r=T.sort((a,b)=>a.eva-b.eva);break;
+    case"infantry":r=T.filter(u=>(u.tags||[]).includes("infantry"));break;
+    case"cavalry":r=T.filter(u=>(u.tags||[]).includes("cavalry"));break;
+    case"flying":r=T.filter(u=>(u.tags||[]).includes("flying"));break;
+    case"armored":r=T.filter(u=>(u.tags||[]).includes("armored"));break;
+    case"scout":r=T.filter(u=>(u.tags||[]).includes("scout"));break;
+    case"caster":r=T.filter(u=>(u.tags||[]).includes("caster"));break;
+    case"healer":r=T.filter(u=>(u.tags||[]).includes("healer"));break;
+    case"front_row":r=T.filter(u=>u.row===0);break;
+    case"back_row":r=T.filter(u=>u.row===1);break;
+    case"poisoned":r=T.filter(u=>hasStatus(u,"poison"));break;
+    case"burning":r=T.filter(u=>hasStatus(u,"burn"));break;
+    case"frozen":r=T.filter(u=>hasStatus(u,"freeze"));break;
+    default:r=T.slice();
+  }
+  return r;
+}
+
+function evalDual(c1,c2,caster,targets){
+  const T=targets.filter(u=>u.alive);
+  if(!T.length)return[];
+  const e1=!c1||!c1.t,e2=!c2||!c2.t;
+  if(e1&&e2)return defOrder(T);
+  const m1=e1?"":(c1.m||"priority"),m2=e2?"":(c2.m||"priority");
+  if(m1==="only"&&m2==="only"){
+    const r1=evalSingle(c1,caster,T),r2=evalSingle(c2,caster,T);
+    return r1.filter(t=>r2.includes(t));
+  }
+  if(m1==="only"){const f=evalSingle(c1,caster,T);return f.length?evalSingle(c2,caster,f):[];}
+  if(m2==="only"){const f=evalSingle(c2,caster,T);return f.length?evalSingle(c1,caster,f):[];}
+  // 优先+优先
+  const r1=evalSingle(c1,caster,T),r2=evalSingle(c2,caster,T);
+  const both=r1.filter(t=>r2.includes(t));
+  const o2=r2.filter(t=>!both.includes(t));
+  const o1=r1.filter(t=>!both.includes(t));
+  return[...both,...o2,...o1];
+}
+
+function defOrder(T){const f=T.filter(u=>u.row===0&&u.alive),b=T.filter(u=>u.row===1&&u.alive);return[...f,...b];}
+
+// ============================================================
+// 战斗管理器
+// ============================================================
+
+let blue=[],red=[],active=false,paused=false,spd=1,rnd=0,chain=0,blDmg=0,rdDmg=0,tOrder=[],tIdx=0,actUnit=null,battlePromise=null;
+
+function makeUnit(tid,row,col){
+  const t=UNIT_TMPL[tid],b=t.base;
+  return{
+    id:t.id,name:t.name,icon:t.icon,team:t.team,cls:t.cls,lv:t.lv,tags:[...t.tags],
+    mhp:b.hp,hp:b.hp,alive:true,atk:b.atk,def:b.def,matk:b.matk,mdef:b.mdef,
+    hit:b.hit,eva:b.eva,crt:b.crt,grd:b.grd,grd_red:b.grd_red,spd:b.spd,
+    apm:t.apm,ap:t.apm,ppm:t.ppm,pp:t.ppm,
+    active:[...t.active],passive:[...t.passive],
+    tactics:JSON.parse(JSON.stringify(t.tactics)),
+    status:[],buffs:{},row,col
+  };
+}
+
+function initBattle(){
+  blue=[makeUnit("u1",0,0),makeUnit("u2",0,1),makeUnit("u3",0,2)];
+  red=[makeUnit("u6",0,0),makeUnit("u5",0,1),makeUnit("u4",0,2)];
+  chain=0;blDmg=0;rdDmg=0;rnd=0;actUnit=null;
+  renderAll();
+}
+
+function enemiesOf(u){return(u.team==="blue"?red:blue).filter(x=>x.alive);}
+function alliesOf(u){return(u.team==="blue"?blue:red).filter(x=>x!==u&&x.alive);}
+function allAlive(){return[...blue.filter(u=>u.alive),...red.filter(u=>u.alive)];}
+
+// ============================================================
+// 主循环
+// ============================================================
+
+function log(msg,cls){
+  const b=$("log-body"),d=document.createElement("div");
+  d.className=cls||"";d.textContent=msg;b.appendChild(d);b.scrollTop=b.scrollHeight;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms/spd));}
+async function waitUnpaused(){while(paused&&active)await sleep(200);}
+
+function startBattle(){
+  if(active)return;
+  [blue,red].forEach(t=>t.forEach(u=>{
+    u.hp=u.mhp;u.alive=true;u.ap=u.apm;u.pp=u.ppm;u.status=[];u.buffs={};
+  }));
+  chain=0;blDmg=0;rdDmg=0;rnd=0;$("log-body").innerHTML="";
+  active=true;paused=false;
+  updateBtns();
+  log("════ 战斗开始 ════","l-win");
+  log("蓝方 "+blue.length+" 人  VS  红方 "+red.length+" 人","");
+  renderAll();
+  battlePromise=runBattleLoop();
+}
+
+async function runBattleLoop(){
+  await sleep(700);
+  while(active){
+    await startRound();
+    if(!active)break;
+    tOrder=allAlive().filter(u=>u.ap>0).sort((a,b)=>{
+      const sa=a.spd+(a.buffs.spd||0),sb=b.spd+(b.buffs.spd||0);
+      return sa!==sb?sb-sa:a.id<b.id?-1:1;
+    });
+    for(tIdx=0;tIdx<tOrder.length;tIdx++){
+      if(!active)break;
+      const u=tOrder[tIdx];
+      if(!u.alive||u.ap<=0)continue;
+      await waitUnpaused();if(!active)break;
+      if(hasStatus(u,"freeze")||hasStatus(u,"stun")){
+        const st=hasStatus(u,"freeze")?"冰冻":"眩晕";
+        log("❄ "+u.name+" 被"+st+"，跳过行动！","l-info");
+        actUnit=u;renderAll();await sleep(350);actUnit=null;renderAll();
+        continue;
+      }
+      actUnit=u;renderAll();
+      log("▶ "+u.name+" 开始行动 [AP:"+u.ap+"/"+u.apm+"]","l-act");
+      await sleep(450);await execTurn(u);
+      if(checkEnd())return;
+      await sleep(650);
+    }
+    if(!active)break;
+    await roundEnd();
+  }
+}
+
+async function startRound(){
+  await waitUnpaused();if(!active)return;
+  rnd++;log("── 第 "+rnd+" 回合 ──","l-turn");
+  roundStartEffects();
+  if(checkEnd())return;
+}
+
+async function execTurn(u){
+  await waitUnpaused();if(!active)return;
+  const ene=enemiesOf(u),aly=alliesOf(u);
+  let acted=false;
+  for(const tc of u.tactics){
+    if(!active||u.ap<=0)break;
+    const sk=SKILL_DB[tc.sk];if(!sk||sk.type!=="active")continue;
+    if(sk.cost>u.ap)continue;
+    let pool=getTargets(u,sk,ene,aly);
+    if(!pool.length)continue;
+    const valid=evalDual(tc.c1||{},tc.c2||{},u,pool);
+    // "仅"条件校验
+    let onlyFail=false;
+    [tc.c1,tc.c2].forEach(c=>{if(c&&c.m==="only"&&c.t&&evalSingle(c,u,pool).length===0)onlyFail=true;});
+    if(onlyFail||!valid.length)continue;
+    const tgt=valid[0];if(!tgt||!tgt.alive)continue;
+    u.ap-=sk.cost;acted=true;
+    execSkill(u,sk,tgt);break;
+  }
+  if(!acted&&u.ap>0)log("  "+u.name+" 无匹配策略，待命","l-miss");
+  if(u.ap<=0)log("  "+u.name+" AP耗尽","");
+}
+
+function execSkill(caster,skill,target){
+  // 治疗
+  if(skill.dmg_type==="heal"){
+    const r=calcDamage(caster,target,skill);
+    target.hp=Math.min(target.mhp,target.hp+r.dmg);
+    log("💚 "+caster.name+"「"+skill.name+"」→ "+target.name+" "+r.msg,"l-heal");
+    renderAll();return;
+  }
+
+  log("⚔ "+caster.name+"「"+skill.name+"」→ "+target.name,"l-act");
+  const r=calcDamage(caster,target,skill);
+  if(!r.hit){log("  MISS! "+r.msg,"l-miss");renderAll();return;}
+
+  // 时点: before_take_damage — 闪避
+  if(target.pp>0&&target.passive.includes("evade")&&chain<2){
+    target.pp--;chain++;
+    log("  ✨ "+target.name+" 闪避！躲开了攻击！","l-info");
+    renderAll();return;
+  }
+
+  // 时点: ally_attacked — 重装掩护
+  const cover=findCover(target);
+  if(cover){
+    const cr=calcDamage(caster,cover,skill);
+    if(cr.hit){cr.dmg=Math.floor(cr.dmg*0.5);
+    applyDmg(cover,cr.dmg);caster.team==="blue"?rdDmg+=cr.dmg:blDmg+=cr.dmg;
+    log("  🛡 "+cover.name+" 掩护 "+target.name+"！代替承伤 "+cr.dmg,"l-info");
+    if(!cover.alive)log("💀 "+cover.name+" 被击败！","l-dead");
+    renderAll();
+    // 时点: after_take_damage — 被掩护者仍可反击
+    if(target.alive&&target.pp>0&&target.passive.includes("counter")&&chain<2)
+      triggerCounter(target,caster);
+    return;}
+  }
+
+  // 应用伤害
+  applyDmg(target,r.dmg);caster.team==="blue"?rdDmg+=r.dmg:blDmg+=r.dmg;
+  log("  "+r.msg,r.crit?"l-crit":"l-dmg");
+  if(r.drain>0){caster.hp=Math.min(caster.mhp,caster.hp+r.drain);log("  🩸 "+caster.name+" 吸取 "+r.drain+" HP","l-dmg");}
+
+  // 技能效果
+  applyEffects(target,skill);
+
+  // 时点: after_take_damage — 反击
+  if(target.alive&&target.pp>0&&target.passive.includes("counter")&&chain<2)
+    triggerCounter(target,caster);
+
+  // 时点: ally_attacked — 友方追击
+  for(const a of alliesOf(caster)){
+    if(a.alive&&a.pp>0&&a.passive.includes("follow_slash")&&chain<2){
+      a.pp--;chain++;
+      const fw=calcDamage(a,target,{power:75,dmg_type:"physical",range:"melee"});
+      if(fw.hit){applyDmg(target,fw.dmg);log("  ➤ "+a.name+" 追击 → "+target.name+" "+fw.dmg+" 伤害","l-dmg");}
+    }
+  }
+
+  if(!target.alive)log("💀 "+target.name+" 被击败！","l-dead");
+  renderAll();
+}
+
+function triggerCounter(unit,attacker){
+  unit.pp--;chain++;
+  const cr=calcDamage(unit,attacker,{power:120,dmg_type:"physical",range:"melee"});
+  if(cr.hit){applyDmg(attacker,cr.dmg);unit.team==="blue"?rdDmg+=cr.dmg:blDmg+=cr.dmg;
+    log("  ↩ "+unit.name+" 反击 → "+attacker.name+" "+cr.dmg+" 伤害","l-dmg");
+    if(!attacker.alive)log("💀 "+attacker.name+" 被反击击败！","l-dead");}
+}
+
+function findCover(target){
+  for(const a of alliesOf(target)){
+    if(!a.alive||a.pp<=0)continue;
+    if(a.passive.includes("heavy_cover")&&a.row===0&&target.row===1&&a.col===target.col)
+      {a.pp--;return a;}
+  }
+  return null;
+}
+
+function applyEffects(target,skill){
+  for(const e of skill.effects||[]){
+    target.status=target.status.filter(s=>s.type!==e.type);
+    target.status.push({type:e.type,dur:e.dur||1});
+    log("  🔔 "+target.name+" 受到"+statusName(e.type)+"("+(e.dur||1)+"回合)","");
+  }
+}
+
+function roundStartEffects(){
+  for(const u of allAlive()){
+    for(const s of u.status||[]){
+      if(s.type==="burn"){
+        const d=Math.floor(u.mhp*0.1);u.hp=Math.max(0,u.hp-d);
+        log("🔥 "+u.name+" 灼烧伤害 "+d,"l-dmg");
+        if(u.hp<=0){u.alive=false;u.hp=0;log("💀 "+u.name+" 被灼烧击败！","l-dead");}
+      }else if(s.type==="poison"){
+        const d=Math.floor(u.mhp*0.3);u.hp=Math.max(0,u.hp-d);
+        log("☠ "+u.name+" 中毒伤害 "+d,"l-dmg");
+        if(u.hp<=0){u.alive=false;u.hp=0;log("💀 "+u.name+" 被毒击败！","l-dead");}
+      }
+    }
+  }
+}
+
+async function roundEnd(){
+  await waitUnpaused();if(!active)return;
+  log("── 第 "+rnd+" 回合结束 ──","l-turn");
+  for(const u of allAlive()){
+    u.status=(u.status||[]).filter(s=>{s.dur--;if(s.dur<=0){log("🔔 "+u.name+" "+statusName(s.type)+"解除","");return false;}return true;});
+  }
+  chain=0;
+  if(checkEnd())return;
+  await sleep(350);
+}
+
+function checkEnd(){
+  if(!active)return true;
+  const ba=blue.filter(u=>u.alive).length,ra=red.filter(u=>u.alive).length;
+  if(ba===0||ra===0){endBattle();return true;}
+  if(allAlive().every(u=>u.ap<=0)){endBattle();return true;}
+  return false;
+}
+
+function endBattle(){
+  active=false;actUnit=null;
+  const ba=blue.filter(u=>u.alive).length,ra=red.filter(u=>u.alive).length;
+  const bl=blue.reduce((s,u)=>s+Math.max(0,u.mhp-u.hp),0);
+  const rl=red.reduce((s,u)=>s+Math.max(0,u.mhp-u.hp),0);
+  log("════ 战斗结束 ════","l-win");
+  let w;
+  if(ba===0&&ra===0){w="draw";log("⚡ 双方全灭！平局！","l-win");}
+  else if(ba===0){w="red";log("⚡ 红方胜利！","l-win");}
+  else if(ra===0){w="blue";log("⚡ 蓝方胜利！","l-win");}
+  else{
+    if(bl>rl){w="red";log("⚡ 蓝方HP损失更多("+bl+">"+rl+")，红方胜！","l-win");}
+    else if(rl>bl){w="blue";log("⚡ 红方HP损失更多("+rl+">"+bl+")，蓝方胜！","l-win");}
+    else{w="draw";log("⚡ HP损失相同，平局！","l-win");}
+  }
+  $("ctrl-info").textContent="结束 · 回合:"+rnd+" · 蓝损HP:"+bl+" · 红损HP:"+rl+(w==="blue"?" · 蓝方胜":w==="red"?" · 红方胜":" · 平局");
+  updateBtns();renderAll();
+}
+
+// ============================================================
+// UI
+// ============================================================
+
+function renderAll(){
+  renderCards("blue-cards",blue,"blue");
+  renderCards("red-cards",red,"red");
+  $("blue-count").textContent=blue.filter(u=>u.alive).length+"/"+blue.length+" 存活";
+  $("red-count").textContent=red.filter(u=>u.alive).length+"/"+red.length+" 存活";
+}
+
+function renderCards(cid,team,side){
+  const c=$(cid);c.innerHTML="";
+  team.forEach(u=>{
+    const card=document.createElement("div");card.className="unit-card";
+    if(!u.alive)card.classList.add("dead");
+    if(u===actUnit)card.classList.add("acting");
+    const pct=Math.round(u.hp/u.mhp*100);
+    const hc=pct>60?"var(--green)":pct>30?"var(--gold-bright)":"var(--red)";
+    let st="";(u.status||[]).forEach(s=>{st+='<span class="stag '+s.type+'">'+statusName(s.type)+'('+s.dur+')</span>';});
+    card.innerHTML=
+      '<div class="u-top"><span class="u-ico">'+u.icon+'</span><span class="u-name">'+u.name+'</span><span class="u-lv">Lv.'+u.lv+'</span></div>'+
+      '<div class="u-hp-bar"><div class="u-hp-fill" style="width:'+pct+'%;background:'+hc+'"></div></div>'+
+      '<div class="u-hp-txt">HP '+u.hp+'/'+u.mhp+'</div>'+
+      '<div class="u-stats">'+
+        '<span><span class="sl">⚔攻</span><span class="sv">'+u.atk+'</span></span>'+
+        '<span><span class="sl">🛡防</span><span class="sv">'+u.def+'</span></span>'+
+        '<span><span class="sl">🪄魔</span><span class="sv">'+u.matk+'</span></span>'+
+        '<span><span class="sl">💠抗</span><span class="sv">'+u.mdef+'</span></span>'+
+        '<span><span class="sl">🎯命</span><span class="sv">'+u.hit+'</span></span>'+
+        '<span><span class="sl">💨速</span><span class="sv">'+u.spd+'</span></span>'+
+      '</div>'+
+      '<div class="u-ap-pp"><span class="u-ap">◆AP '+u.ap+'/'+u.apm+'</span><span class="u-pp">◆PP '+u.pp+'/'+u.ppm+'</span></div>'+
+      (st?'<div class="u-status">'+st+'</div>':'');
+    c.appendChild(card);
+  });
+}
+
+function updateBtns(){
+  $("btn-start").disabled=active;
+  $("btn-pause").disabled=!active;$("btn-pause").textContent=paused?"▶ 继续":"⏸ 暂停";
+  ["btn-spd-1","btn-spd-2","btn-spd-4"].forEach((id,i)=>{
+    $(id).disabled=!active;$(id).classList.toggle("spd-active",spd===[1,2,4][i]);
+  });
+}
+
+// ============================================================
+// 事件
+// ============================================================
+
+$("btn-start").addEventListener("click",startBattle);
+$("btn-pause").addEventListener("click",()=>{
+  if(!active)return;paused=!paused;updateBtns();
+  $("ctrl-info").textContent=paused?"已暂停":"战斗中...";
+});
+$("btn-spd-1").addEventListener("click",()=>{spd=1;updateBtns();});
+$("btn-spd-2").addEventListener("click",()=>{spd=2;updateBtns();});
+$("btn-spd-4").addEventListener("click",()=>{spd=4;updateBtns();});
+$("btn-reset").addEventListener("click",()=>{
+  active=false;paused=false;battlePromise=null;
+  initBattle();$("log-body").innerHTML="";updateBtns();
+  $("ctrl-info").textContent="已重置，点击「开始」启动";
+});
+
+initBattle();updateBtns();
+})();
+</script>
+</body>
+</html>
