@@ -324,6 +324,7 @@
       <button class="act-btn" id="btn-prev">‹ 上一队</button>
       <button class="act-btn" id="btn-next">下一队 ›</button>
       <button class="act-btn primary" id="btn-new-team">＋ 新增队伍</button>
+      <button class="act-btn danger" id="btn-disband">解散队伍</button>
     </div>
 
     <!-- 覆盖左侧的选择窗口 -->
@@ -429,23 +430,29 @@ const UNITS=[
   {id:"u6",name:"铁卫",icon:"🛡️",color:"#c9b48f",lv:13,
     base:{str:13,agi:7,int:7,vit:17,luk:5,def:14,spd:6,acc:8},
     equip:{武器:null,护甲:6,饰品:null,靴子:null},
-    strat:[{skill:"sk_def",cond1:"c_hp_lo",cond2:null}]}
+    strat:[{skill:"sk_def",cond1:"c_hp_lo",cond2:null}]},
+  {id:"u7",name:"狂战士",icon:"🪓",color:"#ff6b4a",lv:11,
+    base:{str:16,agi:10,int:5,vit:12,luk:6,def:7,spd:11,acc:9},
+    equip:{武器:null,护甲:null,饰品:null,靴子:null},
+    strat:[{skill:"sk_chrg",cond1:"c_hp_hi",cond2:null}]},
+  {id:"u8",name:"圣骑士",icon:"🛡️",color:"#ffd700",lv:12,
+    base:{str:12,agi:8,int:13,vit:14,luk:7,def:11,spd:8,acc:9},
+    equip:{武器:null,护甲:null,饰品:null,靴子:null},
+    strat:[{skill:"sk_heal",cond1:"c_hp_lo",cond2:null},{skill:"sk_def",cond1:null,cond2:null}]},
+  {id:"u9",name:"游侠",icon:"🏹",color:"#5bc0be",lv:10,
+    base:{str:9,agi:16,int:7,vit:10,luk:13,def:5,spd:15,acc:14},
+    equip:{武器:null,护甲:null,饰品:null,靴子:null},
+    strat:[{skill:"sk_pois",cond1:"c_first",cond2:null}]}
 ];
 
 // 队伍（每队 = 一个九宫格棋盘）。layout 给出单位与格子；captain 为队长单位 id。
 const TEAMS=[
   {id:"t1",name:"前锋阵",color:"#ffd86b",captain:"u1",
-    layout:[{id:"u1",r:0,c:1},{id:"u2",r:1,c:0},{id:"u3",r:1,c:2},{id:"u6",r:2,c:1}]},
-  {id:"t2",name:"铁壁阵",color:"#7fd4ff",captain:"u6",
-    layout:[{id:"u6",r:0,c:1},{id:"u1",r:1,c:0},{id:"u3",r:1,c:1},{id:"u2",r:1,c:2},{id:"u4",r:2,c:1}]},
-  {id:"t3",name:"魔法阵",color:"#9affb0",captain:"u5",
-    layout:[{id:"u3",r:0,c:0},{id:"u5",r:0,c:1},{id:"u1",r:1,c:1},{id:"u2",r:2,c:0},{id:"u4",r:2,c:2}]},
-  {id:"t4",name:"刺杀阵",color:"#d59aff",captain:"u4",
-    layout:[{id:"u4",r:0,c:0},{id:"u5",r:0,c:2},{id:"u1",r:1,c:1},{id:"u2",r:2,c:0},{id:"u3",r:2,c:1},{id:"u6",r:2,c:2}]},
-  {id:"t5",name:"双子阵",color:"#ff8a5b",captain:"u1",
-    layout:[{id:"u1",r:0,c:0},{id:"u6",r:0,c:2},{id:"u3",r:2,c:0},{id:"u5",r:2,c:2}]},
-  {id:"t6",name:"纵列阵",color:"#4a90c2",captain:"u1",
-    layout:[{id:"u1",r:0,c:1},{id:"u4",r:1,c:1},{id:"u2",r:2,c:1}]}
+    layout:[{id:"u1",r:1,c:0},{id:"u6",r:1,c:1},{id:"u7",r:1,c:2}]},
+  {id:"t2",name:"游击阵",color:"#d59aff",captain:"u4",
+    layout:[{id:"u2",r:1,c:0},{id:"u4",r:1,c:1},{id:"u9",r:1,c:2}]},
+  {id:"t3",name:"秘法阵",color:"#9affb0",captain:"u5",
+    layout:[{id:"u8",r:1,c:0},{id:"u3",r:1,c:1},{id:"u5",r:1,c:2}]}
 ];
 const ROWS=3,COLS=3;
 
@@ -485,7 +492,7 @@ for(let s=0;s<slots;s++){
 let lastCenteredIdx=-1;
 
 function modN(i){const n=TEAMS.length;return n?((i%n)+n)%n:0;}
-function activeTeam(){return TEAMS[modN(activeTeamIdx)];}
+function activeTeam(){return TEAMS.length?TEAMS[modN(activeTeamIdx)]:null;}
 function unitById(id){return UNITS.find(u=>u.id===id);}
 function teamUnitAt(team,r,c){return team.layout.find(l=>l.r===r&&l.c===c);}
 function teamUnitIds(team){return team.layout.map(l=>l.id);}
@@ -493,6 +500,7 @@ function teamUnitIds(team){return team.layout.map(l=>l.id);}
 // 渲染单个棋盘到 slot（按 team）
 function renderBoardInto(slotEl,teamIdx){
   const team=TEAMS[teamIdx];
+  if(!team)return; // TEAMS 为空或索引越界时跳过
   const board=slotEl.querySelector(".board");
   const lab=board.querySelector(".lab");
   const cap=board.querySelector(".cap-mark");
@@ -555,6 +563,7 @@ function renderBoardInto(slotEl,teamIdx){
 }
 
 function renderReel(){
+  if(TEAMS.length===0){slotEls.forEach(el=>{el.style.opacity="0";});return;}
   const base=Math.round(current);
   for(let k=0;k<slots;k++){
     const off=k-range;
@@ -609,7 +618,10 @@ function onReelSettled(){
   updateActBar();
 }
 function onActiveTeamChanged(){
+  // 切换队伍时关闭可能残留的弹窗（避免显示旧队伍的过期数据）
+  if(overlay.classList.contains("on"))closeOverlay();
   const t=activeTeam();
+  if(!t)return; // TEAMS 为空时无操作
   // 选中单位若不在该队 → 回退到队长（若无则 null）
   if(!selUnitId||!t.layout.some(l=>l.id===selUnitId)){
     selUnitId=t.captain&&t.layout.some(l=>l.id===t.captain)?t.captain:(t.layout[0]?t.layout[0].id:null);
@@ -623,7 +635,7 @@ function onActiveTeamChanged(){
 // 键盘移动模式：确认移动到目标格
 function execMoveToTarget(){
   if(!moveSrcId||!moveTargetRC)return;
-  const t=activeTeam();
+  const t=activeTeam();if(!t)return;
   const {r,c}=moveTargetRC;
   const occ=teamUnitAt(t,r,c);
   if(occ&&occ.id===moveSrcId){
@@ -641,7 +653,7 @@ function execMoveToTarget(){
 }
 function positionSpotlight(){
   if(!selUnitId){spotlightEl.classList.remove("on");return;}
-  const t=activeTeam();
+  const t=activeTeam();if(!t){spotlightEl.classList.remove("on");return;}
   const it=t.layout.find(l=>l.id===selUnitId);
   if(!it){spotlightEl.classList.remove("on");return;}
   // reel-container 中心 = (reelW/2, reelH/2)；棋盘中心相对 item 中心已含偏移
@@ -705,7 +717,7 @@ function onPieceClick(e){
   const tIdx=+el.dataset.teamIdx, uid=el.dataset.uid;
   // 点非激活队的单位 → 滚到该队
   if(!settled||tIdx!==modN(activeTeamIdx)){scrollToTeam(tIdx);return;}
-  const t=activeTeam();
+  const t=activeTeam();if(!t)return;
   if(moveSrcId){
     if(uid===moveSrcId){moveSrcId=null;moveTargetRC=null;renderReel();updateActBar();return;}
     // 交换两个单位的位置
@@ -724,7 +736,7 @@ function onBcellClick(e){
   const el=e.currentTarget;
   const tIdx=+el.dataset.teamIdx, r=+el.dataset.r, c=+el.dataset.c;
   if(!settled||tIdx!==modN(activeTeamIdx)){scrollToTeam(tIdx);return;}
-  const t=activeTeam();
+  const t=activeTeam();if(!t)return;
   const occ=teamUnitAt(t,r,c);
   if(moveSrcId){
     if(occ&&occ.id===moveSrcId){moveSrcId=null;moveTargetRC=null;renderReel();updateActBar();return;}
@@ -746,6 +758,7 @@ function onBcellClick(e){
 function updateActBar(){
   const lab=$("act-lab");
   const t=activeTeam();
+  if(!t){lab.innerHTML="—";updateHint();return;}
   const sel=selUnitId?unitById(selUnitId):null;
   if(moveSrcId){
     const s=unitById(moveSrcId);
@@ -762,6 +775,25 @@ function updateActBar(){
 $("btn-prev").addEventListener("click",()=>reelFeed(-1));
 $("btn-next").addEventListener("click",()=>reelFeed(1));
 $("btn-new-team").addEventListener("click",()=>openCaptainOverlay());
+$("btn-disband").addEventListener("click",()=>{
+  if(TEAMS.length===0){showToast("没有队伍可解散。",true);return;}
+  const t=activeTeam();const name=t.name;
+  const idx=modN(activeTeamIdx);
+  const freedIds=teamUnitIds(t);
+  TEAMS.splice(idx,1);
+  moveSrcId=null;moveTargetRC=null;
+  if(TEAMS.length===0){
+    activeTeamIdx=0;lastCenteredIdx=-1;current=0;target=0;selUnitId=null;
+    renderReel();setActiveUnit(null);positionSpotlight();updateActBar();
+    showToast("已解散队伍「"+name+"」，"+freedIds.length+" 名单位已回到待命池。");
+    return;
+  }
+  activeTeamIdx=Math.min(idx,TEAMS.length-1);lastCenteredIdx=-1;
+  target=activeTeamIdx;current=target;
+  selUnitId=null;
+  renderReel();onActiveTeamChanged();positionSpotlight();updateActBar();
+  showToast("已解散队伍「"+name+"」，"+freedIds.length+" 名单位已回到待命池。");
+});
 
 // ============================================================
 //  右侧：单位编辑左半部分
@@ -882,7 +914,7 @@ function delRow(u,idx){
 // ============================================================
 const overlay=$("overlay"), ovBody=$("ov-body"), ovTitle=$("ov-title"), ovFoot=$("ov-foot");
 function openOverlay(title,foot){ovTitle.textContent=title;ovFoot.textContent=foot||"";overlay.classList.add("on");}
-function closeOverlay(){overlay.classList.remove("on");overlayKind=null;overlayCtx=null;}
+function closeOverlay(){overlay.classList.remove("on");overlayKind=null;overlayCtx=null;ovBody.innerHTML="";}
 $("ov-x").addEventListener("click",closeOverlay);
 
 // —— 装备弹窗 ——
@@ -989,8 +1021,9 @@ function openPlacerOverlay(team,r,c){
   if(team.layout.length>=9){showToast("棋盘已满（9/9），无法再放置单位。",true);return;}
   if(teamUnitAt(team,r,c)){showToast("该格已有单位。",true);return;}
   overlayKind="place";overlayCtx={teamId:team.id,r,c};
-  const used=teamUnitIds(team);
-  const bench=UNITS.filter(u=>!used.includes(u.id));
+  // 待命池 = 全局：所有不属于任何队伍的单位
+  const allUsed=new Set();TEAMS.forEach(t=>teamUnitIds(t).forEach(id=>allUsed.add(id)));
+  const bench=UNITS.filter(u=>!allUsed.has(u.id));
   openOverlay(`待命池 · 放置到 (${r+1},${c+1}) · ${team.name}`,
     bench.length?`选择一个单位上场（${team.layout.length}/9）`:"所有单位已在本队，待命池为空。");
   const pl=document.createElement("div");pl.className="pick-list";
@@ -1010,6 +1043,13 @@ function openPlacerOverlay(team,r,c){
         if(team.layout.length>=9||teamUnitAt(team,r,c)){
           showToast("放置失败：棋盘已满或该格已被占用。",true);closeOverlay();renderReel();return;
         }
+        // 从其他队伍中移除该单位，确保单位唯一归属
+        TEAMS.forEach(other=>{
+          if(other!==team){
+            other.layout=other.layout.filter(l=>l.id!==u.id);
+            if(other.captain===u.id)other.captain=other.layout[0]?other.layout[0].id:null;
+          }
+        });
         team.layout.push({id:u.id,r:r,c:c});
         selUnitId=u.id;moveSrcId=null;moveTargetRC=null;
         closeOverlay();renderReel();setActiveUnit(u.id);positionSpotlight();updateActBar();
@@ -1022,6 +1062,7 @@ function openPlacerOverlay(team,r,c){
 
 // —— 键盘触发的放置：自动找第一个空格 ——
 function openBenchPlacer(team){
+  if(!team){showToast("没有队伍，请先新建。",true);return;}
   if(team.layout.length>=9){showToast("棋盘已满（9/9），无法再放置单位。",true);return;}
   let emptyCell=null;
   for(let r=0;r<ROWS;r++){
@@ -1135,7 +1176,7 @@ window.addEventListener("keydown",function(e){
         moveTargetRC={r:Math.floor(nidx/3),c:nidx%3};
         renderReel();e.preventDefault();return;
       }
-      const t=activeTeam();
+      const t=activeTeam();if(!t)return;
       if(t.layout.length===0)return;
       let ids=t.layout.map(l=>l.id);
       let pos=ids.indexOf(selUnitId);
@@ -1150,7 +1191,7 @@ window.addEventListener("keydown",function(e){
     }
     if(k==="Delete"||k==="Backspace"){
       if(selUnitId){
-        const t=activeTeam();
+        const t=activeTeam();if(!t)return;
         if(selUnitId===t.captain){showToast("队长不可移除，请先在别队更换队长。",true);e.preventDefault();return;}
         const i=t.layout.findIndex(l=>l.id===selUnitId);
         if(i>=0){t.layout.splice(i,1);}
@@ -1163,7 +1204,8 @@ window.addEventListener("keydown",function(e){
       if(moveSrcId&&moveTargetRC){execMoveToTarget();e.preventDefault();return;}
       if(selUnitId){
         moveSrcId=selUnitId;
-        const t=activeTeam();const src=t.layout.find(l=>l.id===selUnitId);
+        const t=activeTeam();if(!t)return;
+        const src=t.layout.find(l=>l.id===selUnitId);
         moveTargetRC=src?{r:src.r,c:src.c}:null;
         renderReel();updateActBar();e.preventDefault();
       }
