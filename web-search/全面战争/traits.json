@@ -1,0 +1,1106 @@
+{
+  "game": "全面战争",
+  "game_en": "Total War",
+  "subtitle": "Three Kingdoms / 三国",
+  "category": "traits",
+  "data_source": "Compiled from web searches: totalwar.fandom.com (Hero/Satisfaction/Guanxi/Ability), wiki.twcenter.net (Traits TW3K), honga.net Royal Military Academy, gamersky.com 官方说明书, 3dmgame.com 武将特性参考, ali213.net 五行技能树攻略, 9game.cn, steamxo.com, 1youxi/gamersky 特性大全, baidu 满意度/关系分析. Some values vary by game version (e.g., 1.20 patch).",
+  "last_updated": "2026-08-11",
+  "attributes": [
+    {
+      "id": "attr_001",
+      "name_zh": "专精",
+      "name_en": "Expertise",
+      "element": "metal",
+      "governs": ["近战闪避 (Melee Evasion)", "建筑成本与时间降低 (Construction Cost/Time Reduction, as administrator)", "工业收入 (Industry Income)"],
+      "description": "金系属性，武将的熟练度与技艺。战斗中提供近战闪避加成，战场定位为扛线防御；作为郡国管理者时降低建筑成本与时间并提高工业产值，是最好的城市建造者。高专精者如赵云、徐晃。金克木、土生金，因此金系技能树中木、火技能各只有1个，土、水技能各有2个。"
+    },
+    {
+      "id": "attr_002",
+      "name_zh": "毅力",
+      "name_en": "Resolve",
+      "element": "wood",
+      "governs": ["武将生命值 (General's Health)", "人口增长 (Population Growth, as administrator)", "粮食产出 (Food Production)"],
+      "description": "木系属性，武将的意志与勇气。战斗中增加武将本体生命值（每100点约+40%血量），是单挑与混战续航的关键；作为郡国管理者时提高人口增长。木系战士以血厚著称（如关羽、张飞、典韦、许褚）。"
+    },
+    {
+      "id": "attr_003",
+      "name_zh": "智略",
+      "name_en": "Cunning",
+      "element": "water",
+      "governs": ["弹药量 (Ammunition, own retinues)", "军队补给 (Military Supplies, own army)", "远程攻速/穿甲/伤害 (Ranged Attack Rate, AP Damage)", "商业贸易 (Commerce & Trade, assignments)"],
+      "description": "水系属性，武将的智慧与才智。战斗中提高本方部曲弹药携带量、远程攻速、远程穿甲与伤害（配合火箭/火矢效果更佳），战役中提高军队补给并擅长商业贸易。军师的关键属性，也是间谍任务的最佳人选（如诸葛亮、司马懿、周瑜）。"
+    },
+    {
+      "id": "attr_004",
+      "name_zh": "本能",
+      "name_en": "Instinct",
+      "element": "fire",
+      "governs": ["近战杀伤 (Melee Damage)", "征募时间缩短/费用降低 (Recruitment Time & Cost, own army)", "冲锋加成 (Charge Bonus)"],
+      "description": "火系属性，武将的胆识与魄力，侵略如火。战斗中大幅提高近战伤害与冲锋威力，能迅速撕裂敌阵、屠杀普通士兵；战役中缩短征募时间并降低招募成本。先锋的关键属性（如吕布、张飞、马腾、公孙瓒、郑姜）。"
+    },
+    {
+      "id": "attr_005",
+      "name_zh": "权威",
+      "name_en": "Authority",
+      "element": "earth",
+      "governs": ["满意度 (Satisfaction, only when Faction Leader/Heir/Prime Minister)", "部队士气 (Unit Morale, own retinues)", "公共秩序 (Public Order)", "收入/税收 (Income & Tax, campaign)"],
+      "description": "土系属性，武将的威仪与风骨，代表君主气度。战斗中提高本方部曲士气并抵消惊吓；战役中提高公共秩序、收入与税收。只有丞相、储君或派系领袖的权威值会加成全派系满意度，因此高权威者是君主/储君/丞相的理想人选（如曹操、孙坚、袁绍）。"
+    }
+  ],
+  "character_classes": [
+    {
+      "id": "class_001",
+      "name_zh": "战士",
+      "name_en": "Champion",
+      "element": "wood",
+      "role": "单挑专家 (Duelist) / 近战肉盾",
+      "specializations": ["长柄/矛步兵部曲 (Polearm & Spear Infantry)", "单挑决斗 (Duels)", "高血量 (Large Health Pool)", "粮食产出与人口增长 (Food & Population)"],
+      "description": "木系战士，最善对抗敌军将领，是游戏中最强的单挑者。关键属性【毅力】提高生命值并增加所管理郡国人口。可招募强化持矛步兵，血厚耐打、还有两个伤害技能（聚怒、断筋），属于又肉又能输出的类型；缺点是对普通部队清剿效率不如先锋。代表人物：关羽、张飞、典韦、许褚、太史慈。"
+    },
+    {
+      "id": "class_002",
+      "name_zh": "先锋",
+      "name_en": "Vanguard",
+      "element": "fire",
+      "role": "清兵机器 (Unit Killer) / 突击骑兵统帅",
+      "specializations": ["突击骑兵部曲 (Shock Cavalry)", "范围AOE伤害 (Splash/AoE Damage)", "近战杀伤 (Melee Damage)", "征募时间缩短/成本降低 (Recruitment Time & Cost)", "士气打击 (Morale Debuffs)"],
+      "description": "火系先锋，侵略如火，擅长冲锋近战与指挥突击骑兵，高冲锋加成与范围AOE技能（炎凤、虎啸）使其成为普通士兵的屠戮者。关键属性【本能】提高近战杀伤并降低征募成本。代表人物：吕布、张飞、孙策、马腾、公孙瓒、郑姜。"
+    },
+    {
+      "id": "class_003",
+      "name_zh": "卫士",
+      "name_en": "Sentinel",
+      "element": "metal",
+      "role": "前线坦克 (Frontline Tank) / 战略要点守卫",
+      "specializations": ["剑/斧与盾牌步兵部曲 (Sword & Shielded Infantry)", "近战闪避 (Melee Evasion)", "远程格挡 (Ranged Block)", "建筑成本/时间降低 (Construction Discount, as administrator)", "工业收入 (Industry Income)"],
+      "description": "金系卫士（旧译：铁卫），最善封锁敌军将领或坚守战略要点。拥有极高的近战闪避与远程格挡，是完美的扛线坦克，同时是最佳的城市建设者（降低建筑费用、提高工业收入）。关键属性【专精】。代表技能：不屈、固守、刚韧。代表人物：赵云、徐晃、魏延、典韦（部分版本）。"
+    },
+    {
+      "id": "class_004",
+      "name_zh": "指挥",
+      "name_en": "Commander",
+      "element": "earth",
+      "role": "激励者/指挥官 (Inspirer) / 领袖与辅臣",
+      "specializations": ["剑骑兵部曲 (Sword Cavalry)", "部队士气光环 (Morale Buffs)", "收入/税收/贸易 (Income, Tax & Trade)", "满意度加成 (Satisfaction)", "高级阵型 (Advanced Formations)", "公共秩序 (Public Order)"],
+      "description": "土系指挥，经典的全面战争将军类型，善于激励友军、为全军提供士气加成，其阵亡会对士气造成巨大打击。关键属性【权威】提升部队士气与满意度。战役中提高收入、税收与贸易，是君主、储君、丞相的理想人选。可召唤大盾兵，是优秀的坦克与领袖（如曹操、孙坚、袁绍、刘备、曹仁）。"
+    },
+    {
+      "id": "class_005",
+      "name_zh": "军师",
+      "name_en": "Strategist",
+      "element": "water",
+      "role": "战术家 (Tactician) / 远程与攻城支援",
+      "specializations": ["弓箭手/弩手部曲 (Archers & Crossbowmen)", "攻城器械 (Siege Weapons, e.g. trebuchets)", "弹药量 (Ammunition)", "军队补给 (Military Supplies)", "全军高级阵型 (Advanced Formations for whole army)", "削弱敌方将领 (Debuff Enemy Generals)"],
+      "description": "水系军师，近战能力弱但为军队提供关键远程火力与攻城支援。关键属性【智略】提高弹药量与军队补给，可招募强化远程部曲、解锁投石车等攻城器械，高阶后为全军解锁高级阵型。军师不能进行单挑，应避免进入肉搏。代表人物：诸葛亮、司马懿、周瑜、庞统、郭嘉。"
+    }
+  ],
+  "traits": [
+    {
+      "id": "trait_001",
+      "name_zh": "天才",
+      "name_en": "Genius",
+      "type": "personality",
+      "effects": ["五维属性大幅加成", "战争中取得优势"],
+      "description": "玩家公认的最强特性之一，属性加成极高。高水属性角色在回合开始时随机获得（刷特性看运气）。182剧本丁原之子卑舍、刘宠收子罗俊均拥有。"
+    },
+    {
+      "id": "trait_002",
+      "name_zh": "坦率",
+      "name_en": "Frankness",
+      "type": "personality",
+      "effects": ["腐败-5% (Corruption -5%)"],
+      "description": "减少5%腐败，全局经济收益极高，部分玩家认为比'天才'更具大局价值。属土系优秀特性，可与开朗、和善、魅力等公共秩序类特性配合。"
+    },
+    {
+      "id": "trait_003",
+      "name_zh": "渴求高位",
+      "name_en": "Desire for High Position",
+      "type": "personality",
+      "effects": ["满意度随等级下降（(等级-1)×12/级）", "1.20版公式：基础值×1.5", "升任五卿/丞相/储君后归0", "任命太守可减3级惩罚"],
+      "description": "负面特性，武将渴望更高官位。1.20版本公式：基础值=(等级-1)×12，有此特性×1.5，多个增减特性按加减叠加；'不求高位'特性则恒为0。招募此类武将前需确认朝中是否有尚书令职位，否则不建议招募。"
+    },
+    {
+      "id": "trait_004",
+      "name_zh": "不求高位",
+      "name_en": "Content with Position",
+      "type": "personality",
+      "effects": ["渴求高位任何时候均为0", "晋升欲望降低"],
+      "description": "对官位毫无野心，满意度稳定，易管理（如曹昂的双减特性可将渴求高位归零）。"
+    },
+    {
+      "id": "trait_005",
+      "name_zh": "野心勃勃",
+      "name_en": "Ambitious",
+      "type": "personality",
+      "effects": ["权威+8（或专精+5/权威+5/毅力-10，版本差异）", "收入+5%~15%", "晋升与独立野心提升"],
+      "description": "双刃剑：带来收入加成，但渴望高位与独立，若不能满足则满意度快速下降甚至自立。"
+    },
+    {
+      "id": "trait_006",
+      "name_zh": "勇敢",
+      "name_en": "Brave",
+      "type": "personality",
+      "effects": ["毅力+12", "统军时士气+6"],
+      "description": "正面特性，大幅提升毅力与统军士气，适合领军作战（如韩浩）。"
+    },
+    {
+      "id": "trait_007",
+      "name_zh": "狡猾/狡诈诡谲",
+      "name_en": "Cunning",
+      "type": "personality",
+      "effects": ["智略+15", "伏击成功率+15%"],
+      "description": "提升智略与伏击成功率，适合军师与间谍行动。"
+    },
+    {
+      "id": "trait_008",
+      "name_zh": "鲁莽/性烈如火",
+      "name_en": "Reckless / Fiery",
+      "type": "personality",
+      "effects": ["本能+10", "专精-5", "移动速度+10%", "征募回合-1", "公共秩序-5", "被俘逃脱率-10%", "近战杀伤+10%"],
+      "description": "攻击性极强，近战杀伤与机动大增，但降低专精与公共秩序，被俘后更难逃脱。"
+    },
+    {
+      "id": "trait_009",
+      "name_zh": "尽责/尽职尽责",
+      "name_en": "Dutiful",
+      "type": "personality",
+      "effects": ["智略+10", "权威+10", "本能-5", "晋升欲望降低"],
+      "description": "正面特性，降低晋升欲望（减少渴求高位），忠诚可靠，适合朝臣与管理者。"
+    },
+    {
+      "id": "trait_010",
+      "name_zh": "粗心大意",
+      "name_en": "Careless",
+      "type": "personality",
+      "effects": ["毅力-4", "智略+6", "伏击规避-15%"],
+      "description": "混合特性，智略略升但伏击规避大幅下降，易被伏击。"
+    },
+    {
+      "id": "trait_011",
+      "name_zh": "小心谨慎",
+      "name_en": "Cautious",
+      "type": "personality",
+      "effects": ["毅力+6", "智略-4", "被俘逃脱率+10%", "伏击规避+10%"],
+      "description": "防御型特性，提高存活能力与伏击规避，适合军师、间谍。"
+    },
+    {
+      "id": "trait_012",
+      "name_zh": "残酷无情",
+      "name_en": "Cruel",
+      "type": "personality",
+      "effects": ["智略+3", "权威+3", "军队补给+5", "公共秩序-4", "农业收入+10%"],
+      "description": "双刃剑：战斗补给提升但损害公共秩序；与仁慈者相性不合，会影响关系系统。"
+    },
+    {
+      "id": "trait_013",
+      "name_zh": "忠心耿耿/忠心无二",
+      "name_en": "Loyal",
+      "type": "personality",
+      "effects": ["专精+3", "本能+3", "权威+10", "晋升欲望降低", "独立野心降低"],
+      "description": "最忠诚的特性之一，大幅提高权威并降低野心，几乎不会叛逃（如韩浩的忠诚特性）。"
+    },
+    {
+      "id": "trait_014",
+      "name_zh": "敏捷",
+      "name_en": "Agile",
+      "type": "physical",
+      "effects": ["本能+4", "近战闪避+10"],
+      "description": "只能天生、无法后天培养的神特性之一，大幅提高闪避与本能，见到带此特性的武将应优先招募。"
+    },
+    {
+      "id": "trait_015",
+      "name_zh": "傲慢自大",
+      "name_en": "Arrogant",
+      "type": "personality",
+      "effects": ["专精+2", "智略+6", "被俘逃脱率-15%"],
+      "description": "混合特性，属性提升但战败被俘后更难逃脱。"
+    },
+    {
+      "id": "trait_016",
+      "name_zh": "巧诈/足智多谋",
+      "name_en": "Artful / Resourceful",
+      "type": "personality",
+      "effects": ["智略+2~6", "权威+6", "公共秩序+2", "管理郡国储备+5", "间谍最大掩护+10"],
+      "description": "出色的朝臣与间谍特性，提高权威、公共秩序与间谍掩护能力。"
+    },
+    {
+      "id": "trait_017",
+      "name_zh": "苦行者",
+      "name_en": "Ascetic",
+      "type": "personality",
+      "effects": ["毅力+4", "智略+4", "粮食产出+2"],
+      "description": "清修自律之人，提高毅力智略与粮食产出，适合管理者。"
+    },
+    {
+      "id": "trait_018",
+      "name_zh": "貌美/俊美",
+      "name_en": "Beautiful",
+      "type": "physical",
+      "effects": ["权威+4", "全派系满意度+5", "个人满意度+5"],
+      "description": "外貌魅力特性，提升满意度，适合高官与外交角色（如貂蝉）。"
+    },
+    {
+      "id": "trait_019",
+      "name_zh": "聪明才智",
+      "name_en": "Bright / Clever",
+      "type": "personality",
+      "effects": ["专精+2", "智略+6", "军队补给+5", "或：智略+8，人物经验+25%"],
+      "description": "聪明特性，提升智略与军队补给，或大幅加快人物经验获取。"
+    },
+    {
+      "id": "trait_020",
+      "name_zh": "才华横溢",
+      "name_en": "Brilliant",
+      "type": "personality",
+      "effects": ["智略+6", "权威+6", "全派系收入+10%", "己方弹药+15%", "敌方弹药-30%", "野心提升"],
+      "description": "顶级人才特性，全面提升收入与远程作战能力，但会提升角色野心。"
+    },
+    {
+      "id": "trait_021",
+      "name_zh": "魅力超凡",
+      "name_en": "Charismatic",
+      "type": "leadership",
+      "effects": ["权威+12", "全派系满意度+5", "公共秩序+3", "野心提升"],
+      "description": "领袖级特性，大幅提升权威、满意度与公共秩序，适合担任君主、储君、丞相。"
+    },
+    {
+      "id": "trait_022",
+      "name_zh": "乐善好施",
+      "name_en": "Charitable",
+      "type": "personality",
+      "effects": ["毅力+4", "权威+4", "公共秩序+4", "粮食产出-4", "农业收入+10%"],
+      "description": "善人特性，提高公共秩序但略损粮食产出，与仁慈类角色关系融洽。"
+    },
+    {
+      "id": "trait_023",
+      "name_zh": "开朗",
+      "name_en": "Cheerful",
+      "type": "personality",
+      "effects": ["毅力+6", "智略+2", "全派系满意度+5", "个人满意度+10"],
+      "description": "积极乐观特性，大幅提升满意度，易于相处。"
+    },
+    {
+      "id": "trait_024",
+      "name_zh": "笨手笨脚",
+      "name_en": "Clumsy",
+      "type": "physical",
+      "effects": ["智略-4", "间谍最大掩护-10"],
+      "description": "负面特性，降低智略与间谍能力。"
+    },
+    {
+      "id": "trait_025",
+      "name_zh": "争强好胜",
+      "name_en": "Competitive",
+      "type": "personality",
+      "effects": ["本能+6", "权威+2", "冲锋加成+10", "独立野心提升"],
+      "description": "好胜特性，战斗冲锋加成显著但渴望独立自主，需给予高位。"
+    },
+    {
+      "id": "trait_026",
+      "name_zh": "精力充沛",
+      "name_en": "Energetic",
+      "type": "physical",
+      "effects": ["专精+2", "本能+6"],
+      "description": "活力特性，提升战斗属性（如韩奎）。"
+    },
+    {
+      "id": "trait_027",
+      "name_zh": "贪婪无度",
+      "name_en": "Greedy",
+      "type": "personality",
+      "effects": ["渴求高位+50%", "管理郡国腐败+10%"],
+      "description": "负面特性，战后选'拿钱'选项可能获得（曹操部将容易刷出），加剧对高位的渴望与郡国腐败，且易与将领关系交恶（如曹定）。"
+    },
+    {
+      "id": "trait_028",
+      "name_zh": "疑神疑鬼",
+      "name_en": "Suspicious",
+      "type": "personality",
+      "effects": ["本能+2", "关系发展倾向消极"],
+      "description": "多疑性格，容易与他人产生矛盾，影响关系系统（Guanxi）。"
+    },
+    {
+      "id": "trait_029",
+      "name_zh": "欺骗成性",
+      "name_en": "Deceitful",
+      "type": "personality",
+      "effects": ["智略+6", "本能+2"],
+      "description": "工于心计，提升智略与本能，适合间谍与离间（如曹定的巧诈特性）。"
+    },
+    {
+      "id": "trait_030",
+      "name_zh": "宦官",
+      "name_en": "Eunuch",
+      "type": "background",
+      "effects": ["权威-4", "官僚影响力+3", "角色俸禄+10%（全派系）", "生育子女概率大幅降低", "粮食产出+2"],
+      "description": "身份背景特性（十常侍等），提升官僚影响力但无法有后嗣，权威受损。"
+    },
+    {
+      "id": "trait_031",
+      "name_zh": "仁德宽厚",
+      "name_en": "Kindness",
+      "type": "personality",
+      "effects": ["毅力+2", "权威+6", "满意度+5", "公共秩序+2"],
+      "description": "仁慈特性（刘备'高风亮节/仁德宽洪'的核心），深受军民爱戴，与残忍者相性不合。"
+    },
+    {
+      "id": "trait_032",
+      "name_zh": "恭顺",
+      "name_en": "Obedient",
+      "type": "personality",
+      "effects": ["权威+8", "升职消耗-50%", "满意度+10"],
+      "description": "恭顺听话的特性，升级费用减半且满意度高，易于管理。"
+    },
+    {
+      "id": "trait_033",
+      "name_zh": "勇冠三军/勇将",
+      "name_en": "Brave General",
+      "type": "leadership",
+      "effects": ["毅力+15", "本能+10", "权威+5", "韧性+1", "士气+3"],
+      "description": "传奇武将级战斗特性，五维综合加成极高，统军作战无双。"
+    },
+    {
+      "id": "trait_034",
+      "name_zh": "优雅幸存者",
+      "name_en": "Graceful Survivor",
+      "type": "background",
+      "effects": ["智略+25", "权威+10", "韧性+1", "满意度+5"],
+      "description": "高智略背景特性，战败重伤后更易存活恢复。"
+    },
+    {
+      "id": "trait_035",
+      "name_zh": "忠诚爱国者",
+      "name_en": "Loyal Patriot",
+      "type": "background",
+      "effects": ["专精+10", "毅力+5", "智略+15", "全派系人口增长+8000"],
+      "description": "国家栋梁型背景特性，全派系人口增长加成巨大。"
+    },
+    {
+      "id": "trait_036",
+      "name_zh": "学者风度",
+      "name_en": "Academic",
+      "type": "personality",
+      "effects": ["专精+4", "智略+4", "人物经验+25%"],
+      "description": "学者特性，加速人物升级获取经验。"
+    },
+    {
+      "id": "trait_037",
+      "name_zh": "创造力",
+      "name_en": "Creativity",
+      "type": "personality",
+      "effects": ["专精+12", "建筑成本-5%"],
+      "description": "高专精创造型人才，建设郡国事半功倍。"
+    },
+    {
+      "id": "trait_038",
+      "name_zh": "手腕",
+      "name_en": "Tact",
+      "type": "personality",
+      "effects": ["专精+2", "智略+6", "储备+5"],
+      "description": "外交手腕特性，提高智略与管理储备。"
+    },
+    {
+      "id": "trait_039",
+      "name_zh": "畏惧",
+      "name_en": "Fearful / Intimidating",
+      "type": "personality",
+      "effects": ["解锁'惊吓'效果 (Enables Scare)"],
+      "description": "特殊特性：启用惊吓效果使敌人士气持续下降，威慑力极强，被部分玩家评为最强特性之一。"
+    },
+    {
+      "id": "trait_040",
+      "name_zh": "和平主义者",
+      "name_en": "Pacifist",
+      "type": "personality",
+      "effects": ["对发动战争满意度大幅下降", "建议安排内政职务"],
+      "description": "性格决定满意度：坚定的和平主义者会因你发动战争而不满，应从事内政而非征战。"
+    },
+    {
+      "id": "trait_041",
+      "name_zh": "好战分子/军国主义者",
+      "name_en": "Militarist / Warlike",
+      "type": "personality",
+      "effects": ["渴望战场，闲置时满意度下降", "战争行为满意度上升"],
+      "description": "暴躁的军国主义者希望一生在战场上度过，应让其常驻前线。"
+    },
+    {
+      "id": "trait_042",
+      "name_zh": "胆小懦弱",
+      "name_en": "Cowardly",
+      "type": "personality",
+      "effects": ["战斗属性下降", "易受惊吓", "被俘后更易归顺"],
+      "description": "负面特性，战斗中士气脆弱，但被俘后更可能投降（被饶恕的将领有归顺加成，最值得信任）。"
+    },
+    {
+      "id": "trait_043",
+      "name_zh": "迷信",
+      "name_en": "Superstitious",
+      "type": "personality",
+      "effects": ["特定事件满意度波动", "与理性者相性不合"],
+      "description": "迷信性格，影响关系系统与事件选择。"
+    },
+    {
+      "id": "trait_044",
+      "name_zh": "睚眦必报/有仇必报",
+      "name_en": "Vengeful",
+      "type": "personality",
+      "effects": ["负面事件关系惩罚加倍（宣战-60好感，常人-50）"],
+      "description": "记仇性格（袁术'心生愤懑'），负面外交事件对其关系影响更大。"
+    },
+    {
+      "id": "trait_045",
+      "name_zh": "与人为善/友好",
+      "name_en": "Friendly",
+      "type": "personality",
+      "effects": ["正面事件关系加成更多（礼物+75好感，常人+50）"],
+      "description": "友善性格（刘备'仁德宽洪'），易于交好，送礼事半功倍。"
+    },
+    {
+      "id": "trait_046",
+      "name_zh": "坚韧不拔",
+      "name_en": "Tenacious",
+      "type": "personality",
+      "effects": ["战败后士气保留", "被俘逃跑概率提升"],
+      "description": "不屈的意志，逆境中仍能作战，败军之将也能恢复斗志。"
+    },
+    {
+      "id": "trait_047",
+      "name_zh": "身强体壮",
+      "name_en": "Sturdy / Robust",
+      "type": "physical",
+      "effects": ["生命值提升", "免疫疲劳概率提升"],
+      "description": "体魄强健，战斗持久力强。"
+    },
+    {
+      "id": "trait_048",
+      "name_zh": "独眼龙",
+      "name_en": "One-Eyed",
+      "type": "physical",
+      "effects": ["近战闪避降低", "远程抗性降低"],
+      "description": "身体残疾类特性（如夏侯惇），战斗中略有劣势但威慑力仍在。"
+    },
+    {
+      "id": "trait_049",
+      "name_zh": "残疾",
+      "name_en": "Crippled / Disabled",
+      "type": "physical",
+      "effects": ["大幅降低战斗属性", "行动力受限"],
+      "description": "身体残疾负面特性，战斗能力显著下降，仅适合内政。"
+    },
+    {
+      "id": "trait_050",
+      "name_zh": "孤独",
+      "name_en": "Lonely",
+      "type": "personality",
+      "effects": ["满意度小幅波动", "关系发展倾向消极"],
+      "description": "孤僻性格，属性尚可但不利于关系培养。"
+    },
+    {
+      "id": "trait_051",
+      "name_zh": "简单",
+      "name_en": "Simple",
+      "type": "personality",
+      "effects": ["满意度提升", "野心极低"],
+      "description": "头脑简单容易满足（木将闲置时容易获得），满意度高、野心低，好管理。"
+    },
+    {
+      "id": "trait_052",
+      "name_zh": "无能",
+      "name_en": "Incompetent",
+      "type": "personality",
+      "effects": ["全属性小幅降低"],
+      "description": "负面特性，打败仗后可能获得。"
+    },
+    {
+      "id": "trait_053",
+      "name_zh": "自负",
+      "name_en": "Conceited",
+      "type": "personality",
+      "effects": ["属性debuff", "与其他角色关系变差（红叉）"],
+      "description": "火将做太守容易刷出的负面特性，降低属性并恶化人际关系。"
+    },
+    {
+      "id": "trait_054",
+      "name_zh": "蒙昧",
+      "name_en": "Ignorant",
+      "type": "personality",
+      "effects": ["智略降低"],
+      "description": "被伏击后可能获得的负面特性，降低智略。"
+    },
+    {
+      "id": "trait_055",
+      "name_zh": "八拜之交/手足之谊",
+      "name_en": "Sworn Brotherhood",
+      "type": "background",
+      "effects": ["与特定角色关系固定为义亲", "减少渴求高位"],
+      "description": "桃园结义等背景特性，与结拜兄弟（刘备、关羽、张飞）关系永恒牢固，共同作战获得强大加成。"
+    },
+    {
+      "id": "trait_056",
+      "name_zh": "不臣之心",
+      "name_en": "Disloyal Ambition",
+      "type": "personality",
+      "effects": ["渴求高位×1.5", "独立野心大幅提升"],
+      "description": "吕布的负面特性，极度渴望权力，若不能给予高位与信任极易叛离。"
+    },
+    {
+      "id": "trait_057",
+      "name_zh": "忠厚老实",
+      "name_en": "Honest and Simple",
+      "type": "personality",
+      "effects": ["开支节省", "满意度提升"],
+      "description": "老实本分，开销小、易满足（董卓初始特性之一）。"
+    },
+    {
+      "id": "trait_058",
+      "name_zh": "桀骜不驯",
+      "name_en": "Unruly",
+      "type": "personality",
+      "effects": ["抵抗敌军损耗", "满意度易波动"],
+      "description": "性情刚烈，战场上消耗更小，但管理上需要耐心（董卓初始特性之一）。"
+    },
+    {
+      "id": "trait_059",
+      "name_zh": "残忍无度",
+      "name_en": "Savage",
+      "type": "personality",
+      "effects": ["农业产值提升", "公共秩序下降", "与仁慈者关系恶化"],
+      "description": "残暴特性，掠夺产出增加但民怨沸腾（董卓初始特性之一）。"
+    },
+    {
+      "id": "trait_060",
+      "name_zh": "富庶背景",
+      "name_en": "Wealthy Background",
+      "type": "background",
+      "effects": ["祖产收入加成", "初始金钱更多"],
+      "description": "背景特性（如董卓'魔王'称号附带），提供额外的收入来源。"
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill_001",
+      "name_zh": "炎凤",
+      "name_en": "Flames of the Phoenix",
+      "type": "battle",
+      "effects": ["主动：范围3750~3800溅射伤害", "持续10秒", "冷却30秒", "加点+4专精+4本能"],
+      "required_level": 1,
+      "description": "火系先锋三大主技能之一（左路），火系唯一的主动伤害技能，适合清兵，单挑伤害可观。吕布传奇强化版'神怒'（伤害约减半但范围更大）。"
+    },
+    {
+      "id": "skill_002",
+      "name_zh": "绝杀",
+      "name_en": "Final Blow",
+      "type": "battle",
+      "effects": ["主动：移动速度+50%", "冲锋速度+50%", "触发条件：战局已定（敌方崩溃）", "加点+4专精+4本能"],
+      "required_level": 1,
+      "description": "火系三大主技能之一（中路），仅在敌方士气崩溃时生效，唯一用途是追杀逃敌，被玩家评价为'垃圾技能'。吕布强化版'狂怒凝视'：目标30秒无法移动、-50%近战攻速；马超强化版'心火'：冲锋加成与质量提升。"
+    },
+    {
+      "id": "skill_003",
+      "name_zh": "虎啸",
+      "name_en": "Tiger's Roar",
+      "type": "battle",
+      "effects": ["主动：半径50米内敌人基础士气-15", "持续15秒", "冷却60秒", "加点+4毅力+4本能"],
+      "required_level": 1,
+      "description": "火系三大主技能之一（右路），大范围减士气，配合枪骑背冲可造成连锁白旗（溃败）。张飞传奇版'当阳怒喝'（-100士气，近乎必溃）；孙策强化版'狂嚎'。"
+    },
+    {
+      "id": "skill_004",
+      "name_zh": "聚怒",
+      "name_en": "Binding Fury",
+      "type": "battle",
+      "effects": ["主动：自身周围溅射伤害", "持续10秒", "冷却60秒", "加点+4毅力+4本能"],
+      "required_level": 1,
+      "description": "木系战士三大主技能之一，'森林之力凝聚于一身爆发'，木系两个伤害技能之一，配合高血量在单挑中占尽优势（加点第一优先）。"
+    },
+    {
+      "id": "skill_005",
+      "name_zh": "壁垒",
+      "name_en": "Bastion",
+      "type": "battle",
+      "effects": ["被动：提升枪兵护甲", "增援范围扩大", "加点+4毅力+4权威"],
+      "required_level": 1,
+      "description": "木系三大主技能之一，强化矛兵防御能力并扩大增援范围，使军队更易集结。"
+    },
+    {
+      "id": "skill_006",
+      "name_zh": "断筋",
+      "name_en": "Sever Sinew",
+      "type": "battle",
+      "effects": ["主动：减速敌方武将", "近战粘住目标难以脱身", "加点+4专精+4毅力"],
+      "required_level": 1,
+      "description": "木系三大主技能之一，切断敌将筋脉般的减速效果，使单挑中敌人无法逃出。"
+    },
+    {
+      "id": "skill_007",
+      "name_zh": "水圣",
+      "name_en": "Sage of Water",
+      "type": "battle",
+      "effects": ["主动：恢复弹药/补给", "加点+4智略+4权威"],
+      "required_level": 1,
+      "description": "水系军师三大主技能之一，水之圣贤的力量补充远程部队弹药。"
+    },
+    {
+      "id": "skill_008",
+      "name_zh": "洪波",
+      "name_en": "Flood",
+      "type": "battle",
+      "effects": ["主动：敌方将领整场战斗禁魔（无法使用技能）", "加点+4智略+4本能"],
+      "required_level": 1,
+      "description": "水系三大主技能之一，洪水般的压制使敌方将领在整场战斗内无法发动技能，战略价值极高，军师优先点出。"
+    },
+    {
+      "id": "skill_009",
+      "name_zh": "激浪",
+      "name_en": "Rushing Waves",
+      "type": "battle",
+      "effects": ["主动：远程AOE伤害", "加点+4智略+4本能"],
+      "required_level": 1,
+      "description": "水系三大主技能之一，激浪覆盖远程区域对敌造成伤害。"
+    },
+    {
+      "id": "skill_010",
+      "name_zh": "不屈",
+      "name_en": "Unyielding",
+      "type": "battle",
+      "effects": ["被动：近战闪避提升", "加点+4专精+4毅力"],
+      "required_level": 1,
+      "description": "金系卫士三大主技能之一，极大提升近战闪避，扛线核心（金系推荐第一排点出）。"
+    },
+    {
+      "id": "skill_011",
+      "name_zh": "固守",
+      "name_en": "Hold the Line",
+      "type": "battle",
+      "effects": ["被动：抵消冲锋 (Charge Negate)", "本方部曲免疫惊慌与惊恐", "加点+4专精+4毅力"],
+      "required_level": 1,
+      "description": "金系三大主技能之一，站桩固守时抵消敌方冲锋并使队伍免疫恐慌，战略要点守卫神技。"
+    },
+    {
+      "id": "skill_012",
+      "name_zh": "刚韧",
+      "name_en": "Tempered",
+      "type": "battle",
+      "effects": ["被动：近战闪避/防御提升", "加点+4专精+4毅力"],
+      "required_level": 1,
+      "description": "金系三大主技能之一，如铁钢炼成的坚韧防御，进一步提升卫士生存能力。"
+    },
+    {
+      "id": "skill_013",
+      "name_zh": "磐石",
+      "name_en": "Stone Bulwark",
+      "type": "battle",
+      "effects": ["主动：远程格挡几率100%", "30秒内不可溃败 (Unbreakable)", "冷却120秒", "加点+4毅力+4权威"],
+      "required_level": 1,
+      "description": "土系指挥三大主技能之一，'肌肤如土，箭矢回弹'，固若金汤的防御技能。"
+    },
+    {
+      "id": "skill_014",
+      "name_zh": "天侣",
+      "name_en": "Heavenly Companions",
+      "type": "battle",
+      "effects": ["被动：士气光环", "加点+4智略+4权威"],
+      "required_level": 1,
+      "description": "土系三大主技能之一，天意眷顾的同伴光环提升部队士气。"
+    },
+    {
+      "id": "skill_015",
+      "name_zh": "坚土",
+      "name_en": "Unyielding Earth",
+      "type": "battle",
+      "effects": ["主动：冲锋抗性1900%", "近战闪避100%", "持续30秒", "范围75米", "冷却120秒", "加点+4毅力+4权威"],
+      "required_level": 1,
+      "description": "土系三大主技能之一，'大自然为战士提供盾牌'，短时间近乎无敌的防御技能。"
+    },
+    {
+      "id": "skill_016",
+      "name_zh": "鼓舞",
+      "name_en": "Inspiring Words",
+      "type": "battle",
+      "effects": ["主动：我方士气+10~15", "冷却60秒"],
+      "required_level": 2,
+      "description": "指挥系通用主动技能，激励友军士气。刘备拥有削弱版。"
+    },
+    {
+      "id": "skill_017",
+      "name_zh": "修复",
+      "name_en": "Mending",
+      "type": "battle",
+      "effects": ["主动：护甲+50%", "近战闪避+50%", "瞬间治疗1000", "持续20秒", "范围35米", "冷却60秒，限4次"],
+      "required_level": 2,
+      "description": "战士/盗匪系通用技能，'易逝之物可以修补如新'，大幅强化自身并回血。"
+    },
+    {
+      "id": "skill_018",
+      "name_zh": "精准偏转",
+      "name_en": "Tempered Deflection",
+      "type": "battle",
+      "effects": ["主动：友军远程格挡几率+50%"],
+      "required_level": 2,
+      "description": "金系卫士技能，'沉着如钢的意志更好地偏转攻击'，保护友军抵御箭雨。"
+    },
+    {
+      "id": "skill_019",
+      "name_zh": "惊吓",
+      "name_en": "Scare",
+      "type": "battle",
+      "effects": ["被动：降低附近敌人士气", "不可叠加"],
+      "required_level": 2,
+      "description": "由'誓仇/复仇'技能解锁的被动效果，使靠近的敌军士气持续下降（'畏惧'特性可解锁）。"
+    },
+    {
+      "id": "skill_020",
+      "name_zh": "狂怒",
+      "name_en": "Berserk",
+      "type": "battle",
+      "effects": ["主动：近战杀伤大幅提升", "失去控制", "持续10秒"],
+      "required_level": 3,
+      "description": "狂暴系技能，孙策为唯一拥有此技能的先锋。"
+    },
+    {
+      "id": "skill_021",
+      "name_zh": "火箭",
+      "name_en": "Fire Arrows",
+      "type": "battle",
+      "effects": ["被动：远程部队可发射火箭", "点燃建筑与部队"],
+      "required_level": 2,
+      "description": "水系军师最优先点的技能（诸葛亮专属水系火矢），使远程部曲切换火箭，附带点燃效果。"
+    },
+    {
+      "id": "skill_022",
+      "name_zh": "高级阵型",
+      "name_en": "Advanced Formations",
+      "type": "campaign",
+      "effects": ["全军解锁高级阵型（如圆形阵、方阵）"],
+      "required_level": 4,
+      "description": "军师达到高阶后为整个军团解锁高级阵型，是军队组成的关键。"
+    },
+    {
+      "id": "skill_023",
+      "name_zh": "热忱",
+      "name_en": "Zeal",
+      "type": "battle",
+      "effects": ["专精+8", "本军近战穿甲伤害+10%"],
+      "required_level": 1,
+      "description": "金系技能树通用技能，热忱的求胜之心提升近战输出（金系左路顶部技能）。"
+    },
+    {
+      "id": "skill_024",
+      "name_zh": "觉察",
+      "name_en": "Perception",
+      "type": "campaign",
+      "effects": ["专精+8", "伏击规避提升"],
+      "required_level": 1,
+      "description": "洞察先机的技能，减少被伏击的风险。"
+    },
+    {
+      "id": "skill_025",
+      "name_zh": "勇敢",
+      "name_en": "Bravery",
+      "type": "battle",
+      "effects": ["专精+8", "本方部曲抵消冲锋", "解锁：本方部曲免疫惊慌与惊恐"],
+      "required_level": 1,
+      "description": "金系技能树技能，使部曲无视敌将惊骇。"
+    },
+    {
+      "id": "skill_026",
+      "name_zh": "镇静",
+      "name_en": "Composure",
+      "type": "battle",
+      "effects": ["属性加成", "士气稳定"],
+      "required_level": 1,
+      "description": "沉着冷静，稳定部队士气。"
+    },
+    {
+      "id": "skill_027",
+      "name_zh": "精准",
+      "name_en": "Precision",
+      "type": "battle",
+      "effects": ["远程穿甲伤害+10%", "远程攻速+10%"],
+      "required_level": 1,
+      "description": "金系技能树右上角技能，适合太史慈等远程型金将。"
+    },
+    {
+      "id": "skill_028",
+      "name_zh": "勤勉",
+      "name_en": "Diligence",
+      "type": "campaign",
+      "effects": ["专精+8", "本军近战步兵近战闪避+5", "全派系每季部队额外经验+25"],
+      "required_level": 1,
+      "description": "勤勉者造福全军，提升部队经验成长。"
+    },
+    {
+      "id": "skill_029",
+      "name_zh": "学识",
+      "name_en": "Scholarship",
+      "type": "campaign",
+      "effects": ["专精+8", "科技研究速度提升"],
+      "required_level": 1,
+      "description": "饱读诗书，加速科技研发。"
+    },
+    {
+      "id": "skill_030",
+      "name_zh": "直觉",
+      "name_en": "Intuition",
+      "type": "campaign",
+      "effects": ["专精+8", "战败被俘逃脱率+25%", "工业收入+15%"],
+      "required_level": 1,
+      "description": "第六感敏锐，战败后更容易逃脱，且擅长经营工业。"
+    },
+    {
+      "id": "skill_031",
+      "name_zh": "坚忍",
+      "name_en": "Patience",
+      "type": "battle",
+      "effects": ["毅力系属性加成", "士气恢复提升"],
+      "required_level": 1,
+      "description": "忍耐持久，部队士气恢复更快。"
+    },
+    {
+      "id": "skill_032",
+      "name_zh": "反贪",
+      "name_en": "Anti-Corruption",
+      "type": "campaign",
+      "effects": ["腐败降低", "公共秩序提升"],
+      "required_level": 1,
+      "description": "土系技能树推荐技能，清廉为官降低腐败。"
+    },
+    {
+      "id": "skill_033",
+      "name_zh": "屈伸",
+      "name_en": "Flexibility",
+      "type": "campaign",
+      "effects": ["公共秩序提升", "满意度提升"],
+      "required_level": 1,
+      "description": "能屈能伸之道，稳定朝野秩序。"
+    },
+    {
+      "id": "skill_034",
+      "name_zh": "武圣",
+      "name_en": "God of War",
+      "type": "battle",
+      "unique_to": "关羽 (Guan Yu)",
+      "effects": ["主动：单体超高伤害（约75000）", "单挑中通常一击必杀"],
+      "required_level": 3,
+      "description": "关羽专属传奇技能，只要命中几乎可以秒杀任何单挑对手，配合闪避削弱近乎无解。"
+    },
+    {
+      "id": "skill_035",
+      "name_zh": "当阳怒喝",
+      "name_en": "Roar",
+      "type": "battle",
+      "unique_to": "张飞 (Zhang Fei)",
+      "effects": ["主动：范围内敌人士气-100", "持续较长时间"],
+      "required_level": 3,
+      "description": "张飞专属传奇技能，普通先锋虎啸仅-18士气，当阳怒喝直接-100，大多数部队瞬间白旗溃败。"
+    },
+    {
+      "id": "skill_036",
+      "name_zh": "元素活力",
+      "name_en": "Elemental Vigor",
+      "type": "battle",
+      "unique_to": "赵云 (Zhao Yun)",
+      "effects": ["被动/持续：近战闪避渐进叠加", "战斗中逐步提升至100%+闪避"],
+      "required_level": 3,
+      "description": "赵云专属传奇技能，唯一的渐进式闪避强化，随时间叠加到极致后近乎不可被近战命中，是游戏最强单挑者之一。"
+    },
+    {
+      "id": "skill_037",
+      "name_zh": "神怒",
+      "name_en": "Divine Wrath",
+      "type": "battle",
+      "unique_to": "吕布 (Lu Bu)",
+      "effects": ["主动：范围溅射伤害（约为炎凤一半但范围更大）"],
+      "required_level": 3,
+      "description": "吕布的炎凤强化版；另有'惊魂'替换绝杀（敌人越多越强、近战杀伤逐层叠加）与'狂怒凝视'（目标30秒无法移动、-50%近战攻速）。"
+    },
+    {
+      "id": "skill_038",
+      "name_zh": "天降神威",
+      "name_en": "Heavenly Presence",
+      "type": "battle",
+      "unique_to": "曹仁 (Cao Ren)",
+      "effects": ["主动：士气+10", "60秒内治疗2000"],
+      "required_level": 3,
+      "description": "曹仁专属技能，'曹仁的在场给士兵带来希望'，绝望时刻稳定军心。"
+    },
+    {
+      "id": "skill_039",
+      "name_zh": "穿心",
+      "name_en": "Heartseeker",
+      "type": "battle",
+      "unique_to": "孙尚香 (Sun Ren)",
+      "effects": ["主动：单体高伤害/穿甲射击"],
+      "required_level": 3,
+      "description": "孙尚香专属传奇技能，精准命中敌将要害。"
+    },
+    {
+      "id": "skill_040",
+      "name_zh": "倚多为胜",
+      "name_en": "Outnumbered Buff",
+      "type": "battle",
+      "unique_to": "张辽 (Zhang Liao)",
+      "effects": ["被动：己方兵力少于敌方时获得战斗加成"],
+      "required_level": 3,
+      "description": "张辽专属技能，'以少敌多'时越战越勇。"
+    },
+    {
+      "id": "skill_041",
+      "name_zh": "百步穿杨",
+      "name_en": "Marksmanship Aura",
+      "type": "battle",
+      "unique_to": "黄忠 (Huang Zhong)",
+      "effects": ["被动：半径50米内友军弓手远程攻速+100%"],
+      "required_level": 3,
+      "description": "黄忠专属传奇技能，常驻范围光环使弓手射速翻倍，配合其无视类型限制招募高级弓兵的能力。"
+    },
+    {
+      "id": "skill_042",
+      "name_zh": "心火",
+      "name_en": "Heart's Fire",
+      "type": "battle",
+      "unique_to": "马超 (Ma Chao)",
+      "effects": ["主动：冲锋加成与质量大幅提升"],
+      "required_level": 3,
+      "description": "马超的绝杀强化版，冲锋威力无双，配合突击骑兵碾压敌阵。"
+    },
+    {
+      "id": "skill_043",
+      "name_zh": "狂嚎",
+      "name_en": "Frenzied Howl",
+      "type": "battle",
+      "unique_to": "孙策 (Sun Ce)",
+      "effects": ["主动：范围内敌人士气大幅下降（虎啸强化版）"],
+      "required_level": 3,
+      "description": "孙策的虎啸强化版，配合'狂怒'技能与枪骑清兵无敌。"
+    },
+    {
+      "id": "skill_044",
+      "name_zh": "传奇军师技",
+      "name_en": "Legendary Strategist Abilities",
+      "type": "battle",
+      "unique_to": "诸葛亮 (Zhuge Liang), 司马懿 (Sima Yi), 周瑜 (Zhou Yu)",
+      "effects": ["主动：各类大范围控制/削弱/增益", "各军师专属效果不同"],
+      "required_level": 3,
+      "description": "传奇军师的专属技能（如八阵图、火攻等强力战术技能），全面掌控战场。"
+    },
+    {
+      "id": "skill_045",
+      "name_zh": "差事与职务系统",
+      "name_en": "Assignments & Court Positions",
+      "type": "campaign",
+      "effects": ["任命为太守/官员/间谍或执行差事", "不同属性武将发挥不同专长（高专精管建筑、高智略管贸易、高毅力管人口）"],
+      "required_level": 1,
+      "description": "战役系系统：所有角色都能担任将领、太守、官员、间谍等一切职务；闲置角色会积累'缺乏目标'不满。"
+    }
+  ],
+  "skill_trees": {
+    "description": "每个属性的武将有一套固定排列的技能树：第一排为作战辅助技能，第二排为三个主技能（主动/被动）+辅助技能，第三排为内政技能。同属性武将技能树排列相同，区别仅在于1级时技能起点位置；传奇人物将某个主技能升级为强化版或调换位置。每系含12个带五行属性的小技能（2个本系专属+10个五系通用），数量符合五行相生相克（金克木、火克金→金系技能表中木、火技能各只有1个；土生金、金生水→土、水技能各有2个）。",
+    "metal": {
+      "skills_zh": ["热忱", "觉察", "勇敢", "镇静", "精准", "炽烈", "耐心", "理解", "坚定", "勤勉", "学识", "直觉"],
+      "main_skills_zh": ["不屈", "固守", "刚韧"],
+      "unique_effects": ["近战躲闪加成", "抵消冲锋", "免疫惊慌与惊恐"],
+      "corner_bonuses": ["左路'热诚'：+40%近战攻速、+10%穿甲伤害（适合赵云类近战）", "右路'精准'：+10%远程穿甲伤害、+10%远程攻速（适合太史慈类远程）"]
+    },
+    "wood": {
+      "skills_zh": ["耐心", "狡诈", "尊敬", "誓仇", "忍耐", "直觉", "敏捷", "富足", "明智", "信任", "志远", "屈伸"],
+      "main_skills_zh": ["聚怒", "壁垒", "断筋"],
+      "unique_effects": ["枪兵护甲加成", "增援范围扩大"]
+    },
+    "water": {
+      "skills_zh": ["镇静", "精准", "智谋", "耐心", "狡诈", "觉察", "志远", "学识", "直接", "慎断", "富足", "明智"],
+      "main_skills_zh": ["水圣", "洪波", "激浪"],
+      "unique_effects": ["远程攻速", "远程穿甲", "远程伤害", "火矢火箭（诸葛亮专有）"]
+    },
+    "fire": {
+      "skills_zh": ["誓仇", "忍耐", "暴怒", "敏捷", "炽烈", "狡诈", "热忱", "志远", "屈伸", "激情", "聪颖", "自尊"],
+      "main_skills_zh": ["炎凤", "绝杀", "虎啸"],
+      "unique_effects": ["恐吓", "士气打击", "冲锋加成"]
+    },
+    "earth": {
+      "skills_zh": ["敏捷", "炽烈", "哲思", "热忱", "觉察", "屈伸", "镇静", "聪颖", "自尊", "高尚", "理解", "坚定"],
+      "main_skills_zh": ["磐石", "天侣", "坚土"],
+      "unique_effects": ["公共秩序加成", "全体抗性加成"]
+    }
+  },
+  "satisfaction": {
+    "name_zh": "满意度/忠诚度",
+    "name_en": "Satisfaction & Loyalty",
+    "description": "满意度衡量角色对派系的忠诚，满意度归0时角色叛逃、带着部曲甚至管理的郡国离开；高位官员叛变会引发派系内战。在角色面板或主界面角色列表悬停人脸图标可查看满意度明细。",
+    "increasing_factors": [
+      "官职任命（府署）：为'缺乏目标'的角色安排职位",
+      "名爵晋升（角色面板）：每级提升满意度并提高俸禄",
+      "高位：丞相、储君、派系领袖（权威属性加成满意度）",
+      "赏赐贵重物品（闪闪发亮的东西最有效）",
+      "让角色工作或打仗（闲置产生'缺乏目标'不满）",
+      "与好友同朝为官/同军作战（关系系统加成，上限部属±12、君主±12）",
+      "派系等级提升、科技改革（如蓝色'太平道'线）、旅店等建筑（全派系满意度）",
+      "将领的特定特性（如开朗、魅力超凡、恭顺、和善）",
+      "释放相性合的敌方俘虏（'绿头'），招降将领获得'被饶恕重用'加成"
+    ],
+    "decreasing_factors": [
+      "渴求高位/不臣之心：每级-12满意度（1.20版公式×(1.5或0.5)），不满足则持续下降",
+      "闲置在朝（'缺乏目标'）",
+      "与敌人/竞争对手同派系或同军",
+      "发动战争（和平主义者不满）、长期不打仗（好战分子不满）",
+      "执行处决：处决敌派系角色会激怒派系内与其有旧的角色",
+      "自动作战损失过多（负面后天事件）",
+      "打败仗获得'无能'等负面特性",
+      "名爵俸禄+5永久满意度无法抵消高位渴望，只能救急"
+    ],
+    "consequences": [
+      "满意度低：角色离开派系并带走部曲",
+      "太守叛变：带走所管理郡国",
+      "高位官员叛变：触发派系内战、派系分崩离析",
+      "满意度未归0前不会主动背叛",
+      "升官、给东西、让其工作或打仗是维持忠诚的三大手段"
+    ]
+  },
+  "guanxi": {
+    "name_zh": "关系系统",
+    "name_en": "Guanxi / Relationships",
+    "description": "三国独有的关系系统：角色因共同经历（战斗、决斗、讨论、外交、任命、立储、联姻等事件）发展关系，特性（性格）共鸣则关系和谐，相斥则破裂。玩家无法直接控制关系，只能通过事件与人事安排间接影响。",
+    "compatibility": [
+      "绿√：相性好，关系和谐，增加满意度，最终可能成为朋友",
+      "红×：相性差，同军可能发生斗殴受伤事件，长期降低满意度，最终离开派系",
+      "选将时'绿头'俘虏应释放、'红头'应杀掉",
+      "相性差的武将可暂时休息换人，或为其安排相性好的同僚同军"
+    ],
+    "relationship_levels": [
+      "相识 → 友谊 → 义亲（最强正面）",
+      "相识 → 对抗 → 敌手/死敌（最强负面）"
+    ],
+    "battle_effects": [
+      "好友/义亲在场：增加士气与远程防御；一方殒命，另一方获得回血与杀伤加成（狂暴状态）",
+      "敌手在场：全杀伤+25%；死敌在场：全杀伤+50%",
+      "朋友出现在友军或敌军阵中：双方获得防御加成",
+      "关系与战斗表现互动：两人表现相当时采取更积极行动并获得战斗能力加成",
+      "不和角色之间产生轻微竞争，带来微弱的产出增益"
+    ],
+    "campaign_effects": [
+      "关系影响满意度：好友同朝满意度上升，对手同朝满意度下降",
+      "关系网延伸出派系边界：处决敌方角色会使己方与其有关的角色怨恨、满意度降低甚至带恨投敌",
+      "先天不合的人同朝为官或同领一军最容易造成后天不合",
+      "关系可补救：长期并肩作战可积累正面事件，最终互相喜欢"
+    ]
+  },
+  "legendary_characters": {
+    "name_zh": "传奇武将",
+    "name_en": "Legendary Characters",
+    "description": "有独特立绘的传奇武将（113名）通过称号获得额外五行属性（80/60/30/15点档位），并拥有强化版主技能与独特装备（护甲绑定）。传奇武将经验获取更快；任一属性达到100可将普通武将晋升为传奇。",
+    "examples": [
+      {"name": "关羽", "class": "战士", "unique_skill": "武圣（单体秒杀）", "note": "最强单挑者之一"},
+      {"name": "张飞", "class": "先锋", "unique_skill": "当阳怒喝（-100士气）", "note": "虎啸强化版，必溃"},
+      {"name": "赵云", "class": "卫士", "unique_skill": "元素活力（渐进闪避）", "note": "传奇枪兵卫士"},
+      {"name": "吕布", "class": "先锋", "unique_skill": "神怒/惊魂/狂怒凝视", "note": "最强先锋，'不臣之心'易叛"},
+      {"name": "诸葛亮", "class": "军师", "unique_skill": "水圣/洪波/火矢火箭", "note": "最强军师"},
+      {"name": "黄忠", "class": "卫士/远程", "unique_skill": "百步穿杨（弓手攻速+100%）", "note": "传家宝弓，无视类型招高级弓兵"},
+      {"name": "董卓", "class": "指挥", "unique_skill": "魔王称号（10水20火30土）", "note": "称号附带富庶背景等三特性"},
+      {"name": "孙尚香", "class": "卫士", "unique_skill": "穿心", "note": "唯一女传奇弓箭手之一"},
+      {"name": "曹仁", "class": "指挥", "unique_skill": "天降神威", "note": "士气+治疗"},
+      {"name": "马超", "class": "先锋", "unique_skill": "心火", "note": "冲锋强化"},
+      {"name": "孙策", "class": "先锋", "unique_skill": "狂嚎+狂怒", "note": "唯一有狂怒的先锋"},
+      {"name": "张辽", "class": "先锋", "unique_skill": "倚多为胜", "note": "人少更强"}
+    ]
+  }
+}

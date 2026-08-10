@@ -1,0 +1,8027 @@
+{
+  "game": "全面战争",
+  "game_en": "Total War",
+  "subtitle": "Three Kingdoms / 三国 (附: 战锤 Warhammer 参考)",
+  "category": "buildings",
+  "source_notes": "数据来源: 3DM攻略站全建筑图鉴(60页)、Total War Fandom Wiki、TWC Wiki(TWCenter)、honga.net Royal Military Academy数据库、SteamXO/电玩狂人/9game攻略、Prima Games DLC指南、NoobFeed。部分数值(尤其建造成本/时间)因来源不同存在差异,已标注最常引用数值。",
+  "buildings": [
+    {
+      "id": "bld_001",
+      "name_zh": "小镇",
+      "name_en": "Small Town",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": "城镇",
+      "construction_cost": 1000,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "+2 声望 prestige; 人口上限+200K; 1个建筑栏位; +10粮食储备上限"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第1级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_002",
+      "name_zh": "城镇",
+      "name_en": "Town",
+      "type": "government",
+      "tier": 2,
+      "upgrades_from": "小镇",
+      "upgrades_to": "大镇",
+      "construction_cost": 1500,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "+4 声望; 人口上限+300K; 2个建筑栏位; 开始拥有守军(初始防御)"
+      ],
+      "requirements": [
+        "人口达到一定水平"
+      ],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第2级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_003",
+      "name_zh": "大镇",
+      "name_en": "Large Town",
+      "type": "government",
+      "tier": 3,
+      "upgrades_from": "城镇",
+      "upgrades_to": "小县城",
+      "construction_cost": 2000,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "+8 声望; 人口上限+400K; +25农民收入; +25%商业收入"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第3级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_004",
+      "name_zh": "小县城",
+      "name_en": "Small City",
+      "type": "government",
+      "tier": 4,
+      "upgrades_from": "大镇",
+      "upgrades_to": "县城",
+      "construction_cost": 3000,
+      "construction_time": 6,
+      "upkeep": 0,
+      "effects": [
+        "+12 声望; 人口上限+800K; 3个建筑栏位; 粮食-2; 拥有城墙; +25商业收入; 守军7"
+      ],
+      "requirements": [
+        "改革: 黄门宦官(Eunuch Secretaries)"
+      ],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第4级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_005",
+      "name_zh": "县城",
+      "name_en": "City",
+      "type": "government",
+      "tier": 5,
+      "upgrades_from": "小县城",
+      "upgrades_to": "大县城",
+      "construction_cost": 4000,
+      "construction_time": 6,
+      "upkeep": 0,
+      "effects": [
+        "+16 声望; 人口上限+1M; 4个建筑栏位; 粮食-6"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第5级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_006",
+      "name_zh": "大县城",
+      "name_en": "Large City",
+      "type": "government",
+      "tier": 6,
+      "upgrades_from": "县城",
+      "upgrades_to": "小城",
+      "construction_cost": 5000,
+      "construction_time": 6,
+      "upkeep": 0,
+      "effects": [
+        "+20 声望; 人口上限+1.5M; 4个建筑栏位; 粮食-10; +50农民收入; +50商业收入(派系)"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第6级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_007",
+      "name_zh": "小城",
+      "name_en": "Small Regional City",
+      "type": "government",
+      "tier": 7,
+      "upgrades_from": "大县城",
+      "upgrades_to": "城市",
+      "construction_cost": 6500,
+      "construction_time": 8,
+      "upkeep": 0,
+      "effects": [
+        "+20~25 声望; 人口上限+1.5~2M; 5个建筑栏位; 粮食-16; 腐败+5%; 公共秩序-5; +50%商业收入; 高级箭塔"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第7级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_008",
+      "name_zh": "城市",
+      "name_en": "Regional City",
+      "type": "government",
+      "tier": 8,
+      "upgrades_from": "小城",
+      "upgrades_to": "大城",
+      "construction_cost": 8000,
+      "construction_time": 8,
+      "upkeep": 0,
+      "effects": [
+        "+30 声望; 人口上限+3M; 6个建筑栏位; 粮食-24; +75农民收入; 可升级为都城"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第8级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_009",
+      "name_zh": "大城",
+      "name_en": "Large Regional City",
+      "type": "government",
+      "tier": 9,
+      "upgrades_from": "城市",
+      "upgrades_to": "都城",
+      "construction_cost": 10000,
+      "construction_time": 8,
+      "upkeep": 0,
+      "effects": [
+        "+40 声望; 人口上限+4M; 6个建筑栏位; 粮食-34; 腐败+15%; 公共秩序-15; +75%商业收入"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第9级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_010",
+      "name_zh": "都城",
+      "name_en": "Imperial City",
+      "type": "government",
+      "tier": 10,
+      "upgrades_from": "大城",
+      "upgrades_to": null,
+      "construction_cost": 12000,
+      "construction_time": 10,
+      "upkeep": 0,
+      "effects": [
+        "+50 声望; 人口上限+7.5M; 6个建筑栏位; 粮食-46; +100农民收入; +150%商业收入; 每派系仅一座"
+      ],
+      "requirements": [
+        "仅1座/派系"
+      ],
+      "faction": "all",
+      "description": "郡国治所(Settlement Administration)链第10级，决定建筑栏位/人口上限/守军"
+    },
+    {
+      "id": "bld_011",
+      "name_zh": "流人劳工营地",
+      "name_en": "Drifter Workforce Camp",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+4K(本地郡县)",
+        "学习与市场建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_012",
+      "name_zh": "临时劳工居所",
+      "name_en": "Temporary Labour Housing",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1150,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+12K(本地)",
+        "相邻郡县人口迁移-1K"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_013",
+      "name_zh": "征募劳工居所",
+      "name_en": "Labourer Conscription Housing",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+25K(本地)",
+        "相邻郡县人口迁移-2K"
+      ],
+      "requirements": [
+        "改革: 劝奴(Slave Mobilisation)"
+      ],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_014",
+      "name_zh": "永久劳工居所",
+      "name_en": "Permanent Labour Housing",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "征募劳工居所",
+      "upgrades_to": [],
+      "construction_cost": 3050,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+50K(本地)",
+        "相邻-4K",
+        "提供匠师资源"
+      ],
+      "requirements": [
+        "改革: 考工室(Office of Arts & Crafts)"
+      ],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_015",
+      "name_zh": "劳工署",
+      "name_en": "Office of Works",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "永久劳工居所",
+      "upgrades_to": [],
+      "construction_cost": 5400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+100K(本地)",
+        "相邻-6K",
+        "学习与市场建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 官营垄断(State Monopolies)"
+      ],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_016",
+      "name_zh": "矿业署",
+      "name_en": "Bureau of Mining Subsidiaries",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "征募劳工居所",
+      "upgrades_to": [],
+      "construction_cost": 2800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+40K(本地)",
+        "工业收入+25%(本地)"
+      ],
+      "requirements": [
+        "铁矿+食盐资源",
+        "改革: 辘轳采矿(Shaft Mining)",
+        "解锁手工业者"
+      ],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_017",
+      "name_zh": "官营采矿书",
+      "name_en": "Bureau of State Mining Expeditions",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "矿业署",
+      "upgrades_to": [],
+      "construction_cost": 3800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+80K(本地)",
+        "工业收入+40%(本地)"
+      ],
+      "requirements": [
+        "改革: 排气室(Ventilation Shafts)"
+      ],
+      "faction": "all",
+      "description": "民力(Labour)链：人口增长核心，4级分商业/矿业两路；矿业路需铁矿与食盐"
+    },
+    {
+      "id": "bld_018",
+      "name_zh": "官坊",
+      "name_en": "State Workshops",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1250,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+100(本地)",
+        "学习与市场建筑建造成本-10%",
+        "改革度-2(本地郡县)"
+      ],
+      "requirements": [
+        "改革: 陶砖(Terra-cotta Brickwork)"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_019",
+      "name_zh": "公共坊",
+      "name_en": "Communal Workshops",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 2100,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+200(本地)",
+        "学习与市场建筑建造成本-10%",
+        "改革度-4"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_020",
+      "name_zh": "公家工坊",
+      "name_en": "Government Workshops",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "公共坊",
+      "upgrades_to": [],
+      "construction_cost": 2950,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+300(本地)",
+        "学习与市场建筑建造成本-10%",
+        "改革度-6"
+      ],
+      "requirements": [
+        "改革: 货币经济(Money Economy)"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_021",
+      "name_zh": "郡国工坊",
+      "name_en": "Government Provincial Workshops",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "公家工坊",
+      "upgrades_to": [],
+      "construction_cost": 3800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+400(本地)",
+        "学习与市场建筑建造成本-10%",
+        "解锁手工业者"
+      ],
+      "requirements": [
+        "改革: 考工室(Office of Arts & Crafts)"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_022",
+      "name_zh": "将作监",
+      "name_en": "Grand State Workshops",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "郡国工坊",
+      "upgrades_to": [],
+      "construction_cost": 4650,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+500(本地)",
+        "学习与市场建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 官营垄断(State Monopolies)"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_023",
+      "name_zh": "钟官署",
+      "name_en": "Currency Inspector Office",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "公共坊",
+      "upgrades_to": [],
+      "construction_cost": 2950,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+100",
+        "本地腐败-10%"
+      ],
+      "requirements": [
+        "改革: 货币经济(Money Economy)"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_024",
+      "name_zh": "铸币厂",
+      "name_en": "Coin Maker",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "钟官署",
+      "upgrades_to": [],
+      "construction_cost": 3800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+200",
+        "相邻郡国腐败-10%"
+      ],
+      "requirements": [
+        "改革: 考工室",
+        "铜矿资源"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_025",
+      "name_zh": "大型官营铸币厂",
+      "name_en": "Grand Treasury Mint",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "铸币厂",
+      "upgrades_to": [],
+      "construction_cost": 4650,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+300",
+        "相邻郡国腐败-15%"
+      ],
+      "requirements": [
+        "改革: 官营垄断"
+      ],
+      "faction": "all",
+      "description": "官坊(State Workshops)链：工业收入；3级分公家工坊(产值)与钟官署(反腐)两路"
+    },
+    {
+      "id": "bld_026",
+      "name_zh": "手工作坊",
+      "name_en": "Private Workshops",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 650,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+25%",
+        "工业收入+5%",
+        "学习与市场建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "手工作坊(Private Workshops)链：以百分比提升工商业收入"
+    },
+    {
+      "id": "bld_027",
+      "name_zh": "工棚",
+      "name_en": "Craftsmen Shacks",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "手工作坊",
+      "upgrades_to": [],
+      "construction_cost": 1050,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+50%",
+        "工业收入+10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "手工作坊(Private Workshops)链：以百分比提升工商业收入"
+    },
+    {
+      "id": "bld_028",
+      "name_zh": "工坊",
+      "name_en": "Craftsmen Workshops",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "工棚",
+      "upgrades_to": [],
+      "construction_cost": 1450,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+75%",
+        "工业收入+15%"
+      ],
+      "requirements": [
+        "改革: 货币经济"
+      ],
+      "faction": "all",
+      "description": "手工作坊(Private Workshops)链：以百分比提升工商业收入"
+    },
+    {
+      "id": "bld_029",
+      "name_zh": "匠工坊",
+      "name_en": "Artisan Workshops",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "工坊",
+      "upgrades_to": [],
+      "construction_cost": 2200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+100%",
+        "工业收入+20%",
+        "解锁匠师"
+      ],
+      "requirements": [
+        "改革: 整顿商贾(Regulate Commerce)"
+      ],
+      "faction": "all",
+      "description": "手工作坊(Private Workshops)链：以百分比提升工商业收入"
+    },
+    {
+      "id": "bld_030",
+      "name_zh": "大匠坊",
+      "name_en": "Master Artisans",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "匠工坊",
+      "upgrades_to": [],
+      "construction_cost": 3300,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+125%",
+        "工业收入+20%"
+      ],
+      "requirements": [
+        "改革: 行肆市列(Market Streets)"
+      ],
+      "faction": "all",
+      "description": "手工作坊(Private Workshops)链：以百分比提升工商业收入"
+    },
+    {
+      "id": "bld_031",
+      "name_zh": "漆器将作监",
+      "name_en": "Master Lacquerware Artisans",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "匠工坊",
+      "upgrades_to": [],
+      "construction_cost": 3600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+190%",
+        "工业收入+40%"
+      ],
+      "requirements": [
+        "改革: 行肆市列",
+        "木材资源"
+      ],
+      "faction": "all",
+      "description": "手工作坊(Private Workshops)链：以百分比提升工商业收入"
+    },
+    {
+      "id": "bld_032",
+      "name_zh": "流人农营",
+      "name_en": "Drifter Farming Camp",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食产量+25%",
+        "农民收入+10%",
+        "军事建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_033",
+      "name_zh": "农工营",
+      "name_en": "Farm Labourer Camp",
+      "type": "food",
+      "tier": 2,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1150,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食产量+50%",
+        "农民收入+25%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_034",
+      "name_zh": "劳工署",
+      "name_en": "Workforce Distribution Office",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "农工营",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+50%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_035",
+      "name_zh": "郡国水利",
+      "name_en": "Commandery Irrigation Works",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "劳工署",
+      "upgrades_to": [],
+      "construction_cost": 2000,
+      "construction_time": 3,
+      "upkeep": 20,
+      "effects": [
+        "粮食产量+75%",
+        "农民收入+75%"
+      ],
+      "requirements": [
+        "改革: 水利灌溉(Irrigation)",
+        "谷物资源"
+      ],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_036",
+      "name_zh": "大型灌渠",
+      "name_en": "Grand Irrigation Canals",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "郡国水利",
+      "upgrades_to": [],
+      "construction_cost": 3800,
+      "construction_time": 3,
+      "upkeep": 40,
+      "effects": [
+        "粮食产量+100%",
+        "农民收入+100%"
+      ],
+      "requirements": [
+        "改革: 密植(Intensive Planting)",
+        "谷物资源"
+      ],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_037",
+      "name_zh": "农具库",
+      "name_en": "Farm Supply Storage",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "农工营",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食产量+70%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_038",
+      "name_zh": "配给所",
+      "name_en": "Farm Tool Distribution",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "农具库",
+      "upgrades_to": [],
+      "construction_cost": 2000,
+      "construction_time": 3,
+      "upkeep": 20,
+      "effects": [
+        "农民收入+35%"
+      ],
+      "requirements": [
+        "改革: 郡国铁具锻炉(County Iron Forges)",
+        "工具资源"
+      ],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_039",
+      "name_zh": "扇车工坊",
+      "name_en": "Winnowing Machine Workshop",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "配给所",
+      "upgrades_to": [],
+      "construction_cost": 3800,
+      "construction_time": 3,
+      "upkeep": 40,
+      "effects": [
+        "粮食产量+150%"
+      ],
+      "requirements": [
+        "改革: 扇车(Winnowing Machines)",
+        "工具资源",
+        "需要区域性城市"
+      ],
+      "faction": "all",
+      "description": "官府支持(Government Support)链：百分比提升粮食与农民收入"
+    },
+    {
+      "id": "bld_040",
+      "name_zh": "稽田署",
+      "name_en": "Agricultural Taxation Office",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+1",
+        "农民收入+70",
+        "军事建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_041",
+      "name_zh": "度田署",
+      "name_en": "Agricultural Ministry",
+      "type": "food",
+      "tier": 2,
+      "upgrades_from": "稽田署",
+      "upgrades_to": [],
+      "construction_cost": 900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2",
+        "农民收入+90"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_042",
+      "name_zh": "浇灌农田",
+      "name_en": "Irrigation Fields",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "度田署",
+      "upgrades_to": [],
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+3",
+        "农民收入+110"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_043",
+      "name_zh": "农耕田庄",
+      "name_en": "Farming Estates",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "浇灌农田",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4",
+        "农民收入+130"
+      ],
+      "requirements": [
+        "改革: 租佃制度(Tenant Farming)"
+      ],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_044",
+      "name_zh": "豪强田庄",
+      "name_en": "Magnate Estates",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "农耕田庄",
+      "upgrades_to": [],
+      "construction_cost": 3000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+5",
+        "农民收入+150"
+      ],
+      "requirements": [
+        "改革: 地主豪族(Landlord Magnates)"
+      ],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_045",
+      "name_zh": "食物市场",
+      "name_en": "Food Market",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "度田署",
+      "upgrades_to": [],
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+220",
+        "粮食-6",
+        "军事建筑建造成本-10%",
+        "改革度+3"
+      ],
+      "requirements": [
+        "改革: 农书(Treatise on Agriculture)"
+      ],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_046",
+      "name_zh": "食物市集",
+      "name_en": "Food Bazaar",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "食物市场",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+250",
+        "粮食-12"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_047",
+      "name_zh": "大型食物市集",
+      "name_en": "Grand Food Market",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "食物市集",
+      "upgrades_to": [],
+      "construction_cost": 3000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+280",
+        "粮食-18"
+      ],
+      "requirements": [
+        "改革: 密植(Intensive Planting)"
+      ],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_048",
+      "name_zh": "郡府牛马市",
+      "name_en": "County Livestock Market",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "食物市集",
+      "upgrades_to": [],
+      "construction_cost": 3600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+300",
+        "粮食-24"
+      ],
+      "requirements": [
+        "改革: 密植",
+        "畜牧资源",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "拓土(Land Development)链：直接粮食+农民收入；3级分田庄(粮食)与市场(卖粮换钱)两路"
+    },
+    {
+      "id": "bld_049",
+      "name_zh": "谷仓",
+      "name_en": "Grain Store",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": "筒仓",
+      "construction_cost": 600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+2",
+        "粮食储备上限+25",
+        "军事建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "粮食储备(Grain Storage)链：增加粮食储备上限与公共秩序"
+    },
+    {
+      "id": "bld_050",
+      "name_zh": "筒仓",
+      "name_en": "Grain Silo",
+      "type": "food",
+      "tier": 2,
+      "upgrades_from": "谷仓",
+      "upgrades_to": "粮库",
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+4",
+        "粮食储备上限+40"
+      ],
+      "requirements": [
+        "解锁改革: 平准仓(Ever-level Granaries)"
+      ],
+      "faction": "all",
+      "description": "粮食储备(Grain Storage)链：增加粮食储备上限与公共秩序"
+    },
+    {
+      "id": "bld_051",
+      "name_zh": "粮库",
+      "name_en": "Grain Depot",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "筒仓",
+      "upgrades_to": "邸阁",
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+6",
+        "粮食储备上限+60"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "粮食储备(Grain Storage)链：增加粮食储备上限与公共秩序"
+    },
+    {
+      "id": "bld_052",
+      "name_zh": "邸阁",
+      "name_en": "Granary",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "粮库",
+      "upgrades_to": "大型邸阁",
+      "construction_cost": 2400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+8",
+        "粮食储备上限+80"
+      ],
+      "requirements": [
+        "改革: 平准仓"
+      ],
+      "faction": "all",
+      "description": "粮食储备(Grain Storage)链：增加粮食储备上限与公共秩序"
+    },
+    {
+      "id": "bld_053",
+      "name_zh": "大型邸阁",
+      "name_en": "Grand Granary",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "邸阁",
+      "upgrades_to": null,
+      "construction_cost": 3000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+10",
+        "粮食储备上限+120",
+        "军事建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 军屯(Military Colonies)"
+      ],
+      "faction": "all",
+      "description": "粮食储备(Grain Storage)链：增加粮食储备上限与公共秩序"
+    },
+    {
+      "id": "bld_054",
+      "name_zh": "鱼湾",
+      "name_en": "Jetties",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2(渔业)",
+        "商业收入+40",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [
+        "靠河/海"
+      ],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_055",
+      "name_zh": "渔港",
+      "name_en": "Pier",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "鱼湾",
+      "upgrades_to": [],
+      "construction_cost": 2500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+3(渔业)",
+        "商业收入+70"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_056",
+      "name_zh": "贩渔港",
+      "name_en": "Fish Trader",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "渔港",
+      "upgrades_to": [],
+      "construction_cost": 3300,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4(渔业)",
+        "商业收入+100"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_057",
+      "name_zh": "渔港口岸",
+      "name_en": "Fishing Port",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "贩渔港",
+      "upgrades_to": [],
+      "construction_cost": 4100,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+5(渔业)",
+        "商业收入+130"
+      ],
+      "requirements": [
+        "改革: 外邦使者(Foreign Envoys)"
+      ],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_058",
+      "name_zh": "大型渔港口岸",
+      "name_en": "Grand Fishing Port",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "渔港口岸",
+      "upgrades_to": [],
+      "construction_cost": 4900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+6(渔业)",
+        "商业收入+160",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 大鸿胪(Grand Herald)"
+      ],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_059",
+      "name_zh": "商港",
+      "name_en": "Harbour Trader",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "渔港",
+      "upgrades_to": [],
+      "construction_cost": 3300,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+3(渔业)",
+        "商业收入+110",
+        "商业收入+10%(派系)",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_060",
+      "name_zh": "商港口岸",
+      "name_en": "Trade Port",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "商港",
+      "upgrades_to": [],
+      "construction_cost": 4100,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+130",
+        "商业收入+15%(派系)"
+      ],
+      "requirements": [
+        "改革: 外邦使者"
+      ],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_061",
+      "name_zh": "大型商港",
+      "name_en": "Grand Trading Post",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "商港口岸",
+      "upgrades_to": [],
+      "construction_cost": 4900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+160",
+        "商业收入+20%(派系)",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 大鸿胪"
+      ],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_062",
+      "name_zh": "香药商埠",
+      "name_en": "Spice Trading Port",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "商港口岸",
+      "upgrades_to": [],
+      "construction_cost": 5200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+200",
+        "香药收入提升(派系)",
+        "贸易影响力+15%"
+      ],
+      "requirements": [
+        "改革: 大鸿胪",
+        "香药资源"
+      ],
+      "faction": "all",
+      "description": "港口(Harbour)链：仅限靠水城市；渔业/商业两路。孙坚派系每座大型商港额外提供派系商业收入+25%"
+    },
+    {
+      "id": "bld_063",
+      "name_zh": "驿站",
+      "name_en": "Horse Exchange",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+100",
+        "商业收入+10%",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [
+        "解锁改革: 六博(Liu Bo)"
+      ],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_064",
+      "name_zh": "邮驿",
+      "name_en": "Mail Post",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "驿站",
+      "upgrades_to": [],
+      "construction_cost": 1150,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+120",
+        "商业收入+25%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_065",
+      "name_zh": "客舍",
+      "name_en": "Lodge",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "邮驿",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+140",
+        "商业收入+50%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_066",
+      "name_zh": "客栈",
+      "name_en": "Guest House",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "客舍",
+      "upgrades_to": [],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+160",
+        "商业收入+75%"
+      ],
+      "requirements": [
+        "改革: 六博"
+      ],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_067",
+      "name_zh": "豪华客栈",
+      "name_en": "Grand Guest House",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "客栈",
+      "upgrades_to": [],
+      "construction_cost": 3400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+200",
+        "商业收入+100%",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 围棋(Go)"
+      ],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_068",
+      "name_zh": "茶室",
+      "name_en": "Tea Parlour",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "邮驿",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+150",
+        "商业收入+30%"
+      ],
+      "requirements": [
+        "茶叶资源"
+      ],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_069",
+      "name_zh": "茶馆",
+      "name_en": "Tea House",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "茶室",
+      "upgrades_to": [],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+200",
+        "商业收入+50%"
+      ],
+      "requirements": [
+        "改革: 六博",
+        "茶叶资源"
+      ],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_070",
+      "name_zh": "大型茶馆",
+      "name_en": "Grand Tea House",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "茶馆",
+      "upgrades_to": [],
+      "construction_cost": 3400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+250",
+        "商业收入+75%",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 围棋",
+        "茶叶资源"
+      ],
+      "faction": "all",
+      "description": "市肆(Inn)链：商业收入；3级分客栈/茶馆两路，茶路需茶叶资源"
+    },
+    {
+      "id": "bld_071",
+      "name_zh": "庠序",
+      "name_en": "County School",
+      "type": "research",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": "学校",
+      "construction_cost": 900,
+      "construction_time": 1,
+      "upkeep": 10,
+      "effects": [
+        "派系人物经验+4%",
+        "公共秩序+1",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [
+        "解锁改革: 塾师(Private Tutors)"
+      ],
+      "faction": "all",
+      "description": "学校(Schools)链：提升派系人物经验，解锁一半蓝色改革"
+    },
+    {
+      "id": "bld_072",
+      "name_zh": "学校",
+      "name_en": "County Academy",
+      "type": "research",
+      "tier": 2,
+      "upgrades_from": "庠序",
+      "upgrades_to": "郡国学",
+      "construction_cost": 1400,
+      "construction_time": 2,
+      "upkeep": 20,
+      "effects": [
+        "派系人物经验+8%",
+        "公共秩序+2",
+        "改革度+4"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "学校(Schools)链：提升派系人物经验，解锁一半蓝色改革"
+    },
+    {
+      "id": "bld_073",
+      "name_zh": "郡国学",
+      "name_en": "Academy",
+      "type": "research",
+      "tier": 3,
+      "upgrades_from": "学校",
+      "upgrades_to": "精庐",
+      "construction_cost": 1900,
+      "construction_time": 2,
+      "upkeep": 30,
+      "effects": [
+        "派系人物经验+12%",
+        "公共秩序+3",
+        "改革度+6"
+      ],
+      "requirements": [
+        "需要小区域性城市"
+      ],
+      "faction": "all",
+      "description": "学校(Schools)链：提升派系人物经验，解锁一半蓝色改革"
+    },
+    {
+      "id": "bld_074",
+      "name_zh": "精庐",
+      "name_en": "Academy Complex",
+      "type": "research",
+      "tier": 4,
+      "upgrades_from": "郡国学",
+      "upgrades_to": "大型郡国学",
+      "construction_cost": 2400,
+      "construction_time": 3,
+      "upkeep": 40,
+      "effects": [
+        "派系人物经验+16%",
+        "公共秩序+4",
+        "改革度+10"
+      ],
+      "requirements": [
+        "改革: 察举(Recommendation System)"
+      ],
+      "faction": "all",
+      "description": "学校(Schools)链：提升派系人物经验，解锁一半蓝色改革"
+    },
+    {
+      "id": "bld_075",
+      "name_zh": "大型郡国学",
+      "name_en": "Grand Academy",
+      "type": "research",
+      "tier": 5,
+      "upgrades_from": "精庐",
+      "upgrades_to": null,
+      "construction_cost": 2900,
+      "construction_time": 3,
+      "upkeep": 50,
+      "effects": [
+        "派系人物经验+20%",
+        "公共秩序+5",
+        "改革度+14"
+      ],
+      "requirements": [
+        "改革: 士行典则(Standards of Scholar Conduct)"
+      ],
+      "faction": "all",
+      "description": "学校(Schools)链：提升派系人物经验，解锁一半蓝色改革"
+    },
+    {
+      "id": "bld_076",
+      "name_zh": "市集",
+      "name_en": "Shopkeeper",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+50%",
+        "贸易影响力+10%(派系)",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_077",
+      "name_zh": "大市集",
+      "name_en": "Marketplace",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "市集",
+      "upgrades_to": [],
+      "construction_cost": 1400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+75%",
+        "贸易影响力+20%(派系)"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_078",
+      "name_zh": "商会",
+      "name_en": "Merchant Registry Office",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "大市集",
+      "upgrades_to": [],
+      "construction_cost": 1900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+100%",
+        "贸易影响力+30%(派系)",
+        "公共秩序-8",
+        "改革度+3"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_079",
+      "name_zh": "货栈",
+      "name_en": "Merchant Warehouses",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "商会",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+125%",
+        "贸易影响力+40%(派系)",
+        "公共秩序-12",
+        "改革度+5",
+        "解锁巨贾"
+      ],
+      "requirements": [
+        "改革: 市令(Market Administration)"
+      ],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_080",
+      "name_zh": "商行",
+      "name_en": "Bureau of Trading Associations",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "货栈",
+      "upgrades_to": [],
+      "construction_cost": 2900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+150%",
+        "贸易影响力+50%(派系)",
+        "公共秩序-16",
+        "改革度+8",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 鼓励商贾"
+      ],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_081",
+      "name_zh": "丝路远征商铺",
+      "name_en": "Silk Expedition Trading Post",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "商会",
+      "upgrades_to": [],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+110%",
+        "贸易影响力+35%(派系)",
+        "丝绸收入+15%(派系)"
+      ],
+      "requirements": [
+        "丝绸资源"
+      ],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_082",
+      "name_zh": "鼓钟楼",
+      "name_en": "Drum & Bell Tower",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "商会",
+      "upgrades_to": [],
+      "construction_cost": 3200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+150%",
+        "贸易影响力+30%(派系)",
+        "公共秩序-16",
+        "敌方间谍成本+4(派系)",
+        "改革度+6"
+      ],
+      "requirements": [
+        "改革: 市令"
+      ],
+      "faction": "all",
+      "description": "市集(Marketplace)链：内陆城市商业核心，提升商业收入与贸易影响力"
+    },
+    {
+      "id": "bld_083",
+      "name_zh": "港口商铺",
+      "name_en": "Market Stall",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+40",
+        "商业收入+10%",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [
+        "靠水城市"
+      ],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_084",
+      "name_zh": "港口市集",
+      "name_en": "Market Square",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "港口商铺",
+      "upgrades_to": [],
+      "construction_cost": 1400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+70",
+        "商业收入+20%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_085",
+      "name_zh": "港口货舱",
+      "name_en": "Market Wharf",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "港口市集",
+      "upgrades_to": [],
+      "construction_cost": 1900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+100",
+        "商业收入+30%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_086",
+      "name_zh": "港口货栈",
+      "name_en": "Customs House",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "港口货舱",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+130",
+        "商业收入+40%",
+        "解锁巨贾"
+      ],
+      "requirements": [
+        "改革: 市令(Market Administration)"
+      ],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_087",
+      "name_zh": "港口商行",
+      "name_en": "Trade Company",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "港口货栈",
+      "upgrades_to": [],
+      "construction_cost": 2900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+160",
+        "商业收入+50%",
+        "贸易影响力+15%(派系)"
+      ],
+      "requirements": [
+        "改革: 鼓励商贾"
+      ],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_088",
+      "name_zh": "巡官署",
+      "name_en": "Harbour Inspectorate",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "港口货舱",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+130",
+        "商业收入+40%",
+        "敌方间谍成本+2(派系)"
+      ],
+      "requirements": [
+        "改革: 伪装诡道(Disguise Deceptions)"
+      ],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_089",
+      "name_zh": "港监署",
+      "name_en": "Harbour Command",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "巡官署",
+      "upgrades_to": [],
+      "construction_cost": 2900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+160",
+        "商业收入+50%",
+        "敌方间谍成本+4(派系)"
+      ],
+      "requirements": [
+        "改革: 用间(Use of Spies)"
+      ],
+      "faction": "all",
+      "description": "市场码头(Market Wharf)链：港口城市的市集替代链"
+    },
+    {
+      "id": "bld_090",
+      "name_zh": "募兵所",
+      "name_en": "Conscription Office",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": "治兵场",
+      "construction_cost": 1000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+2(本地)",
+        "政府建筑建造成本-10%",
+        "人口增长-4K"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "征募(Conscription)链：新兵经验加成，减少人口增长"
+    },
+    {
+      "id": "bld_091",
+      "name_zh": "治兵场",
+      "name_en": "Training Field",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "募兵所",
+      "upgrades_to": "讲武营",
+      "construction_cost": 2000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+2",
+        "派系每季部曲部署+1",
+        "人口增长-6K"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "征募(Conscription)链：新兵经验加成，减少人口增长"
+    },
+    {
+      "id": "bld_092",
+      "name_zh": "讲武营",
+      "name_en": "Training Camp",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "治兵场",
+      "upgrades_to": null,
+      "construction_cost": 3000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+3",
+        "派系每季部曲部署+2",
+        "重新部署费用-5%(派系)",
+        "人口增长-8K"
+      ],
+      "requirements": [
+        "改革: 征召卫兵(Garrison Conscripts)"
+      ],
+      "faction": "all",
+      "description": "征募(Conscription)链：新兵经验加成，减少人口增长"
+    },
+    {
+      "id": "bld_093",
+      "name_zh": "铁匠铺",
+      "name_en": "Blacksmith",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1750,
+      "construction_time": 1,
+      "upkeep": 30,
+      "effects": [
+        "招募费用-10%(本地)",
+        "工业收入+10%",
+        "政府建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "兵工(Military Forges)链：降低招募费用并产出武器/甲胄/弓弩饰品"
+    },
+    {
+      "id": "bld_094",
+      "name_zh": "铸兵室",
+      "name_en": "Military Forge",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "铁匠铺",
+      "upgrades_to": [],
+      "construction_cost": 2100,
+      "construction_time": 1,
+      "upkeep": 40,
+      "effects": [
+        "招募费用-10%(本地)",
+        "工业收入+20%"
+      ],
+      "requirements": [
+        "改革: 郡国铸兵室(Provincial Military Forges)"
+      ],
+      "faction": "all",
+      "description": "兵工(Military Forges)链：降低招募费用并产出武器/甲胄/弓弩饰品"
+    },
+    {
+      "id": "bld_095",
+      "name_zh": "铸甲所",
+      "name_en": "Military Armourer",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "铸兵室",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 2,
+      "upkeep": 40,
+      "effects": [
+        "近战步兵招募费用-10%",
+        "产出甲胄(至精良品质)"
+      ],
+      "requirements": [
+        "改革: 青龙舰(Green Dragon Ships)",
+        "手工业者",
+        "铁矿"
+      ],
+      "faction": "all",
+      "description": "兵工(Military Forges)链：降低招募费用并产出武器/甲胄/弓弩饰品"
+    },
+    {
+      "id": "bld_096",
+      "name_zh": "制弓所",
+      "name_en": "Military Bow-Makers",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "铸兵室",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 2,
+      "upkeep": 40,
+      "effects": [
+        "远程部队招募费用-10%",
+        "产出弓弩(至精良品质)"
+      ],
+      "requirements": [
+        "改革: 青龙舰",
+        "匠师",
+        "铁矿"
+      ],
+      "faction": "all",
+      "description": "兵工(Military Forges)链：降低招募费用并产出武器/甲胄/弓弩饰品"
+    },
+    {
+      "id": "bld_097",
+      "name_zh": "冶兵所",
+      "name_en": "Military Weaponsmith",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "铸兵室",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 2,
+      "upkeep": 40,
+      "effects": [
+        "矛兵招募费用-10%",
+        "产出兵器(至精良品质)"
+      ],
+      "requirements": [
+        "改革: 青龙舰",
+        "手工业者",
+        "铁矿"
+      ],
+      "faction": "all",
+      "description": "兵工(Military Forges)链：降低招募费用并产出武器/甲胄/弓弩饰品"
+    },
+    {
+      "id": "bld_098",
+      "name_zh": "巡守营",
+      "name_en": "Patrols",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 20,
+      "effects": [
+        "公共秩序+2",
+        "军事补给+5(相邻郡国)",
+        "政府建筑建造成本-10%"
+      ],
+      "requirements": [
+        "解锁改革: 畜牧许可(Livestock Licences)"
+      ],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_099",
+      "name_zh": "卫戍岗",
+      "name_en": "Guards Posts",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "巡守营",
+      "upgrades_to": [],
+      "construction_cost": 2000,
+      "construction_time": 1,
+      "upkeep": 20,
+      "effects": [
+        "公共秩序+4",
+        "军事补给+10(相邻)"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_100",
+      "name_zh": "武卫营",
+      "name_en": "Stationed Garrison",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "卫戍岗",
+      "upgrades_to": [],
+      "construction_cost": 2700,
+      "construction_time": 2,
+      "upkeep": 30,
+      "effects": [
+        "公共秩序+8",
+        "军事补给+12",
+        "粮食储备+20"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_101",
+      "name_zh": "中垒营",
+      "name_en": "Police Headquarters",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "武卫营",
+      "upgrades_to": [],
+      "construction_cost": 4000,
+      "construction_time": 2,
+      "upkeep": 30,
+      "effects": [
+        "公共秩序+10",
+        "军事补给+20",
+        "粮食储备+40"
+      ],
+      "requirements": [
+        "改革: 运漕(Transport by Canal)"
+      ],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_102",
+      "name_zh": "宿卫军营",
+      "name_en": "Fortified Garrison",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "中垒营",
+      "upgrades_to": [],
+      "construction_cost": 5500,
+      "construction_time": 3,
+      "upkeep": 40,
+      "effects": [
+        "军事补给+30",
+        "粮食储备+60",
+        "政府建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 要塞(Fortresses)"
+      ],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_103",
+      "name_zh": "巡守军营",
+      "name_en": "Patrol Barracks",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "卫戍岗",
+      "upgrades_to": [],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 20,
+      "effects": [
+        "公共秩序+6",
+        "军事补给+15",
+        "敌方军事补给-5"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_104",
+      "name_zh": "哨楼戍卫",
+      "name_en": "Watchtower Garrisons",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "巡守军营",
+      "upgrades_to": [],
+      "construction_cost": 2200,
+      "construction_time": 2,
+      "upkeep": 30,
+      "effects": [
+        "军事补给+25"
+      ],
+      "requirements": [
+        "改革: 运漕"
+      ],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_105",
+      "name_zh": "战略要塞",
+      "name_en": "Strategic Fortress",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "哨楼戍卫",
+      "upgrades_to": [],
+      "construction_cost": 3100,
+      "construction_time": 3,
+      "upkeep": 40,
+      "effects": [
+        "军事补给+40",
+        "敌方军事补给-10",
+        "政府建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 要塞"
+      ],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_106",
+      "name_zh": "白马义从团",
+      "name_en": "White Horse Fellows Riding Parties",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "哨楼戍卫",
+      "upgrades_to": [],
+      "construction_cost": 4100,
+      "construction_time": 3,
+      "upkeep": 40,
+      "effects": [
+        "骑兵新征初始等级+1(本地)",
+        "军事补给+40",
+        "敌方军事补给-20"
+      ],
+      "requirements": [
+        "改革: 兵贵神速",
+        "育马资源"
+      ],
+      "faction": "all",
+      "description": "军武设施(Military Infrastructure)链：军事补给、驻军与公共秩序"
+    },
+    {
+      "id": "bld_107",
+      "name_zh": "县令府",
+      "name_en": "County Office",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 1000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+10%",
+        "声望+5",
+        "经济建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_108",
+      "name_zh": "掾史府",
+      "name_en": "Magistrate",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "县令府",
+      "upgrades_to": [],
+      "construction_cost": 2000,
+      "construction_time": 3,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+15%",
+        "声望+10"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_109",
+      "name_zh": "郡府主薄",
+      "name_en": "Secretariat of the Commandery",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "掾史府",
+      "upgrades_to": [],
+      "construction_cost": 3000,
+      "construction_time": 3,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+20%",
+        "声望+15"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_110",
+      "name_zh": "郡府",
+      "name_en": "Directorate of the Commandery",
+      "type": "public_order",
+      "tier": 4,
+      "upgrades_from": "郡府主薄",
+      "upgrades_to": [],
+      "construction_cost": 4000,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+25%",
+        "声望+20"
+      ],
+      "requirements": [
+        "改革: 中常侍(Regular Palace Attendants)"
+      ],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_111",
+      "name_zh": "宫殿",
+      "name_en": "Imperial Palace",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "郡府",
+      "upgrades_to": [],
+      "construction_cost": 12000,
+      "construction_time": 10,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+500",
+        "声望+30",
+        "精英禁卫军驻军",
+        "经济建筑建造成本-50%",
+        "全部收入+10%(替代百分比加成)"
+      ],
+      "requirements": [
+        "改革: 受命于天(Mandate of Heaven)",
+        "每派系仅一座"
+      ],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_112",
+      "name_zh": "县丞府",
+      "name_en": "Court",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "掾史府",
+      "upgrades_to": [],
+      "construction_cost": 3000,
+      "construction_time": 3,
+      "upkeep": 0,
+      "effects": [
+        "本地腐败-10%"
+      ],
+      "requirements": [
+        "改革: 黄门宦官(Eunuch Secretaries)"
+      ],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_113",
+      "name_zh": "决曹",
+      "name_en": "Judiciary",
+      "type": "public_order",
+      "tier": 4,
+      "upgrades_from": "县丞府",
+      "upgrades_to": [],
+      "construction_cost": 4000,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "本地腐败-15%"
+      ],
+      "requirements": [
+        "改革: 中常侍"
+      ],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_114",
+      "name_zh": "郡决曹",
+      "name_en": "Grand Judiciary",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "决曹",
+      "upgrades_to": [],
+      "construction_cost": 5000,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "本地腐败-20%"
+      ],
+      "requirements": [
+        "改革: 六部(Six Bureaus of Bureaucracy)"
+      ],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_115",
+      "name_zh": "御史府",
+      "name_en": "Office for Archives and Seals",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "决曹",
+      "upgrades_to": [],
+      "construction_cost": 5500,
+      "construction_time": 4,
+      "upkeep": 0,
+      "effects": [
+        "相邻郡国腐败-20%"
+      ],
+      "requirements": [
+        "改革: 六部",
+        "玉石资源",
+        "匠师资源",
+        "需要7级城市"
+      ],
+      "faction": "all",
+      "description": "公府(Administration Office)链：全收入加成与反腐；3级分主薄(收入)/县丞(反腐)两路"
+    },
+    {
+      "id": "bld_116",
+      "name_zh": "孔祠",
+      "name_en": "Confucian Shrine",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": "孔庙",
+      "construction_cost": 900,
+      "construction_time": 1,
+      "upkeep": 10,
+      "effects": [
+        "公共秩序+4",
+        "经济建筑建造成本-10%",
+        "宗教热情-5",
+        "全部收入+5%"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "孔庙(Confucian Temples)链：公共秩序核心建筑"
+    },
+    {
+      "id": "bld_117",
+      "name_zh": "孔庙",
+      "name_en": "Confucian Temple",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "孔祠",
+      "upgrades_to": "大型孔庙",
+      "construction_cost": 1400,
+      "construction_time": 1,
+      "upkeep": 20,
+      "effects": [
+        "公共秩序+8",
+        "经济建筑建造成本-10%",
+        "宗教热情-10",
+        "全部收入+10%"
+      ],
+      "requirements": [
+        "解锁改革: 祫祀禘祭(Mastery of Ceremonies)"
+      ],
+      "faction": "all",
+      "description": "孔庙(Confucian Temples)链：公共秩序核心建筑"
+    },
+    {
+      "id": "bld_118",
+      "name_zh": "大型孔庙",
+      "name_en": "Grand Temple of Confucius",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "孔庙",
+      "upgrades_to": null,
+      "construction_cost": 2700,
+      "construction_time": 2,
+      "upkeep": 50,
+      "effects": [
+        "公共秩序+16",
+        "经济建筑建造成本-10%",
+        "宗教热情-15",
+        "全部收入+15%"
+      ],
+      "requirements": [
+        "改革: 无为而治(Principles of Wu Wei)"
+      ],
+      "faction": "all",
+      "description": "孔庙(Confucian Temples)链：公共秩序核心建筑"
+    },
+    {
+      "id": "bld_119",
+      "name_zh": "啬夫署",
+      "name_en": "Rural Tax Collectors",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": "乡政署",
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+80",
+        "公共秩序-4",
+        "经济建筑建造成本-10%"
+      ],
+      "requirements": [
+        "解锁改革: 贼曹(Bureau of Banditry)"
+      ],
+      "faction": "all",
+      "description": "税收(Tax Collection)链：免费建造，提升农民收入但降低公共秩序"
+    },
+    {
+      "id": "bld_120",
+      "name_zh": "乡政署",
+      "name_en": "Rural Administration Office",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "啬夫署",
+      "upgrades_to": "县辖乡政署",
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+110",
+        "公共秩序-8"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "税收(Tax Collection)链：免费建造，提升农民收入但降低公共秩序"
+    },
+    {
+      "id": "bld_121",
+      "name_zh": "县辖乡政署",
+      "name_en": "Rural County Administration",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "乡政署",
+      "upgrades_to": "郡辖乡政署",
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+140",
+        "公共秩序-12"
+      ],
+      "requirements": [
+        "改革: 贼曹"
+      ],
+      "faction": "all",
+      "description": "税收(Tax Collection)链：免费建造，提升农民收入但降低公共秩序"
+    },
+    {
+      "id": "bld_122",
+      "name_zh": "郡辖乡政署",
+      "name_en": "Rural Commandery Administration",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "县辖乡政署",
+      "upgrades_to": "州辖乡政署",
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+200",
+        "公共秩序-16"
+      ],
+      "requirements": [
+        "改革: 具五刑(The Five Punishments)"
+      ],
+      "faction": "all",
+      "description": "税收(Tax Collection)链：免费建造，提升农民收入但降低公共秩序"
+    },
+    {
+      "id": "bld_123",
+      "name_zh": "州辖乡政署",
+      "name_en": "Rural Province Administration",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "郡辖乡政署",
+      "upgrades_to": null,
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+240",
+        "公共秩序-20",
+        "经济建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 均输官(Commissioners of Passage)"
+      ],
+      "faction": "all",
+      "description": "税收(Tax Collection)链：免费建造，提升农民收入但降低公共秩序"
+    },
+    {
+      "id": "bld_124",
+      "name_zh": "农田",
+      "name_en": "Farmland",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "农庄"
+      ],
+      "construction_cost": 800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2",
+        "农民收入+80",
+        "军事建筑建造成本-10%",
+        "提供谷物资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "农田/农庄资源建筑链(需对应资源)：谷物"
+    },
+    {
+      "id": "bld_125",
+      "name_zh": "农庄",
+      "name_en": "Farmland Estates",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "农田",
+      "upgrades_to": [
+        "公家农庄"
+      ],
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4",
+        "农民收入+100",
+        "提供谷物资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "农田/农庄资源建筑链(需对应资源)：谷物"
+    },
+    {
+      "id": "bld_126",
+      "name_zh": "公家农庄",
+      "name_en": "State Farmland",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "农庄",
+      "upgrades_to": [
+        "田庄"
+      ],
+      "construction_cost": 1800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+6",
+        "农民收入+120",
+        "提供谷物资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "农田/农庄资源建筑链(需对应资源)：谷物"
+    },
+    {
+      "id": "bld_127",
+      "name_zh": "田庄",
+      "name_en": "Manor",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "公家农庄",
+      "upgrades_to": [
+        "大型田庄"
+      ],
+      "construction_cost": 2600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+8",
+        "农民收入+140",
+        "提供谷物资源"
+      ],
+      "requirements": [
+        "改革: 省禁轻租(Moderate Taxes)"
+      ],
+      "faction": "all",
+      "description": "农田/农庄资源建筑链(需对应资源)：谷物"
+    },
+    {
+      "id": "bld_128",
+      "name_zh": "大型田庄",
+      "name_en": "Grand Manor",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "田庄",
+      "upgrades_to": [],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+10",
+        "农民收入+160",
+        "声望+15",
+        "军事建筑建造成本-15%",
+        "提供谷物资源"
+      ],
+      "requirements": [
+        "改革: 地主豪族(Landlord Magnates)"
+      ],
+      "faction": "all",
+      "description": "农田/农庄资源建筑链(需对应资源)：谷物"
+    },
+    {
+      "id": "bld_129",
+      "name_zh": "铁矿坑",
+      "name_en": "Open Iron Veins",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "铁矿矿坑"
+      ],
+      "construction_cost": 1500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+100",
+        "声望+5",
+        "粮食储备+10",
+        "政府建筑建造成本-10%",
+        "提供铁矿"
+      ],
+      "requirements": [
+        "解锁改革: 辘轳采矿(Shaft Mining)"
+      ],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_130",
+      "name_zh": "铁矿矿坑",
+      "name_en": "Iron Pits",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "铁矿坑",
+      "upgrades_to": [
+        "铁矿山"
+      ],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+200",
+        "提供铁矿"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_131",
+      "name_zh": "铁矿山",
+      "name_en": "Iron Mine",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "铁矿矿坑",
+      "upgrades_to": [
+        "铁艺村庄"
+      ],
+      "construction_cost": 3700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+300",
+        "提供铁矿"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_132",
+      "name_zh": "铁艺村庄",
+      "name_en": "Iron Craftwork Village",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "铁矿山",
+      "upgrades_to": [
+        "铁艺城镇"
+      ],
+      "construction_cost": 4800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+400",
+        "声望+10",
+        "提供铁矿"
+      ],
+      "requirements": [
+        "改革: 辘轳采矿",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_133",
+      "name_zh": "铁艺城镇",
+      "name_en": "Iron Craftwork Town",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "铁艺村庄",
+      "upgrades_to": [
+        "军备村庄"
+      ],
+      "construction_cost": 6400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+500",
+        "声望+15",
+        "政府建筑建造成本-15%",
+        "提供铁矿"
+      ],
+      "requirements": [
+        "改革: 排气室(Ventilation Shafts)",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_134",
+      "name_zh": "军备村庄",
+      "name_en": "Military Supply Village",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "铁艺城镇",
+      "upgrades_to": [
+        "军备城镇"
+      ],
+      "construction_cost": 4800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+10(相邻)",
+        "工业收入+200",
+        "提供铁矿"
+      ],
+      "requirements": [
+        "改革: 郡国兵器室(County Armouries)",
+        "手工业者"
+      ],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_135",
+      "name_zh": "军备城镇",
+      "name_en": "Military Supply Town",
+      "type": "income",
+      "tier": 7,
+      "upgrades_from": "军备村庄",
+      "upgrades_to": [],
+      "construction_cost": 6400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+20(相邻)",
+        "工业收入+300",
+        "提供铁矿"
+      ],
+      "requirements": [
+        "改革: 青龙舰(Green Dragon Ships)",
+        "手工业者"
+      ],
+      "faction": "all",
+      "description": "铁矿资源建筑链(需对应资源)：铁矿"
+    },
+    {
+      "id": "bld_136",
+      "name_zh": "盐泉",
+      "name_en": "Brine Spring",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "盐池"
+      ],
+      "construction_cost": 1500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+100",
+        "声望+5",
+        "粮食储备+10",
+        "农业建筑建造成本-10%",
+        "提供食盐"
+      ],
+      "requirements": [
+        "解锁改革: 辘轳采矿"
+      ],
+      "faction": "all",
+      "description": "食盐资源建筑链(需对应资源)：食盐"
+    },
+    {
+      "id": "bld_137",
+      "name_zh": "盐池",
+      "name_en": "Salt Ponds",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "盐泉",
+      "upgrades_to": [
+        "盐田"
+      ],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+200",
+        "提供食盐"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "食盐资源建筑链(需对应资源)：食盐"
+    },
+    {
+      "id": "bld_138",
+      "name_zh": "盐田",
+      "name_en": "Salt Works",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "盐池",
+      "upgrades_to": [
+        "盐矿"
+      ],
+      "construction_cost": 3700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+300",
+        "提供食盐"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "食盐资源建筑链(需对应资源)：食盐"
+    },
+    {
+      "id": "bld_139",
+      "name_zh": "盐矿",
+      "name_en": "Salt Shaft Mine",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "盐田",
+      "upgrades_to": [
+        "盐矿城镇"
+      ],
+      "construction_cost": 4800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+400",
+        "声望+10",
+        "提供食盐"
+      ],
+      "requirements": [
+        "改革: 市令(Market Administration)"
+      ],
+      "faction": "all",
+      "description": "食盐资源建筑链(需对应资源)：食盐"
+    },
+    {
+      "id": "bld_140",
+      "name_zh": "盐矿城镇",
+      "name_en": "Salt Mining Town",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "盐矿",
+      "upgrades_to": [],
+      "construction_cost": 6400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+550",
+        "声望+15",
+        "农业建筑建造成本-15%",
+        "提供食盐"
+      ],
+      "requirements": [
+        "改革: 鼓励商贾(Encourage Merchants)",
+        "手工业者"
+      ],
+      "faction": "all",
+      "description": "食盐资源建筑链(需对应资源)：食盐"
+    },
+    {
+      "id": "bld_141",
+      "name_zh": "采玉工房",
+      "name_en": "Jade Collectors",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "玉矿床"
+      ],
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+90",
+        "商业收入+60",
+        "声望+5",
+        "粮食储备+10",
+        "提供玉石"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_142",
+      "name_zh": "玉矿床",
+      "name_en": "Jade Deposits",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "采玉工房",
+      "upgrades_to": [
+        "琢玉坊"
+      ],
+      "construction_cost": 2000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+130",
+        "商业收入+90",
+        "提供玉石"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_143",
+      "name_zh": "琢玉坊",
+      "name_en": "Jade Workshop",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "玉矿床",
+      "upgrades_to": [
+        "玉雕匠坊"
+      ],
+      "construction_cost": 2800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+170",
+        "商业收入+120",
+        "提供玉石"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_144",
+      "name_zh": "玉雕匠坊",
+      "name_en": "Jade Master Artisans",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "琢玉坊",
+      "upgrades_to": [
+        "宝玉工室"
+      ],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+225",
+        "商业收入+150",
+        "声望+10",
+        "提供玉石"
+      ],
+      "requirements": [
+        "改革: 辘轳采矿",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_145",
+      "name_zh": "宝玉工室",
+      "name_en": "Jade Treasure Works",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "玉雕匠坊",
+      "upgrades_to": [
+        "玉石贸易村"
+      ],
+      "construction_cost": 4400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+280",
+        "商业收入+180",
+        "声望+15",
+        "提供玉石"
+      ],
+      "requirements": [
+        "改革: 排气室",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_146",
+      "name_zh": "玉石贸易村",
+      "name_en": "Jade Trading Village",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "宝玉工室",
+      "upgrades_to": [
+        "玉石贸易镇"
+      ],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+150",
+        "贸易影响力+10%(派系)",
+        "声望+10",
+        "提供玉石"
+      ],
+      "requirements": [
+        "改革: 市令",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_147",
+      "name_zh": "玉石贸易镇",
+      "name_en": "Jade Trading Town",
+      "type": "income",
+      "tier": 7,
+      "upgrades_from": "玉石贸易村",
+      "upgrades_to": [],
+      "construction_cost": 4400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+200",
+        "贸易影响力+15%(派系)",
+        "声望+15",
+        "提供玉石"
+      ],
+      "requirements": [
+        "改革: 鼓励商贾",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "玉石资源建筑链(需对应资源)：玉石"
+    },
+    {
+      "id": "bld_148",
+      "name_zh": "松木场",
+      "name_en": "Pine Lumber Yard",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "松林伐木场"
+      ],
+      "construction_cost": 800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+40",
+        "声望+5",
+        "粮食储备+10",
+        "军事建筑建造成本-10%",
+        "提供木材"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "松木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_149",
+      "name_zh": "松林伐木场",
+      "name_en": "Pine Woodcutter",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "松木场",
+      "upgrades_to": [
+        "松林伐木营地"
+      ],
+      "construction_cost": 1150,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+70",
+        "提供木材"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "松木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_150",
+      "name_zh": "松林伐木营地",
+      "name_en": "Pine Woodcutter Camp",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "松林伐木场",
+      "upgrades_to": [
+        "松木置所"
+      ],
+      "construction_cost": 1450,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+100",
+        "提供木材"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "松木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_151",
+      "name_zh": "松木置所",
+      "name_en": "Pine Timber Storehouse",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "松林伐木营地",
+      "upgrades_to": [
+        "松木贸易营地"
+      ],
+      "construction_cost": 1800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+130",
+        "声望+10",
+        "提供木材"
+      ],
+      "requirements": [
+        "改革: 赋与佃器(Government Tool Distribution)"
+      ],
+      "faction": "all",
+      "description": "松木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_152",
+      "name_zh": "松木贸易营地",
+      "name_en": "Pine Trader Camp",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "松木置所",
+      "upgrades_to": [
+        "木器营地"
+      ],
+      "construction_cost": 2450,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+160",
+        "声望+15",
+        "贸易影响力+15%(派系)",
+        "军事建筑建造成本-15%",
+        "提供木材"
+      ],
+      "requirements": [
+        "改革: 租佃制度",
+        "巨贾"
+      ],
+      "faction": "all",
+      "description": "松木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_153",
+      "name_zh": "木器营地",
+      "name_en": "Composite Wood Maker Camp",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "松木贸易营地",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+150",
+        "军事补给+5(本地)",
+        "提供木材"
+      ],
+      "requirements": [
+        "改革: 租佃制度",
+        "匠师"
+      ],
+      "faction": "all",
+      "description": "松木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_154",
+      "name_zh": "竹木场",
+      "name_en": "Bamboo Lumber Yard",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "竹林伐木场"
+      ],
+      "construction_cost": 800,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+40",
+        "声望+5",
+        "粮食储备+10",
+        "军事建筑建造成本-10%",
+        "提供木材"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "竹木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_155",
+      "name_zh": "竹林伐木场",
+      "name_en": "Bamboo Woodcutter",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "竹木场",
+      "upgrades_to": [
+        "竹林伐木营地"
+      ],
+      "construction_cost": 1150,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+70",
+        "提供木材"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "竹木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_156",
+      "name_zh": "竹林伐木营地",
+      "name_en": "Bamboo Woodcutter Camp",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "竹林伐木场",
+      "upgrades_to": [
+        "竹木置所"
+      ],
+      "construction_cost": 1450,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+100",
+        "提供木材"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "竹木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_157",
+      "name_zh": "竹木置所",
+      "name_en": "Bamboo Timber Storehouse",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "竹林伐木营地",
+      "upgrades_to": [
+        "竹木仓库"
+      ],
+      "construction_cost": 1800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+130",
+        "声望+10",
+        "提供木材"
+      ],
+      "requirements": [
+        "改革: 赋与佃器"
+      ],
+      "faction": "all",
+      "description": "竹木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_158",
+      "name_zh": "竹木仓库",
+      "name_en": "Bamboo Timber Warehouse",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "竹木置所",
+      "upgrades_to": [],
+      "construction_cost": 2400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+150",
+        "声望+15",
+        "军事建筑建造成本-15%",
+        "提供木材"
+      ],
+      "requirements": [
+        "改革: 租佃制度",
+        "手工业者"
+      ],
+      "faction": "all",
+      "description": "竹木资源建筑链(需对应资源)：木材"
+    },
+    {
+      "id": "bld_159",
+      "name_zh": "丝路商铺",
+      "name_en": "Silk Road Trader",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "丝路商馆"
+      ],
+      "construction_cost": 1250,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "丝绸收入+75",
+        "派系丝绸收入+15%",
+        "声望+5",
+        "粮食储备+10",
+        "农业建筑建造成本-10%",
+        "提供丝绸"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "丝绸资源建筑链(需对应资源)：丝绸"
+    },
+    {
+      "id": "bld_160",
+      "name_zh": "丝路商馆",
+      "name_en": "Silk Road Trading Post",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "丝路商铺",
+      "upgrades_to": [
+        "丝路馆驿"
+      ],
+      "construction_cost": 1850,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "丝绸收入+125",
+        "派系丝绸收入+25%",
+        "提供丝绸"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "丝绸资源建筑链(需对应资源)：丝绸"
+    },
+    {
+      "id": "bld_161",
+      "name_zh": "丝路馆驿",
+      "name_en": "Silk Road Caravan Post",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "丝路商馆",
+      "upgrades_to": [
+        "丝路市集"
+      ],
+      "construction_cost": 2450,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "丝绸收入+175",
+        "派系丝绸收入+40%",
+        "提供丝绸"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "丝绸资源建筑链(需对应资源)：丝绸"
+    },
+    {
+      "id": "bld_162",
+      "name_zh": "丝路市集",
+      "name_en": "Silk Road Market",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "丝路馆驿",
+      "upgrades_to": [
+        "大型丝路市集"
+      ],
+      "construction_cost": 3050,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "丝绸收入+225",
+        "派系丝绸收入+50%",
+        "声望+10",
+        "提供丝绸"
+      ],
+      "requirements": [
+        "改革: 使节团(Diplomatic Missions)"
+      ],
+      "faction": "all",
+      "description": "丝绸资源建筑链(需对应资源)：丝绸"
+    },
+    {
+      "id": "bld_163",
+      "name_zh": "大型丝路市集",
+      "name_en": "Grand Silk Road Market",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "丝路市集",
+      "upgrades_to": [],
+      "construction_cost": 3450,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "丝绸收入+250",
+        "派系丝绸收入+65%",
+        "声望+15",
+        "农业建筑建造成本-15%",
+        "提供丝绸"
+      ],
+      "requirements": [
+        "改革: 丝路远行(Silk Road Journeys)",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "丝绸资源建筑链(需对应资源)：丝绸"
+    },
+    {
+      "id": "bld_164",
+      "name_zh": "茶场",
+      "name_en": "Tea Plants",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "种茶园"
+      ],
+      "construction_cost": 1100,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+70",
+        "声望+5",
+        "粮食储备+10",
+        "军事建筑建造成本-10%",
+        "提供茶叶"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_165",
+      "name_zh": "种茶园",
+      "name_en": "Tea Grower",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "茶场",
+      "upgrades_to": [
+        "公家茶庄"
+      ],
+      "construction_cost": 1700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+100",
+        "提供茶叶"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_166",
+      "name_zh": "公家茶庄",
+      "name_en": "Tea Grower Community",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "种茶园",
+      "upgrades_to": [
+        "茶圃"
+      ],
+      "construction_cost": 2300,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+130",
+        "提供茶叶"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_167",
+      "name_zh": "茶圃",
+      "name_en": "Tea Plantation",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "公家茶庄",
+      "upgrades_to": [
+        "大茶圃"
+      ],
+      "construction_cost": 2900,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+160",
+        "声望+10",
+        "提供茶叶"
+      ],
+      "requirements": [
+        "改革: 农书(Treatise on Agriculture)"
+      ],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_168",
+      "name_zh": "大茶圃",
+      "name_en": "Grand Tea Plantation",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "茶圃",
+      "upgrades_to": [
+        "茶苑"
+      ],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+200",
+        "声望+15",
+        "军事建筑建造成本-15%",
+        "提供茶叶"
+      ],
+      "requirements": [
+        "改革: 密植(Intensive Planting)"
+      ],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_169",
+      "name_zh": "茶苑",
+      "name_en": "Tea Garden",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "大茶圃",
+      "upgrades_to": [
+        "大茶苑"
+      ],
+      "construction_cost": 2900,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+150",
+        "贸易影响力+10%(派系)",
+        "提供茶叶"
+      ],
+      "requirements": [
+        "改革: 农书",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_170",
+      "name_zh": "大茶苑",
+      "name_en": "Grand Tea Garden",
+      "type": "income",
+      "tier": 7,
+      "upgrades_from": "茶苑",
+      "upgrades_to": [],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+180",
+        "贸易影响力+15%(派系)",
+        "提供茶叶"
+      ],
+      "requirements": [
+        "改革: 密植",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "茶叶资源建筑链(需对应资源)：茶叶"
+    },
+    {
+      "id": "bld_171",
+      "name_zh": "铜矿脉",
+      "name_en": "Copper Vein",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "铜矿坑"
+      ],
+      "construction_cost": 1500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+100",
+        "声望+5",
+        "粮食储备+10",
+        "学习与市场建筑建造成本-10%",
+        "提供铜矿"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铜矿资源建筑链(需对应资源)：铜矿"
+    },
+    {
+      "id": "bld_172",
+      "name_zh": "铜矿坑",
+      "name_en": "Copper Pits",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "铜矿脉",
+      "upgrades_to": [
+        "铜矿山"
+      ],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+200",
+        "提供铜矿"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铜矿资源建筑链(需对应资源)：铜矿"
+    },
+    {
+      "id": "bld_173",
+      "name_zh": "铜矿山",
+      "name_en": "Copper Mine",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "铜矿坑",
+      "upgrades_to": [
+        "铜矿村庄"
+      ],
+      "construction_cost": 3700,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+300",
+        "提供铜矿"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铜矿资源建筑链(需对应资源)：铜矿"
+    },
+    {
+      "id": "bld_174",
+      "name_zh": "铜矿村庄",
+      "name_en": "Copper Mining Village",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "铜矿山",
+      "upgrades_to": [
+        "铜矿城镇"
+      ],
+      "construction_cost": 4800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+400",
+        "声望+10",
+        "提供铜矿"
+      ],
+      "requirements": [
+        "改革: 辘轳采矿"
+      ],
+      "faction": "all",
+      "description": "铜矿资源建筑链(需对应资源)：铜矿"
+    },
+    {
+      "id": "bld_175",
+      "name_zh": "铜矿城镇",
+      "name_en": "Copper Mining Town",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "铜矿村庄",
+      "upgrades_to": [
+        "铜矿铸造厂"
+      ],
+      "construction_cost": 6400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+500",
+        "声望+15",
+        "学习与市场建筑建造成本-15%",
+        "提供铜矿"
+      ],
+      "requirements": [
+        "改革: 排气室",
+        "手工业者"
+      ],
+      "faction": "all",
+      "description": "铜矿资源建筑链(需对应资源)：铜矿"
+    },
+    {
+      "id": "bld_176",
+      "name_zh": "铜矿铸造厂",
+      "name_en": "Copper Coin Mint",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "铜矿城镇",
+      "upgrades_to": [],
+      "construction_cost": 6400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+500",
+        "派系腐败-4%(每座，至多-24%)",
+        "提供铜矿"
+      ],
+      "requirements": [
+        "改革: 铸币(Minting Coins)",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "铜矿资源建筑链(需对应资源)：铜矿"
+    },
+    {
+      "id": "bld_177",
+      "name_zh": "牧场",
+      "name_en": "Livestock Farm",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "畜栏"
+      ],
+      "construction_cost": 900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2",
+        "农民收入+120",
+        "声望+5",
+        "提供畜牧资源"
+      ],
+      "requirements": [
+        "解锁资源: 畜牧"
+      ],
+      "faction": "all",
+      "description": "牧场资源建筑链(需对应资源)：畜牧"
+    },
+    {
+      "id": "bld_178",
+      "name_zh": "畜栏",
+      "name_en": "Livestock Enclosures",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "牧场",
+      "upgrades_to": [
+        "畜牧场"
+      ],
+      "construction_cost": 1400,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+3",
+        "农民收入+140",
+        "提供畜牧资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "牧场资源建筑链(需对应资源)：畜牧"
+    },
+    {
+      "id": "bld_179",
+      "name_zh": "畜牧场",
+      "name_en": "Livestock Ranch",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "畜栏",
+      "upgrades_to": [
+        "畜牧田庄"
+      ],
+      "construction_cost": 2000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4",
+        "农民收入+160",
+        "提供畜牧资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "牧场资源建筑链(需对应资源)：畜牧"
+    },
+    {
+      "id": "bld_180",
+      "name_zh": "畜牧田庄",
+      "name_en": "Livestock Estate",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "畜牧场",
+      "upgrades_to": [
+        "大型畜牧田庄"
+      ],
+      "construction_cost": 2800,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+5",
+        "农民收入+180",
+        "声望+10",
+        "提供畜牧资源"
+      ],
+      "requirements": [
+        "改革: 鼓励占垦(Encouraging Settlement)"
+      ],
+      "faction": "all",
+      "description": "牧场资源建筑链(需对应资源)：畜牧"
+    },
+    {
+      "id": "bld_181",
+      "name_zh": "大型畜牧田庄",
+      "name_en": "Grand Livestock Estate",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "畜牧田庄",
+      "upgrades_to": [
+        "畜牧农庄"
+      ],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+6",
+        "农民收入+250",
+        "声望+15",
+        "提供畜牧资源"
+      ],
+      "requirements": [
+        "改革: 地主豪族"
+      ],
+      "faction": "all",
+      "description": "牧场资源建筑链(需对应资源)：畜牧"
+    },
+    {
+      "id": "bld_182",
+      "name_zh": "畜牧农庄",
+      "name_en": "Livestock Farmstead",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "大型畜牧田庄",
+      "upgrades_to": [],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+10",
+        "农民收入+180",
+        "声望+15",
+        "提供畜牧资源"
+      ],
+      "requirements": [
+        "改革: 地主豪族"
+      ],
+      "faction": "all",
+      "description": "牧场资源建筑链(需对应资源)：畜牧"
+    },
+    {
+      "id": "bld_183",
+      "name_zh": "渔村",
+      "name_en": "Fishing Village",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "公用渔湾"
+      ],
+      "construction_cost": 1000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2(渔业)",
+        "商业收入+50",
+        "声望+5",
+        "提供渔业资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "渔业资源建筑链(需对应资源)：渔业"
+    },
+    {
+      "id": "bld_184",
+      "name_zh": "公用渔湾",
+      "name_en": "Public Fishing Cove",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "渔村",
+      "upgrades_to": [
+        "公用渔港"
+      ],
+      "construction_cost": 1600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+3(渔业)",
+        "商业收入+80",
+        "提供渔业资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "渔业资源建筑链(需对应资源)：渔业"
+    },
+    {
+      "id": "bld_185",
+      "name_zh": "公用渔港",
+      "name_en": "Public Fishing Harbour",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "公用渔湾",
+      "upgrades_to": [
+        "渔舟泊港"
+      ],
+      "construction_cost": 2200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4(渔业)",
+        "商业收入+110",
+        "提供渔业资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "渔业资源建筑链(需对应资源)：渔业"
+    },
+    {
+      "id": "bld_186",
+      "name_zh": "渔舟泊港",
+      "name_en": "Fishing Fleet Port",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "公用渔港",
+      "upgrades_to": [
+        "大型渔港码头"
+      ],
+      "construction_cost": 2900,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+5(渔业)",
+        "商业收入+140",
+        "声望+10",
+        "提供渔业资源"
+      ],
+      "requirements": [
+        "改革: 横隔舱(Bulkhead Compartments)"
+      ],
+      "faction": "all",
+      "description": "渔业资源建筑链(需对应资源)：渔业"
+    },
+    {
+      "id": "bld_187",
+      "name_zh": "大型渔港码头",
+      "name_en": "Grand Fishing Port",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "渔舟泊港",
+      "upgrades_to": [
+        "捕鱼船坞"
+      ],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+6(渔业)",
+        "商业收入+170",
+        "声望+15",
+        "提供渔业资源"
+      ],
+      "requirements": [
+        "改革: 平底船(Flat-bottomed Boats)"
+      ],
+      "faction": "all",
+      "description": "渔业资源建筑链(需对应资源)：渔业"
+    },
+    {
+      "id": "bld_188",
+      "name_zh": "捕鱼船坞",
+      "name_en": "Fishing Shipyard",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "大型渔港码头",
+      "upgrades_to": [],
+      "construction_cost": 3600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "粮食+5(渔业)",
+        "商业收入+200",
+        "声望+15",
+        "提供渔业资源"
+      ],
+      "requirements": [
+        "改革: 平底船",
+        "木材资源"
+      ],
+      "faction": "all",
+      "description": "渔业资源建筑链(需对应资源)：渔业"
+    },
+    {
+      "id": "bld_189",
+      "name_zh": "滨海商埠",
+      "name_en": "Coastal Trade Post",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "滨海商贸驿站"
+      ],
+      "construction_cost": 1200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+60",
+        "声望+5",
+        "提供贸易"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_190",
+      "name_zh": "滨海商贸驿站",
+      "name_en": "Coastal Trading Station",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "滨海商埠",
+      "upgrades_to": [
+        "滨海商港"
+      ],
+      "construction_cost": 1900,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+100",
+        "提供贸易"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_191",
+      "name_zh": "滨海商港",
+      "name_en": "Coastal Trade Harbour",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "滨海商贸驿站",
+      "upgrades_to": [
+        "滨海商贸村庄"
+      ],
+      "construction_cost": 2600,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+140",
+        "提供贸易"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_192",
+      "name_zh": "滨海商贸村庄",
+      "name_en": "Coastal Trading Village",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "滨海商港",
+      "upgrades_to": [
+        "滨海商贸城镇"
+      ],
+      "construction_cost": 3400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+180",
+        "声望+10",
+        "提供贸易"
+      ],
+      "requirements": [
+        "改革: 外邦使者(Foreign Envoys)"
+      ],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_193",
+      "name_zh": "滨海商贸城镇",
+      "name_en": "Coastal Trading Town",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "滨海商贸村庄",
+      "upgrades_to": [
+        "工商口岸"
+      ],
+      "construction_cost": 4200,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+230",
+        "声望+15",
+        "贸易影响力+15%(派系)",
+        "提供贸易"
+      ],
+      "requirements": [
+        "改革: 丝路远行",
+        "巨贾资源"
+      ],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_194",
+      "name_zh": "工商口岸",
+      "name_en": "Industrial Trading Port",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "滨海商贸城镇",
+      "upgrades_to": [
+        "香药商港城市"
+      ],
+      "construction_cost": 4200,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+230",
+        "工业收入+100",
+        "声望+15",
+        "提供贸易"
+      ],
+      "requirements": [
+        "改革: 丝路远行",
+        "手工业者"
+      ],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_195",
+      "name_zh": "香药商港城市",
+      "name_en": "Spice Trading Port City",
+      "type": "income",
+      "tier": 7,
+      "upgrades_from": "工商口岸",
+      "upgrades_to": [],
+      "construction_cost": 4600,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+250",
+        "派系香药收入+15%",
+        "声望+15",
+        "提供贸易"
+      ],
+      "requirements": [
+        "改革: 丝路远行",
+        "巨贾资源",
+        "香药资源"
+      ],
+      "faction": "all",
+      "description": "商港(滨海)资源建筑链(需对应资源)：无(贸易)"
+    },
+    {
+      "id": "bld_196",
+      "name_zh": "工具铸所",
+      "name_en": "Tool Foundry",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "工具工坊"
+      ],
+      "construction_cost": 1000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+40",
+        "工业收入+40",
+        "声望+5",
+        "提供工具资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_197",
+      "name_zh": "工具工坊",
+      "name_en": "Tool Workshop",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "工具铸所",
+      "upgrades_to": [
+        "工具库"
+      ],
+      "construction_cost": 1500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+70",
+        "工业收入+70",
+        "提供工具资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_198",
+      "name_zh": "工具库",
+      "name_en": "Tool Warehouse",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "工具工坊",
+      "upgrades_to": [
+        "匠器库"
+      ],
+      "construction_cost": 2000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+100",
+        "工业收入+100",
+        "提供工具资源"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_199",
+      "name_zh": "匠器库",
+      "name_en": "Crafting Tool Warehouse",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "工具库",
+      "upgrades_to": [
+        "匠器工室"
+      ],
+      "construction_cost": 2700,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+130",
+        "工业收入+130",
+        "声望+10",
+        "提供工具资源"
+      ],
+      "requirements": [
+        "改革: 官营作业(State Works)",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_200",
+      "name_zh": "匠器工室",
+      "name_en": "Crafting Tool Works",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "匠器库",
+      "upgrades_to": [
+        "工器库"
+      ],
+      "construction_cost": 3400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+160",
+        "工业收入+160",
+        "声望+15",
+        "提供工具资源"
+      ],
+      "requirements": [
+        "改革: 庄田典册(Land Registers)",
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_201",
+      "name_zh": "工器库",
+      "name_en": "Industrial Tool Warehouse",
+      "type": "income",
+      "tier": 6,
+      "upgrades_from": "匠器工室",
+      "upgrades_to": [
+        "工器工室"
+      ],
+      "construction_cost": 2700,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+130",
+        "工业收入+130",
+        "声望+10",
+        "提供工具资源"
+      ],
+      "requirements": [
+        "改革: 官营作业",
+        "手工业者资源"
+      ],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_202",
+      "name_zh": "工器工室",
+      "name_en": "Industrial Tool Works",
+      "type": "income",
+      "tier": 7,
+      "upgrades_from": "工器库",
+      "upgrades_to": [],
+      "construction_cost": 3400,
+      "construction_time": 2,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+160",
+        "工业收入+160",
+        "声望+15",
+        "提供工具资源"
+      ],
+      "requirements": [
+        "改革: 庄田典册",
+        "手工业者资源"
+      ],
+      "faction": "all",
+      "description": "工具资源建筑链(需对应资源)：工具"
+    },
+    {
+      "id": "bld_203",
+      "name_zh": "知名铸甲所",
+      "name_en": "Famous Armourer",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [
+        "驰名铸甲所"
+      ],
+      "construction_cost": 2000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "产出甲胄(至精良品质)",
+        "声望+5"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铸甲资源建筑链(需对应资源)：无(匠师)"
+    },
+    {
+      "id": "bld_204",
+      "name_zh": "驰名铸甲所",
+      "name_en": "Renowned Armourer",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "知名铸甲所",
+      "upgrades_to": [
+        "传奇铸甲所"
+      ],
+      "construction_cost": 3000,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "产出甲胄(至精良品质)",
+        "声望+10"
+      ],
+      "requirements": [],
+      "faction": "all",
+      "description": "铸甲资源建筑链(需对应资源)：无(匠师)"
+    },
+    {
+      "id": "bld_205",
+      "name_zh": "传奇铸甲所",
+      "name_en": "Legendary Armourer",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "驰名铸甲所",
+      "upgrades_to": [],
+      "construction_cost": 4200,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "产出甲胄(至精良品质)",
+        "声望+15"
+      ],
+      "requirements": [
+        "匠师资源"
+      ],
+      "faction": "all",
+      "description": "铸甲资源建筑链(需对应资源)：无(匠师)"
+    },
+    {
+      "id": "bld_206",
+      "name_zh": "募兵府",
+      "name_en": "Conscription Bureau (Cao Cao)",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事建筑建造成本-10%",
+        "新征部队初始等级+2"
+      ],
+      "requirements": [],
+      "faction": "曹操(Cao Cao)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_207",
+      "name_zh": "兵户治兵场",
+      "name_en": "Soldier Household Training Field",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "募兵府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+2",
+        "派系每季部曲部署+1"
+      ],
+      "requirements": [],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_208",
+      "name_zh": "兵户讲武营",
+      "name_en": "Soldier Household Training Camp",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "兵户治兵场",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+3",
+        "派系每季部曲部署+2"
+      ],
+      "requirements": [],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_209",
+      "name_zh": "兵户军营",
+      "name_en": "Soldier Household Barracks",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "兵户讲武营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+3",
+        "派系每季部曲部署+2",
+        "粮食产量+10%"
+      ],
+      "requirements": [
+        "改革: 家兵(Retainer Armies)",
+        "谷物资源"
+      ],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_210",
+      "name_zh": "军屯署",
+      "name_en": "Tuntian Headquarters",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "兵户军营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+3",
+        "派系每季部曲部署+2",
+        "粮食产量+20%",
+        "战役移动范围+5%"
+      ],
+      "requirements": [
+        "改革: 世袭部曲(Hereditary Retinues)",
+        "谷物资源"
+      ],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_211",
+      "name_zh": "军屯田",
+      "name_en": "Tuntian Fields",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2",
+        "农民收入+60",
+        "提供谷物资源"
+      ],
+      "requirements": [],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_212",
+      "name_zh": "军屯营地",
+      "name_en": "Tuntian Camp",
+      "type": "food",
+      "tier": 2,
+      "upgrades_from": "军屯田",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4",
+        "农民收入+90",
+        "提供谷物资源"
+      ],
+      "requirements": [],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_213",
+      "name_zh": "军屯兵营",
+      "name_en": "Tuntian Barracks",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "军屯营地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+6",
+        "农民收入+120",
+        "提供谷物资源"
+      ],
+      "requirements": [],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_214",
+      "name_zh": "军屯驻地",
+      "name_en": "Tuntian Garrison",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "军屯兵营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+8",
+        "农民收入+150",
+        "军事补给+10",
+        "提供谷物资源"
+      ],
+      "requirements": [
+        "改革: 平准仓(Ever-level Granaries)"
+      ],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_215",
+      "name_zh": "军屯堡垒",
+      "name_en": "Tuntian Fortress",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "军屯驻地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+10",
+        "农民收入+200",
+        "军事补给+20",
+        "提供谷物资源"
+      ],
+      "requirements": [
+        "改革: 军屯(Military Colonies)"
+      ],
+      "faction": "曹操",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_216",
+      "name_zh": "蜀汉啬夫署",
+      "name_en": "Tax Collector Office of Han Empire",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+85",
+        "公共秩序无惩罚",
+        "民兵补给+3%",
+        "经济建筑建造成本-10%"
+      ],
+      "requirements": [
+        "解锁改革: 贼曹"
+      ],
+      "faction": "刘备(Liu Bei)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_217",
+      "name_zh": "蜀汉乡政署",
+      "name_en": "Village Administration of Han Empire",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "蜀汉啬夫署",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+120",
+        "公共秩序无惩罚",
+        "民兵补给+6%"
+      ],
+      "requirements": [],
+      "faction": "刘备",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_218",
+      "name_zh": "蜀汉县政署",
+      "name_en": "County Administration of Han Empire",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "蜀汉乡政署",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+150",
+        "公共秩序无惩罚",
+        "民兵补给+9%"
+      ],
+      "requirements": [
+        "改革: 贼曹"
+      ],
+      "faction": "刘备",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_219",
+      "name_zh": "蜀汉郡政署",
+      "name_en": "Commandery Administration of Han Empire",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "蜀汉县政署",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+210",
+        "公共秩序无惩罚",
+        "民兵补给+12%"
+      ],
+      "requirements": [
+        "改革: 具五刑"
+      ],
+      "faction": "刘备",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_220",
+      "name_zh": "蜀汉州政署",
+      "name_en": "Province Administration of Han Empire",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "蜀汉郡政署",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+260",
+        "公共秩序无惩罚",
+        "民兵补给+15%",
+        "经济建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 均输官"
+      ],
+      "faction": "刘备",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_221",
+      "name_zh": "商旅卫所",
+      "name_en": "Trade Escort Station",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "佣兵补给+5%"
+      ],
+      "requirements": [],
+      "faction": "孙坚(Sun Jian)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_222",
+      "name_zh": "商旅护卫营",
+      "name_en": "Trade Escort Camp",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "商旅卫所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "佣兵补给+10%"
+      ],
+      "requirements": [],
+      "faction": "孙坚",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_223",
+      "name_zh": "佣兵征募署",
+      "name_en": "Mercenary Recruiting Office",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "商旅护卫营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "佣兵补给+15%",
+        "佣兵招募费用-5%"
+      ],
+      "requirements": [],
+      "faction": "孙坚",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_224",
+      "name_zh": "佣兵营地",
+      "name_en": "Mercenary Camp",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "佣兵征募署",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "佣兵补给+25%",
+        "佣兵招募费用-10%"
+      ],
+      "requirements": [
+        "改革: 整顿商贾",
+        "巨贾资源"
+      ],
+      "faction": "孙坚",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_225",
+      "name_zh": "佣兵大营",
+      "name_en": "Grand Mercenary Camp",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "佣兵营地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "佣兵补给+40%",
+        "佣兵招募费用-15%"
+      ],
+      "requirements": [
+        "改革: 行肆市列",
+        "巨贾资源"
+      ],
+      "faction": "孙坚",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_226",
+      "name_zh": "督邮府",
+      "name_en": "Inspector Office",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+5%",
+        "公共秩序+2"
+      ],
+      "requirements": [],
+      "faction": "公孙瓒(Gongsun Zan)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_227",
+      "name_zh": "县尉府",
+      "name_en": "County Defender Office",
+      "type": "government",
+      "tier": 2,
+      "upgrades_from": "督邮府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+10%",
+        "公共秩序+4"
+      ],
+      "requirements": [],
+      "faction": "公孙瓒",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_228",
+      "name_zh": "郡尉府",
+      "name_en": "Commandery Defender Office",
+      "type": "government",
+      "tier": 3,
+      "upgrades_from": "县尉府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+15%",
+        "公共秩序+6"
+      ],
+      "requirements": [],
+      "faction": "公孙瓒",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_229",
+      "name_zh": "白马尉营",
+      "name_en": "White Horse Captain Camp",
+      "type": "government",
+      "tier": 4,
+      "upgrades_from": "郡尉府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+20%",
+        "骑兵新征等级+1"
+      ],
+      "requirements": [
+        "改革: 家兵"
+      ],
+      "faction": "公孙瓒",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_230",
+      "name_zh": "白马尉堂",
+      "name_en": "White Horse Captain Hall",
+      "type": "government",
+      "tier": 5,
+      "upgrades_from": "白马尉营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+30%",
+        "骑兵新征等级+2"
+      ],
+      "requirements": [
+        "改革: 世袭部曲"
+      ],
+      "faction": "公孙瓒",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_231",
+      "name_zh": "郡卫营地",
+      "name_en": "Commandery Guard Camp",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+20%",
+        "本地腐败-10%"
+      ],
+      "requirements": [
+        "改革: 家兵"
+      ],
+      "faction": "公孙瓒",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_232",
+      "name_zh": "军令府",
+      "name_en": "Military Command",
+      "type": "government",
+      "tier": 2,
+      "upgrades_from": "郡卫营地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+30%",
+        "本地腐败-20%"
+      ],
+      "requirements": [
+        "改革: 世袭部曲"
+      ],
+      "faction": "公孙瓒",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_233",
+      "name_zh": "袁氏官府",
+      "name_en": "Yuan County Office",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+10%",
+        "声望+5"
+      ],
+      "requirements": [],
+      "faction": "袁绍(Yuan Shao)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_234",
+      "name_zh": "袁氏掾史府",
+      "name_en": "Yuan Magistrate",
+      "type": "government",
+      "tier": 2,
+      "upgrades_from": "袁氏官府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+20%",
+        "声望+10"
+      ],
+      "requirements": [],
+      "faction": "袁绍",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_235",
+      "name_zh": "袁氏主薄府",
+      "name_en": "Yuan Secretariat",
+      "type": "government",
+      "tier": 3,
+      "upgrades_from": "袁氏掾史府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+30%",
+        "声望+15"
+      ],
+      "requirements": [],
+      "faction": "袁绍",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_236",
+      "name_zh": "袁氏郡府",
+      "name_en": "Yuan Directorate",
+      "type": "government",
+      "tier": 4,
+      "upgrades_from": "袁氏主薄府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+40%",
+        "声望+20"
+      ],
+      "requirements": [
+        "改革: 中常侍"
+      ],
+      "faction": "袁绍",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_237",
+      "name_zh": "袁氏宫殿",
+      "name_en": "Palace of Yuan",
+      "type": "government",
+      "tier": 5,
+      "upgrades_from": "袁氏郡府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+50%",
+        "声望+30",
+        "经济建筑建造成本-15%",
+        "每派系仅一座"
+      ],
+      "requirements": [
+        "改革: 受命于天"
+      ],
+      "faction": "袁绍",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_238",
+      "name_zh": "仲家县令府",
+      "name_en": "Zhong County Office",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+10%",
+        "声望+5"
+      ],
+      "requirements": [],
+      "faction": "袁术(Yuan Shu)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_239",
+      "name_zh": "仲家掾史府",
+      "name_en": "Zhong Magistrate",
+      "type": "government",
+      "tier": 2,
+      "upgrades_from": "仲家县令府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+15%",
+        "声望+10"
+      ],
+      "requirements": [],
+      "faction": "袁术",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_240",
+      "name_zh": "仲家主薄府",
+      "name_en": "Zhong Secretariat",
+      "type": "government",
+      "tier": 3,
+      "upgrades_from": "仲家掾史府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+20%",
+        "声望+15"
+      ],
+      "requirements": [],
+      "faction": "袁术",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_241",
+      "name_zh": "仲家郡府",
+      "name_en": "Zhong Directorate",
+      "type": "government",
+      "tier": 4,
+      "upgrades_from": "仲家主薄府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+25%",
+        "声望+20"
+      ],
+      "requirements": [
+        "改革: 中常侍"
+      ],
+      "faction": "袁术",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_242",
+      "name_zh": "仲家宫殿",
+      "name_en": "Zhong Palace",
+      "type": "government",
+      "tier": 5,
+      "upgrades_from": "仲家郡府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+30%",
+        "声望+30",
+        "经济建筑建造成本-50%",
+        "每派系仅一座"
+      ],
+      "requirements": [
+        "改革: 受命于天"
+      ],
+      "faction": "袁术",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_243",
+      "name_zh": "公塾",
+      "name_en": "Public Teachers",
+      "type": "research",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+4K",
+        "公共秩序+2",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [
+        "改革: 塾师"
+      ],
+      "faction": "孔融(Kong Rong)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_244",
+      "name_zh": "公学",
+      "name_en": "Public School",
+      "type": "research",
+      "tier": 2,
+      "upgrades_from": "公塾",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+12K",
+        "公共秩序+4"
+      ],
+      "requirements": [],
+      "faction": "孔融",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_245",
+      "name_zh": "公学馆",
+      "name_en": "Public Academy",
+      "type": "research",
+      "tier": 3,
+      "upgrades_from": "公学",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+25K",
+        "公共秩序+6"
+      ],
+      "requirements": [],
+      "faction": "孔融",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_246",
+      "name_zh": "精舍",
+      "name_en": "Academy Complex (Kong Rong)",
+      "type": "research",
+      "tier": 4,
+      "upgrades_from": "公学馆",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+50K",
+        "公共秩序+8",
+        "全部收入+15%"
+      ],
+      "requirements": [
+        "改革: 察举"
+      ],
+      "faction": "孔融",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_247",
+      "name_zh": "大型公学馆",
+      "name_en": "Grand Public Academy",
+      "type": "research",
+      "tier": 5,
+      "upgrades_from": "精舍",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+100K",
+        "公共秩序+10",
+        "全部收入+30%",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 士行典则"
+      ],
+      "faction": "孔融",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_248",
+      "name_zh": "诗馆",
+      "name_en": "Academy of Poetry",
+      "type": "research",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "文化收入+150",
+        "公共秩序+8"
+      ],
+      "requirements": [
+        "改革: 察举"
+      ],
+      "faction": "孔融",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_249",
+      "name_zh": "大型诗馆",
+      "name_en": "Grand Academy of Poetry",
+      "type": "research",
+      "tier": 2,
+      "upgrades_from": "诗馆",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "文化收入+250",
+        "公共秩序+10"
+      ],
+      "requirements": [
+        "改革: 察举"
+      ],
+      "faction": "孔融",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_250",
+      "name_zh": "府史旅舍",
+      "name_en": "Clerk Travel Lodge",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "治理+1(派系)",
+        "商业收入+120",
+        "商业收入+10%",
+        "农业建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "刘表(Liu Biao)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_251",
+      "name_zh": "公侯旅舍",
+      "name_en": "Noble Travel Lodge",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "府史旅舍",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+140",
+        "商业收入+25%"
+      ],
+      "requirements": [],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_252",
+      "name_zh": "名士客舍",
+      "name_en": "Gentlemen Lodge",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "公侯旅舍",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "治理+2(派系)",
+        "商业收入+160",
+        "商业收入+50%"
+      ],
+      "requirements": [],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_253",
+      "name_zh": "名士客栈",
+      "name_en": "Gentlemen Guest House",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "名士客舍",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+180",
+        "商业收入+80%"
+      ],
+      "requirements": [
+        "改革: 六博"
+      ],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_254",
+      "name_zh": "名士豪苑客栈",
+      "name_en": "Gentlemen Guest House Garden",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "名士客栈",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "治理+4(派系)",
+        "商业收入+200",
+        "商业收入+120%",
+        "农业建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 围棋"
+      ],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_255",
+      "name_zh": "名士茶室",
+      "name_en": "Gentlemen Tea Parlour",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "治理+3(派系)",
+        "人物经验+5%(派系)",
+        "商业收入+170",
+        "商业收入+40%"
+      ],
+      "requirements": [
+        "茶叶资源"
+      ],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_256",
+      "name_zh": "名士茶馆",
+      "name_en": "Gentlemen Tea House",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "名士茶室",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+210",
+        "商业收入+60%"
+      ],
+      "requirements": [
+        "改革: 六博",
+        "茶叶资源"
+      ],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_257",
+      "name_zh": "名士茶苑",
+      "name_en": "Gentlemen Grand Tea House",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "名士茶馆",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "治理+5(派系)",
+        "商业收入+250",
+        "商业收入+80%"
+      ],
+      "requirements": [
+        "改革: 围棋",
+        "茶叶资源"
+      ],
+      "faction": "刘表",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_258",
+      "name_zh": "游骑营",
+      "name_en": "Roving Cavalry Camp",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+5(相邻)",
+        "骑兵新征等级+1"
+      ],
+      "requirements": [],
+      "faction": "马腾(Ma Teng)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_259",
+      "name_zh": "骁骑营",
+      "name_en": "Valiant Cavalry Camp",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "游骑营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+10(相邻)",
+        "骑兵新征等级+1"
+      ],
+      "requirements": [],
+      "faction": "马腾",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_260",
+      "name_zh": "巡护骑营",
+      "name_en": "Patrol Cavalry Camp",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "骁骑营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+15(相邻)",
+        "骑兵新征等级+2"
+      ],
+      "requirements": [],
+      "faction": "马腾",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_261",
+      "name_zh": "巡护骁骑营",
+      "name_en": "Patrol Valiant Cavalry Camp",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "巡护骑营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+20(相邻)",
+        "骑兵新征等级+2",
+        "公共秩序+4"
+      ],
+      "requirements": [
+        "改革: 家兵"
+      ],
+      "faction": "马腾",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_262",
+      "name_zh": "巡护万骑营",
+      "name_en": "Patrol Myriad Cavalry Camp",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "巡护骁骑营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+30(相邻)",
+        "骑兵新征等级+3",
+        "公共秩序+8"
+      ],
+      "requirements": [
+        "改革: 突骑横行(Charging Cavalry Tactics)"
+      ],
+      "faction": "马腾",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_263",
+      "name_zh": "黑山匪窝",
+      "name_en": "Black Mountain Hideout",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+100",
+        "可对黄巾军进行外交"
+      ],
+      "requirements": [],
+      "faction": "张燕(Zhang Yan)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_264",
+      "name_zh": "黑山贼巢",
+      "name_en": "Black Mountain Den",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "黑山匪窝",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+150",
+        "人口增长+4K"
+      ],
+      "requirements": [],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_265",
+      "name_zh": "黑山坞堡",
+      "name_en": "Black Mountain Fort",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "黑山贼巢",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+200",
+        "公共秩序+6"
+      ],
+      "requirements": [
+        "改革: 州牧(Governorships)"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_266",
+      "name_zh": "黑山大寨",
+      "name_en": "Black Mountain Stronghold",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "黑山坞堡",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+250",
+        "公共秩序+8"
+      ],
+      "requirements": [
+        "改革: 家兵"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_267",
+      "name_zh": "黑山坚堡",
+      "name_en": "Black Mountain Bastion",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "黑山大寨",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+350",
+        "公共秩序+12"
+      ],
+      "requirements": [
+        "改革: 世袭部曲"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_268",
+      "name_zh": "黑山匿所",
+      "name_en": "Black Mountain Hideaway",
+      "type": "research",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+150",
+        "敌方间谍成本+2"
+      ],
+      "requirements": [
+        "改革: 塾师"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_269",
+      "name_zh": "黑山避所",
+      "name_en": "Black Mountain Refuge",
+      "type": "research",
+      "tier": 2,
+      "upgrades_from": "黑山匿所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+200",
+        "敌方间谍成本+4"
+      ],
+      "requirements": [
+        "改革: 伪装诡道"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_270",
+      "name_zh": "黑山护地",
+      "name_en": "Black Mountain Sanctuary",
+      "type": "research",
+      "tier": 3,
+      "upgrades_from": "黑山避所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+280",
+        "敌方间谍成本+6"
+      ],
+      "requirements": [
+        "改革: 用间"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_271",
+      "name_zh": "黑山议厅",
+      "name_en": "Black Mountain Council",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+150",
+        "公共秩序+4"
+      ],
+      "requirements": [
+        "改革: 黄门宦官"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_272",
+      "name_zh": "黑山公堂",
+      "name_en": "Black Mountain Court",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "黑山议厅",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+200",
+        "公共秩序+6"
+      ],
+      "requirements": [
+        "改革: 中常侍"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_273",
+      "name_zh": "黑山大殿",
+      "name_en": "Black Mountain Grand Hall",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "黑山公堂",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+280",
+        "公共秩序+10"
+      ],
+      "requirements": [
+        "改革: 州郡刺史(Provincial Inspectors)"
+      ],
+      "faction": "张燕",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_274",
+      "name_zh": "寄身地",
+      "name_en": "Bandit Hideout",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+50",
+        "公共秩序+2"
+      ],
+      "requirements": [],
+      "faction": "郑姜(Zheng Jiang)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_275",
+      "name_zh": "匪窝",
+      "name_en": "Bandit Den",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "寄身地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+100",
+        "公共秩序+4"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_276",
+      "name_zh": "贼巢",
+      "name_en": "Bandit Lair",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "匪窝",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+150",
+        "公共秩序+6"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_277",
+      "name_zh": "山寨",
+      "name_en": "Bandit Mountain Fort",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "贼巢",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+200",
+        "公共秩序+8"
+      ],
+      "requirements": [
+        "改革: 赋与佃器"
+      ],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_278",
+      "name_zh": "大寨",
+      "name_en": "Grand Bandit Fort",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "山寨",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+300",
+        "公共秩序+12"
+      ],
+      "requirements": [
+        "改革: 地主豪族"
+      ],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_279",
+      "name_zh": "贡庙",
+      "name_en": "Tribute Shrine",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "战利品+10%",
+        "附庸进贡+10%"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_280",
+      "name_zh": "贡堂",
+      "name_en": "Tribute Hall",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "贡庙",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "战利品+15%",
+        "附庸进贡+15%"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_281",
+      "name_zh": "贡庭",
+      "name_en": "Tribute Court",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "贡堂",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "战利品+20%",
+        "附庸进贡+20%"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_282",
+      "name_zh": "纷贡庭",
+      "name_en": "Grand Tribute Court",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "贡庭",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "战利品+30%",
+        "附庸进贡+30%"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_283",
+      "name_zh": "贡殿",
+      "name_en": "Tribute Palace",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "纷贡庭",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "战利品+40%",
+        "附庸进贡+40%"
+      ],
+      "requirements": [],
+      "faction": "郑姜",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_284",
+      "name_zh": "募兵所(董卓)",
+      "name_en": "Enforced Conscription Office",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征等级+2",
+        "公共秩序+2",
+        "人口增长-4K",
+        "政府建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "董卓(Dong Zhuo)",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_285",
+      "name_zh": "治兵场(董卓)",
+      "name_en": "Conscript Training Field",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "募兵所(董卓)",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征等级+2",
+        "公共秩序+3",
+        "派系每季部曲部署+1",
+        "人口增长-6K",
+        "政府建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "董卓",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_286",
+      "name_zh": "讲武营(董卓)",
+      "name_en": "Conscript Training Camp",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "治兵场(董卓)",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征等级+3",
+        "公共秩序+4",
+        "派系每季部曲部署+2",
+        "重新部署费用-5%",
+        "人口增长-8K"
+      ],
+      "requirements": [],
+      "faction": "董卓",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_287",
+      "name_zh": "强募军营",
+      "name_en": "Barracks of Conscription Enforcement",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "讲武营(董卓)",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征等级+3",
+        "公共秩序+6",
+        "征募回合-1",
+        "人口增长-12K"
+      ],
+      "requirements": [
+        "改革: 家兵"
+      ],
+      "faction": "董卓",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_288",
+      "name_zh": "叛乱军营",
+      "name_en": "Headquarters of Military Suppression",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "强募军营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征等级+3",
+        "公共秩序+8",
+        "重新部署费用-8%",
+        "人口增长-16K",
+        "政府建筑建造成本-15%"
+      ],
+      "requirements": [
+        "改革: 世袭部曲"
+      ],
+      "faction": "董卓",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_289",
+      "name_zh": "孔圣城庙宇",
+      "name_en": "Grand Temple City of Confucius",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "声望+5",
+        "派系满意度+10",
+        "经济建筑建造成本-10%"
+      ],
+      "requirements": [],
+      "faction": "渤海势力(Bohai)地标，1回合/2500金",
+      "description": "派系特殊建筑"
+    },
+    {
+      "id": "bld_290",
+      "name_zh": "黎庶营",
+      "name_en": "Refugee Shelters",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+10%",
+        "人口增长+2K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_291",
+      "name_zh": "基本劳工寓所",
+      "name_en": "Basic Labourer Accommodation",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "黎庶营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+15%",
+        "人口增长+6K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_292",
+      "name_zh": "劳工家庭寓所",
+      "name_en": "Labourer Family Houses",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "基本劳工寓所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+20%",
+        "人口增长+12K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_293",
+      "name_zh": "劳工社区",
+      "name_en": "Labourer Communes",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "劳工家庭寓所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+30%",
+        "工业收入+25%",
+        "人口增长+25K",
+        "相邻-2K"
+      ],
+      "requirements": [
+        "改革: 教化邻里(Neighbourly Tutoring)"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_294",
+      "name_zh": "劳工区",
+      "name_en": "Labourer Housing District",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "劳工社区",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+40%",
+        "工业收入+30%",
+        "人口增长+50K",
+        "相邻-4K"
+      ],
+      "requirements": [
+        "改革: 完美建造(Perfect Construction)"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_295",
+      "name_zh": "众工坊",
+      "name_en": "Communal Workshops (YTR)",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+10%",
+        "人口增长+4K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_296",
+      "name_zh": "公共工坊",
+      "name_en": "Public Workshops (YTR)",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "众工坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+15%",
+        "人口增长+8K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_297",
+      "name_zh": "匠作院",
+      "name_en": "Artisan Court (YTR)",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "公共工坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+20%",
+        "商业收入+10%",
+        "人口增长+12K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_298",
+      "name_zh": "协造堂",
+      "name_en": "Cooperative Hall",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "匠作院",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+30%",
+        "商业收入+15%",
+        "人口增长+20K",
+        "解锁手工业者"
+      ],
+      "requirements": [
+        "改革: 融协筑术(Cooperative Building)"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_299",
+      "name_zh": "奢侈品作坊",
+      "name_en": "Luxury Workshop",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "协造堂",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "工业收入+40%",
+        "商业收入+20%",
+        "人口增长+30K",
+        "解锁手工业者"
+      ],
+      "requirements": [
+        "改革: 广智(Knowledge)"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_300",
+      "name_zh": "祥结织坊",
+      "name_en": "Auspicious Weaving Workshop",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+10%",
+        "人口增长+4K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_301",
+      "name_zh": "神符工坊",
+      "name_en": "Talisman Workshop",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "祥结织坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+15%",
+        "人口增长+8K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_302",
+      "name_zh": "神符雕坊",
+      "name_en": "Talisman Carving Workshop",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "神符工坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+20%",
+        "人口增长+12K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_303",
+      "name_zh": "精琢坊",
+      "name_en": "Fine Carving Workshop",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "神符雕坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+30%",
+        "人口增长+20K",
+        "解锁匠师"
+      ],
+      "requirements": [
+        "改革: 广智"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_304",
+      "name_zh": "宝雕堂",
+      "name_en": "Treasure Carving Hall",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "精琢坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+40%",
+        "人口增长+30K",
+        "解锁匠师"
+      ],
+      "requirements": [
+        "改革: 融协筑术"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_305",
+      "name_zh": "流民避所",
+      "name_en": "Refugee Shelter (YTR)",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+10%",
+        "人口增长+2K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_306",
+      "name_zh": "农人寓所",
+      "name_en": "Basic Peasant Accommodations",
+      "type": "food",
+      "tier": 2,
+      "upgrades_from": "流民避所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+15%",
+        "人口增长+4K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_307",
+      "name_zh": "农家寓所",
+      "name_en": "Peasant Family Houses",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "农人寓所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+20%",
+        "粮食产量+25%",
+        "人口增长+8K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_308",
+      "name_zh": "农社",
+      "name_en": "Peasant Communes",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "农家寓所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+25%",
+        "粮食产量+50%",
+        "人口增长+12K",
+        "相邻-1K"
+      ],
+      "requirements": [
+        "改革: 教化邻里"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_309",
+      "name_zh": "围栏农人宿区",
+      "name_en": "Walled Peasant Housing District",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "农社",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "农民收入+30%",
+        "粮食产量+100%",
+        "人口增长+25K",
+        "相邻-2K"
+      ],
+      "requirements": [
+        "改革: 完美建造"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_310",
+      "name_zh": "农田地",
+      "name_en": "Farm Plots",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+2",
+        "农民收入+60"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_311",
+      "name_zh": "公共佃农耕地",
+      "name_en": "Public Tenant Farmland",
+      "type": "food",
+      "tier": 2,
+      "upgrades_from": "农田地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+3",
+        "农民收入+80"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_312",
+      "name_zh": "公共灌溉农田",
+      "name_en": "Public Irrigated Farmland",
+      "type": "food",
+      "tier": 3,
+      "upgrades_from": "公共佃农耕地",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+4",
+        "农民收入+100"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_313",
+      "name_zh": "公共农庄",
+      "name_en": "Public Farming Estate",
+      "type": "food",
+      "tier": 4,
+      "upgrades_from": "公共灌溉农田",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+6",
+        "农民收入+120"
+      ],
+      "requirements": [
+        "改革: 民利优先(People's Welfare)"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_314",
+      "name_zh": "丰饶农庄",
+      "name_en": "Prosperous Farming Estate",
+      "type": "food",
+      "tier": 5,
+      "upgrades_from": "公共农庄",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食+8",
+        "农民收入+150"
+      ],
+      "requirements": [
+        "改革: 长久筑法(Durable Construction)"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_315",
+      "name_zh": "酒舍",
+      "name_en": "Tavern",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+2",
+        "商业收入+40"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_316",
+      "name_zh": "酒屋",
+      "name_en": "Alehouse",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "酒舍",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+4",
+        "商业收入+70"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_317",
+      "name_zh": "游艺馆",
+      "name_en": "Entertainment Hall",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "酒屋",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+6",
+        "商业收入+100"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_318",
+      "name_zh": "公共酒肆",
+      "name_en": "Communal Tavern",
+      "type": "public_order",
+      "tier": 4,
+      "upgrades_from": "游艺馆",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+8",
+        "商业收入+130"
+      ],
+      "requirements": [
+        "改革: 教化邻里"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_319",
+      "name_zh": "公庭场",
+      "name_en": "Communal Gathering Ground",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "公共酒肆",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+12",
+        "商业收入+170"
+      ],
+      "requirements": [
+        "改革: 完美建造"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_320",
+      "name_zh": "店家",
+      "name_en": "Shop (YTR)",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+50",
+        "商业收入+5%"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_321",
+      "name_zh": "集市",
+      "name_en": "Market (YTR)",
+      "type": "income",
+      "tier": 2,
+      "upgrades_from": "店家",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+90",
+        "商业收入+10%"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_322",
+      "name_zh": "市令署",
+      "name_en": "Market Office (YTR)",
+      "type": "income",
+      "tier": 3,
+      "upgrades_from": "集市",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+130",
+        "商业收入+15%"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_323",
+      "name_zh": "货栈",
+      "name_en": "Merchant Warehouse (YTR)",
+      "type": "income",
+      "tier": 4,
+      "upgrades_from": "市令署",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+170",
+        "商业收入+20%",
+        "解锁巨贾"
+      ],
+      "requirements": [
+        "改革: 教化邻里"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_324",
+      "name_zh": "会商堂",
+      "name_en": "Commercial Hall (YTR)",
+      "type": "income",
+      "tier": 5,
+      "upgrades_from": "货栈",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "商业收入+220",
+        "商业收入+25%",
+        "解锁巨贾"
+      ],
+      "requirements": [
+        "改革: 完美建造"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_325",
+      "name_zh": "义兵岗",
+      "name_en": "Righteous Soldier Post",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+2"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_326",
+      "name_zh": "兄弟治兵场",
+      "name_en": "Brotherhood Training Field",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "义兵岗",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+2",
+        "派系每季部曲部署+1"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_327",
+      "name_zh": "传武院",
+      "name_en": "Martial Arts Academy (YTR)",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "兄弟治兵场",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "新征部队初始等级+3",
+        "派系每季部曲部署+1"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_328",
+      "name_zh": "铁匠铺(黄巾)",
+      "name_en": "Blacksmith (YTR)",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "招募费用-5%",
+        "工业收入+5%"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_329",
+      "name_zh": "锻造工坊",
+      "name_en": "Forging Workshop",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "铁匠铺(黄巾)",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "招募费用-10%",
+        "工业收入+10%"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_330",
+      "name_zh": "太平祠坛",
+      "name_en": "Way of Peace Shrine",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+2",
+        "宗教热情-5"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_331",
+      "name_zh": "天道坛",
+      "name_en": "Way of Heaven Altar",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "太平祠坛",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+4",
+        "宗教热情-10"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_332",
+      "name_zh": "天道大坛",
+      "name_en": "Grand Way of Heaven Altar",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "天道坛",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+8",
+        "宗教热情-15"
+      ],
+      "requirements": [
+        "改革: 融协筑术"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_333",
+      "name_zh": "同会场",
+      "name_en": "Meeting Hall (YTR)",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+2",
+        "人口增长+4K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_334",
+      "name_zh": "黄巾隐所",
+      "name_en": "Yellow Turban Hideout",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "同会场",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+4",
+        "人口增长+8K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_335",
+      "name_zh": "万民会",
+      "name_en": "Assembly of the Myriad",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "黄巾隐所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+6",
+        "人口增长+12K"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_336",
+      "name_zh": "渠帅府",
+      "name_en": "Chieftain's Court",
+      "type": "public_order",
+      "tier": 4,
+      "upgrades_from": "万民会",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+8",
+        "人口增长+20K"
+      ],
+      "requirements": [
+        "改革: 民利优先"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_337",
+      "name_zh": "黄巾总寨",
+      "name_en": "Yellow Turban Headquarters",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "渠帅府",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+12",
+        "人口增长+30K"
+      ],
+      "requirements": [
+        "改革: 长久筑法"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_338",
+      "name_zh": "经卷屋",
+      "name_en": "Scripture House",
+      "type": "research",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "研究速率+3%",
+        "公共秩序+1"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_339",
+      "name_zh": "辩学阁",
+      "name_en": "Scholarly Debate Hall",
+      "type": "research",
+      "tier": 2,
+      "upgrades_from": "经卷屋",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "研究速率+6%",
+        "公共秩序+2"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_340",
+      "name_zh": "集学屋",
+      "name_en": "Learning House",
+      "type": "research",
+      "tier": 3,
+      "upgrades_from": "辩学阁",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "研究速率+9%",
+        "公共秩序+3"
+      ],
+      "requirements": [],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_341",
+      "name_zh": "学文库",
+      "name_en": "Library (YTR)",
+      "type": "research",
+      "tier": 4,
+      "upgrades_from": "集学屋",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "研究速率+12%",
+        "公共秩序+4"
+      ],
+      "requirements": [
+        "改革: 广智"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_342",
+      "name_zh": "启明之堂",
+      "name_en": "Hall of Enlightenment",
+      "type": "research",
+      "tier": 5,
+      "upgrades_from": "学文库",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "研究速率+15%",
+        "公共秩序+5"
+      ],
+      "requirements": [
+        "改革: 融协筑术"
+      ],
+      "faction": "黄巾军(Yellow Turbans)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_343",
+      "name_zh": "乡村医士寓所",
+      "name_en": "Rural Physician's Residence",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "派系人物生命值+5%",
+        "公共秩序+2"
+      ],
+      "requirements": [],
+      "faction": "何仪(He Yi)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_344",
+      "name_zh": "针灸师寓所",
+      "name_en": "Acupuncturist's Residence",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "乡村医士寓所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "派系人物生命值+10%",
+        "公共秩序+4"
+      ],
+      "requirements": [],
+      "faction": "何仪",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_345",
+      "name_zh": "药坊",
+      "name_en": "Pharmacy",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "针灸师寓所",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "派系人物生命值+15%",
+        "公共秩序+6"
+      ],
+      "requirements": [],
+      "faction": "何仪",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_346",
+      "name_zh": "药师房",
+      "name_en": "Apothecary's Studio",
+      "type": "public_order",
+      "tier": 4,
+      "upgrades_from": "药坊",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "派系人物生命值+20%",
+        "公共秩序+8"
+      ],
+      "requirements": [
+        "改革: 教化邻里"
+      ],
+      "faction": "何仪",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_347",
+      "name_zh": "天悯阁",
+      "name_en": "Hall of Heavenly Mercy",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "药师房",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "派系人物生命值+30%",
+        "公共秩序+12"
+      ],
+      "requirements": [
+        "改革: 完美建筑"
+      ],
+      "faction": "何仪",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_348",
+      "name_zh": "收集点",
+      "name_en": "Collection Point",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "伏击成功率+5%",
+        "军事补给+5"
+      ],
+      "requirements": [],
+      "faction": "龚都(Gong Du)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_349",
+      "name_zh": "藏武库",
+      "name_en": "Hidden Armoury",
+      "type": "military",
+      "tier": 2,
+      "upgrades_from": "收集点",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "伏击成功率+10%",
+        "军事补给+10"
+      ],
+      "requirements": [],
+      "faction": "龚都",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_350",
+      "name_zh": "暗营",
+      "name_en": "Hidden Camp",
+      "type": "military",
+      "tier": 3,
+      "upgrades_from": "藏武库",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "伏击成功率+15%",
+        "军事补给+15"
+      ],
+      "requirements": [],
+      "faction": "龚都",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_351",
+      "name_zh": "营垒",
+      "name_en": "Hidden Fort",
+      "type": "military",
+      "tier": 4,
+      "upgrades_from": "暗营",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "伏击成功率+20%",
+        "军事补给+20"
+      ],
+      "requirements": [
+        "改革: 民利优先"
+      ],
+      "faction": "龚都",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_352",
+      "name_zh": "暗堡",
+      "name_en": "Hidden Bastion",
+      "type": "military",
+      "tier": 5,
+      "upgrades_from": "营垒",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "伏击成功率+30%",
+        "军事补给+30"
+      ],
+      "requirements": [
+        "改革: 长久筑法"
+      ],
+      "faction": "龚都",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_353",
+      "name_zh": "静园",
+      "name_en": "Tranquil Garden",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+2",
+        "人物经验+2%(派系)"
+      ],
+      "requirements": [],
+      "faction": "黄邵(Huang Shao)",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_354",
+      "name_zh": "冥思园",
+      "name_en": "Meditation Garden",
+      "type": "public_order",
+      "tier": 2,
+      "upgrades_from": "静园",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+4",
+        "人物经验+4%(派系)"
+      ],
+      "requirements": [],
+      "faction": "黄邵",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_355",
+      "name_zh": "水景园",
+      "name_en": "Water Garden",
+      "type": "public_order",
+      "tier": 3,
+      "upgrades_from": "冥思园",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+6",
+        "人物经验+6%(派系)"
+      ],
+      "requirements": [],
+      "faction": "黄邵",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_356",
+      "name_zh": "迷苑",
+      "name_en": "Maze Garden",
+      "type": "public_order",
+      "tier": 4,
+      "upgrades_from": "水景园",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+8",
+        "人物经验+8%(派系)"
+      ],
+      "requirements": [
+        "改革: 广智"
+      ],
+      "faction": "黄邵",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_357",
+      "name_zh": "天宇苑",
+      "name_en": "Heavenly Garden",
+      "type": "public_order",
+      "tier": 5,
+      "upgrades_from": "迷苑",
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "公共秩序+12",
+        "人物经验+10%(派系)"
+      ],
+      "requirements": [
+        "改革: 融协筑术"
+      ],
+      "faction": "黄邵",
+      "description": "黄巾军特殊建筑序列"
+    },
+    {
+      "id": "bld_358",
+      "name_zh": "集结地",
+      "name_en": "Mustering Grounds",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "重新部署费用-5%(派系)",
+        "补给+10%(本地)",
+        "相邻敌军公共秩序-3"
+      ],
+      "requirements": [],
+      "faction": "盗匪派系(Bandits)",
+      "description": "盗匪营地建筑(1.5.0补丁，小城额外栏位)"
+    },
+    {
+      "id": "bld_359",
+      "name_zh": "预备营",
+      "name_en": "Preparatory Camp",
+      "type": "research",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "研究速率+5%(派系)",
+        "间谍掩护+1(派系)"
+      ],
+      "requirements": [],
+      "faction": "盗匪派系",
+      "description": "盗匪营地建筑(1.5.0补丁，小城额外栏位)"
+    },
+    {
+      "id": "bld_360",
+      "name_zh": "粮帐",
+      "name_en": "Food Tents",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+4K",
+        "公共秩序+2",
+        "战利品+5%"
+      ],
+      "requirements": [],
+      "faction": "盗匪派系",
+      "description": "盗匪营地建筑(1.5.0补丁，小城额外栏位)"
+    },
+    {
+      "id": "bld_361",
+      "name_zh": "黑市",
+      "name_en": "Black Market",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "土匪收入+100(本地)"
+      ],
+      "requirements": [],
+      "faction": "盗匪派系",
+      "description": "盗匪营地建筑(1.5.0补丁，小城额外栏位)"
+    },
+    {
+      "id": "bld_362",
+      "name_zh": "山越营地",
+      "name_en": "Shanyue Camp",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 500,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "粮食产量+10%",
+        "山越部族科技研究+5%",
+        "额外征募山越士兵"
+      ],
+      "requirements": [],
+      "faction": "严白虎(Yan Baihu)专属",
+      "description": "盗匪营地建筑(1.5.0补丁，小城额外栏位)"
+    },
+    {
+      "id": "bld_363",
+      "name_zh": "祭祀之地",
+      "name_en": "Sites of Worship",
+      "type": "public_order",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "声望+5",
+        "人口增长+10K",
+        "公共秩序+4",
+        "本地腐败-5%"
+      ],
+      "requirements": [],
+      "faction": "南蛮(Nanman)",
+      "description": "南蛮(DLC荒芜之地/Furious Wild)通用独特链"
+    },
+    {
+      "id": "bld_364",
+      "name_zh": "手工艺行会",
+      "name_en": "Artisanal Guilds",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "全部收入+10%",
+        "建造成本-5%",
+        "相邻郡国腐败-5%"
+      ],
+      "requirements": [],
+      "faction": "南蛮",
+      "description": "南蛮(DLC荒芜之地/Furious Wild)通用独特链"
+    },
+    {
+      "id": "bld_365",
+      "name_zh": "欢庆之所",
+      "name_en": "Places of Festivity",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口增长+10K",
+        "人物经验+5%(派系)",
+        "公共秩序+4",
+        "商业收入+10%"
+      ],
+      "requirements": [],
+      "faction": "南蛮",
+      "description": "南蛮(DLC荒芜之地/Furious Wild)通用独特链"
+    },
+    {
+      "id": "bld_366",
+      "name_zh": "南蛮军武设施",
+      "name_en": "Nanman Military Infrastructure",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "军事补给+10(相邻)",
+        "工业收入+10%",
+        "粮食储备+20",
+        "额外大象/猛虎掷石兵征募"
+      ],
+      "requirements": [],
+      "faction": "南蛮",
+      "description": "南蛮(DLC荒芜之地/Furious Wild)通用独特链"
+    },
+    {
+      "id": "bld_367",
+      "name_zh": "混沌要塞(1级)",
+      "name_en": "Chaos Keep",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口盈余+1",
+        "建造栏位+1",
+        "提供驻军"
+      ],
+      "requirements": [
+        "黑暗要塞城镇"
+      ],
+      "faction": "混沌勇士(WoC)",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_368",
+      "name_zh": "混沌堡垒(2级)",
+      "name_en": "Chaos Fort",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口盈余+1",
+        "建造栏位+2",
+        "收入+400",
+        "提供驻军"
+      ],
+      "requirements": [],
+      "faction": "混沌勇士",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_369",
+      "name_zh": "黑暗棱堡(3级)",
+      "name_en": "Dark Redoubt",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口盈余+2",
+        "建造栏位+3",
+        "收入+500",
+        "提供驻军"
+      ],
+      "requirements": [],
+      "faction": "混沌勇士",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_370",
+      "name_zh": "黑暗要塞(4级)",
+      "name_en": "Dark Fortress",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口盈余+4",
+        "建造栏位+5",
+        "收入+800",
+        "防御补给+1500",
+        "增长+90",
+        "腐败+2",
+        "城墙",
+        "提供驻军"
+      ],
+      "requirements": [],
+      "faction": "混沌勇士",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_371",
+      "name_zh": "至高黑暗要塞(5级)",
+      "name_en": "Exalted Dark Fortress",
+      "type": "government",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "人口盈余+5",
+        "建造栏位+6",
+        "收入+1200",
+        "防御补给+2000",
+        "增长+120",
+        "腐败+2",
+        "城墙",
+        "提供驻军"
+      ],
+      "requirements": [],
+      "faction": "混沌勇士",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_372",
+      "name_zh": "劳工征募局",
+      "name_en": "Labour Conscription Bureau",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "增长+10",
+        "建造成本-4%(本地省)",
+        "阳谐和+1",
+        "无法建造茶馆"
+      ],
+      "requirements": [
+        "阴阳建筑互斥"
+      ],
+      "faction": "震旦(Grand Cathay)",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_373",
+      "name_zh": "茶馆(震旦)",
+      "name_en": "Tea Parlour (Cathay)",
+      "type": "income",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "增长+10",
+        "所有建筑收入+2%(本地省)",
+        "阴谐和+1",
+        "无法建造劳工征募局"
+      ],
+      "requirements": [
+        "阴阳建筑互斥"
+      ],
+      "faction": "震旦",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_374",
+      "name_zh": "炖菜厨房",
+      "name_en": "Stew Kitch'n",
+      "type": "food",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "收入+50",
+        "防御补给+1000",
+        "增长+15",
+        "腐败-1",
+        "建造栏位+1",
+        "城墙",
+        "提供驻军"
+      ],
+      "requirements": [],
+      "faction": "食人魔王国(Ogre Kingdoms)",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_375",
+      "name_zh": "恐虐炽炉",
+      "name_en": "Khornate Calefactor",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "收入+40",
+        "解锁招募"
+      ],
+      "requirements": [],
+      "faction": "恐虐(Khorne)",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_376",
+      "name_zh": "屠戮领域",
+      "name_en": "Domain of Slaughter",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "收入+80",
+        "解锁招募"
+      ],
+      "requirements": [],
+      "faction": "恐虐",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    },
+    {
+      "id": "bld_377",
+      "name_zh": "巨墙门楼",
+      "name_en": "Bastion Gatehouse",
+      "type": "military",
+      "tier": 1,
+      "upgrades_from": null,
+      "upgrades_to": [],
+      "construction_cost": 0,
+      "construction_time": 1,
+      "upkeep": 0,
+      "effects": [
+        "收入+100",
+        "防御补给+1000",
+        "增长+20",
+        "围城损耗-30%",
+        "腐败-2",
+        "城墙",
+        "提供驻军",
+        "可突围出击",
+        "发现混沌邪教+25"
+      ],
+      "requirements": [
+        "仅巨墙(The Great Bastion)"
+      ],
+      "faction": "震旦",
+      "description": "参考: 全面战争: 战锤3建筑数据(附赠)"
+    }
+  ]
+}
