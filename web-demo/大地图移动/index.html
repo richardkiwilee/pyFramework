@@ -765,11 +765,11 @@ $("next-turn").addEventListener("click",nextTurn);
 // ============================================================
 const CELL=10; // 每格10px，1200×820 → 120×82 格
 const GW=120,GH=82;
-const canPass=new Uint8Array(GW*GH); // 0=不可通行 1=可通行
+const canPass=new Array(GW*GH).fill(0); // 0=不可通行(红) 1=可通行(绿) 2=慢速(黄)
 const troopEl=$("troop-figure"),arrowLayer=$("arrow-layer"),overlayCanvas=$("overlay-canvas");
 const ctx=overlayCanvas.getContext("2d");
 let showPass=false, dragging=false, dragSX=0,dragSY=0,dragEX=0,dragEY=0, troopX=390,troopY=440;
-let animTimer=null, drawMode=false, drawPass=true; // true=涂可通行(绿) false=涂不可通行(红)
+let animTimer=null, drawMode=false, drawVal=1; // 0=红(阻) 1=绿(通) 2=黄(慢)
 
 // 判断点是否在多边形内（射线法）
 function ptInPoly(px,py,poly){
@@ -830,7 +830,7 @@ function gridIdx(x,y){
   return gy*GW+gx;
 }
 
-function isPassable(x,y){const i=gridIdx(x,y);return i>=0&&canPass[i]===1;}
+function isPassable(x,y){const i=gridIdx(x,y);return i>=0&&canPass[i]>=1;}
 
 // 渲染通行性覆盖层
 function renderPassOverlay(){
@@ -843,6 +843,9 @@ function renderPassOverlay(){
       const v=canPass[gy*GW+gx];
       if(v===0){
         ctx.fillStyle="rgba(200,40,20,0.45)";
+        ctx.fillRect(gx*CELL*sx,gy*CELL*sy,CELL*sx+0.5,CELL*sy+0.5);
+      }else if(v===2){
+        ctx.fillStyle="rgba(220,180,40,0.38)";
         ctx.fillRect(gx*CELL*sx,gy*CELL*sy,CELL*sx+0.5,CELL*sy+0.5);
       }else if(drawMode){
         ctx.fillStyle="rgba(80,200,60,0.22)";
@@ -897,7 +900,7 @@ function aStar(sx,sy,ex,ey){
     for(const[dx,dy]of[[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1]]){
       const nx=gx+dx,ny=gy+dy,ni=ny*GW+nx;
       if(nx<0||ny<0||nx>=GW||ny>=GH||!canPass[ni])continue;
-      const cost=dx&&dy?1.4:1;
+      const base=dx&&dy?1.4:1;const cost=canPass[ni]===2?base*2:base;
       const ng=(gScore.get(cur)||0)+cost;
       if(ng>=(gScore.get(ni)||Infinity))continue;
       cameFrom.set(ni,cur);gScore.set(ni,ng);fScore.set(ni,ng+h(ni));open.add(ni);
@@ -906,13 +909,13 @@ function aStar(sx,sy,ex,ey){
   return null;
 }
 
-// 平滑移动动画
+// 平滑移动动画（根据地形调整速度：绿色常速，黄色半速）
 function animateMove(path){
   if(!path||path.length===0)return;
   cancelAnimationFrame(animTimer);
-  const SPEED=2.2; // 每帧移动像素
-  let seg=0, progress=0; // seg=当前段索引, progress=在该段中已移动距离
-  const segLen=[]; // 每段长度
+  const BASE_SPEED=3.0; // 常速每帧像素
+  let seg=0, progress=0;
+  const segLen=[];
   for(let i=0;i<path.length;i++){
     const px=i===0?troopX:path[i-1][0], py=i===0?troopY:path[i-1][1];
     segLen.push(Math.hypot(path[i][0]-px,path[i][1]-py));
@@ -922,7 +925,10 @@ function animateMove(path){
   function step(){
     if(seg>=path.length){troopX=cx;troopY=cy;troopEl.setAttribute("transform",`translate(${cx},${cy})`);return;}
     const tx=path[seg][0], ty=path[seg][1], len=segLen[seg];
-    progress+=SPEED;
+    // 根据当前位置地形调整速度
+    const ci=gridIdx(cx,cy);const terrainSlow=ci>=0&&canPass[ci]===2;
+    const spd=terrainSlow?BASE_SPEED/3:BASE_SPEED;
+    progress+=spd;
     if(progress>=len){progress-=len;cx=tx;cy=ty;seg++;step();return;}
     const t=len>0?progress/len:1;
     const sx=seg===0?cx:path[seg-1][0], sy=seg===0?cy:path[seg-1][1];
@@ -954,12 +960,12 @@ function paintCell(ex,ey,r){
   const sxr=1200/fr.width,syr=820/fr.height;
   const mx=(ex-fr.left)*sxr,my=(ey-fr.top)*syr;
   const gx=Math.floor(mx/CELL),gy=Math.floor(my/CELL);
-  const radius=r||1; // 默认3×3刷子
+  const radius=r||1;
   for(let dy=-radius;dy<=radius;dy++){
     for(let dx=-radius;dx<=radius;dx++){
       const nx=gx+dx,ny=gy+dy;
       if(nx<0||ny<0||nx>=GW||ny>=GH)continue;
-      canPass[ny*GW+nx]=drawPass?1:0;
+      canPass[ny*GW+nx]=drawVal;
     }
   }
   renderPassOverlay();
@@ -968,8 +974,12 @@ function paintCell(ex,ey,r){
 overlayCanvas.addEventListener("mousedown",e=>{
   if(!drawMode)return;
   e.preventDefault();
-  drawPass=e.button===0; // 左键涂可通行，右键涂不可通行
+  if(e.button===0&&e.ctrlKey)drawVal=2;   // Ctrl+左键=黄色慢速
+  else if(e.button===0)drawVal=1;          // 左键=绿色可通行
+  else if(e.button===2)drawVal=2;          // 中键=黄色慢速
+  else if(e.button===1)drawVal=0;          // 右键=红色不可通行
   paintCell(e.clientX,e.clientY);
+  updateDrawHint();
 });
 
 overlayCanvas.addEventListener("mousemove",e=>{
@@ -990,14 +1000,15 @@ overlayCanvas.addEventListener("mouseup",e=>{
   cancelAnimationFrame(animTimer);
   const si=gridIdx(dragSX,dragSY),ei=gridIdx(dragEX,dragEY);
   // 调试：扫描直线上被阻挡的格子数
-  let blockedCount=0;
+  let blockedCount=0,slowCount=0;
   {const sx=dragSX,sy=dragSY,steps=Math.max(1,Math.ceil(Math.hypot(dragEX-sx,dragEY-sy)/CELL));
-   for(let i=0;i<=steps;i++){const t=i/steps;const ci=gridIdx(sx+(dragEX-sx)*t,sy+(dragEY-sy)*t);if(ci>=0&&canPass[ci]===0)blockedCount++;}}
+   for(let i=0;i<=steps;i++){const t=i/steps;const ci=gridIdx(sx+(dragEX-sx)*t,sy+(dragEY-sy)*t);if(ci>=0){if(canPass[ci]===0)blockedCount++;else if(canPass[ci]===2)slowCount++;}}}
   const path=aStar(dragSX,dragSY,dragEX,dragEY);
   if(path&&path.length>0){
     const straight=Math.hypot(dragEX-dragSX,dragEY-dragSY);
     const pathLen=path.reduce((s,p,i)=>i?s+Math.hypot(p[0]-path[i-1][0],p[1]-path[i-1][1]):0,0);
-    toast("路径长"+Math.round(pathLen)+"px·绕行比"+(pathLen/straight).toFixed(2)+"·直线上"+blockedCount+"障碍格");
+    const extra=slowCount>0?" · 慢速"+slowCount+"格":"";
+    toast("路径长"+Math.round(pathLen)+"px·绕行比"+(pathLen/straight).toFixed(2)+"·障碍"+blockedCount+extra);
     animateMove(path);
   }else{toast("无法到达！直线障碍:"+blockedCount+"格 · 起点可通:"+!!canPass[si]+" 终点可通:"+!!canPass[ei]);}
   renderPassOverlay();
@@ -1012,15 +1023,18 @@ $("toggle-pass").addEventListener("click",()=>{
   renderPassOverlay();
 });
 
+function updateDrawHint(){
+  const colors=["🔴 障碍","🟢 通行","🟡 慢速"];
+  $("toggle-draw").textContent="✏️ "+colors[drawVal];
+}
 $("toggle-draw").addEventListener("click",()=>{
   drawMode=!drawMode;
-  $("toggle-draw").textContent=drawMode?"✏️ 绘制中":"🖌️ 绘制";
   $("toggle-draw").style.background=drawMode?"linear-gradient(180deg,#6a9a5a,#4a7a30)":"linear-gradient(180deg,#4a5a3a,#3a4a20)";
   overlayCanvas.style.pointerEvents=drawMode?"auto":"none";
   overlayCanvas.style.cursor=drawMode?"crosshair":"default";
   showPass=true;$("toggle-pass").textContent="🗺️ 隐藏";
   $("toggle-pass").style.background="linear-gradient(180deg,#8a4a2a,#5a3020)";
-  if(drawMode)toast("🖌️ <b>左键</b>涂可通行(绿) · <b>右键</b>涂不可通行(红) · 范围3×3格");
+  if(drawMode){updateDrawHint();toast("🖌️ <b>左键</b>通行 <b>右键</b>障碍 <b>Ctrl+左键/中键</b>慢速 · 3×3刷子");}
   renderPassOverlay();
 });
 
@@ -1029,6 +1043,7 @@ window.addEventListener("resize",()=>setTimeout(renderPassOverlay,50));
 
 // 初始化
 buildPassGrid();
+updateDrawHint();
 setTimeout(renderPassOverlay,200);
 })();
 </script>
