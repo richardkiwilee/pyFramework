@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>十字军东征 · 圣地之路</title>
+<style>
+  :root{
+    --leather:#241710;
+    --parch:#e9d6a8;
+    --parch-2:#dcc488;
+    --ink:#2c1c0e;
+    --ink-soft:#4a3826;
+    --gold:#c9a227;
+    --gold-bright:#e8c34d;
+    --gold-deep:#8a6a2a;
+    --bronze:#6b4a28;
+    --route:#7a3b22;
+    --route-hi:#c2410c;
+    --route-sel:#caa13a;
+    --civ-bg:#1c130a;
+    --civ-panel:#2a1d10;
+    --civ-panel-2:#3a2814;
+    --serif-display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Microsoft YaHei","Songti SC",serif;
+    --serif-body:Georgia,"Times New Roman","Microsoft YaHei","Songti SC",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--leather);
+    font-family:var(--serif-body);color:var(--ink);
+    -webkit-font-smoothing:antialiased;}
+  .stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;}
+
+  .frame{position:relative;width:100%;height:100%;max-width:1520px;
+    border:2px solid var(--bronze);outline:1px solid #2c1c0e;outline-offset:6px;
+    border-radius:6px;box-shadow:0 0 0 9px #2c1c0e,0 18px 60px rgba(0,0,0,.7);
+    background:var(--parch);overflow:hidden;}
+
+  svg#map{display:block;width:100%;height:100%;}
+
+  /* —— 路线 —— */
+  .route{fill:none;stroke:var(--route);stroke-width:2.1;stroke-linecap:round;
+    stroke-dasharray:10 8;opacity:.42;animation:march 3.4s linear infinite;
+    transition:opacity .25s,stroke .25s,stroke-width .25s;}
+  @keyframes march{to{stroke-dashoffset:-36}}
+  .route.hi{stroke:var(--route-hi);opacity:.85;stroke-width:3;}
+  .route.sel{stroke:var(--route-sel);stroke-width:3.4;opacity:1;
+    stroke-dasharray:14 7;animation:march 1.6s linear infinite;
+    filter:drop-shadow(0 0 5px rgba(202,161,58,.85));}
+
+  /* —— 城市 —— */
+  .city{cursor:pointer;}
+  .city .ring{fill:#f4e6c0;stroke:#3a2412;stroke-width:1.6;transition:all .2s;}
+  .city .dot{stroke:#2c1c0e;stroke-width:1;transition:all .2s;}
+  .city .cross{stroke:var(--gold-bright);stroke-width:1.8;stroke-linecap:round;opacity:0;}
+  .city.holy .cross{opacity:1;}
+  .city .lbl{font-family:var(--serif-display);font-size:15px;font-weight:700;
+    fill:#3a2410;paint-order:stroke;stroke:#f0e0b8;stroke-width:3px;stroke-linejoin:round;
+    letter-spacing:.3px;transition:fill .2s,font-size .2s;}
+  .city .lblsub{font-family:var(--serif-body);font-style:italic;font-size:10.5px;
+    fill:#6a4f33;paint-order:stroke;stroke:#f0e0b8;stroke-width:2.6px;stroke-linejoin:round;}
+  .city:hover .ring{fill:#fff3d0;stroke:var(--gold-bright);stroke-width:2.2;}
+  .city.sel .ring{fill:#fff3d0;stroke:var(--route-sel);stroke-width:3;
+    filter:drop-shadow(0 0 6px rgba(202,161,58,.9));}
+  .city.sel .dot{fill:var(--route-sel);}
+  .city.sel .lbl{fill:var(--route-hi);font-size:16.5px;}
+
+  /* 提示框 */
+  .tip{position:absolute;pointer-events:none;background:rgba(40,26,14,.94);
+    color:#f0e0b8;border:1px solid #8a6432;border-radius:5px;padding:7px 11px;
+    font-size:13px;line-height:1.4;max-width:240px;box-shadow:0 6px 18px rgba(0,0,0,.5);
+    opacity:0;transform:translate(-50%,-115%);transition:opacity .15s;z-index:60;}
+  .tip b{font-family:var(--serif-display);color:var(--gold-bright);font-size:14px;}
+  .tip.show{opacity:1;}
+  .tip .lat{display:block;font-style:italic;color:#cbb079;font-size:11px;margin-top:1px;}
+
+  /* ========== Civ6 风格顶部条 ========== */
+  .topbar{position:absolute;top:0;left:0;right:0;height:44px;z-index:40;
+    display:flex;align-items:center;gap:14px;padding:0 16px;
+    background:linear-gradient(180deg,#2a1d10,#1c130a);
+    border-bottom:1px solid var(--gold-deep);
+    box-shadow:0 2px 8px rgba(0,0,0,.5);color:#e8d4a0;
+    font-family:var(--serif-display);}
+  .topbar .title{font-weight:700;font-size:15px;letter-spacing:2px;color:var(--gold-bright);
+    white-space:nowrap;text-shadow:0 1px 0 #000;}
+  .topbar .title em{font-family:var(--serif-body);font-style:italic;font-weight:400;
+    font-size:11px;color:#a8884a;letter-spacing:1px;}
+  .topbar .spacer{flex:1;}
+  .stat{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;
+    color:#f0e0b8;padding:3px 9px;border:1px solid #5a3a1a;border-radius:4px;
+    background:rgba(0,0,0,.25);}
+  .stat .ico{font-size:14px;}
+  .stat .per{color:#9fb8c0;font-size:11px;font-weight:400;}
+  .stat.gold{color:#ffd866;}
+  .turnbox{display:flex;align-items:center;gap:8px;}
+  .turnbox .cnt{font-size:13px;color:#f0e0b8;font-weight:700;letter-spacing:1px;}
+  .nextbtn{font-family:var(--serif-display);font-size:13px;font-weight:700;letter-spacing:1px;
+    color:#2c1c0e;background:linear-gradient(180deg,#e8c34d,#c9a227);
+    border:1px solid #6b4a28;border-radius:5px;padding:5px 14px;cursor:pointer;
+    box-shadow:0 2px 0 #5a3a1a,0 4px 8px rgba(0,0,0,.4);transition:transform .1s,box-shadow .1s;}
+  .nextbtn:hover{background:linear-gradient(180deg,#f2d368,#d4af37);}
+  .nextbtn:active{transform:translateY(2px);box-shadow:0 0 0 #5a3a1a,0 2px 4px rgba(0,0,0,.4);}
+
+  /* ========== 底部建筑槽位条 ========== */
+  .citybar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateY(24px);
+    opacity:0;pointer-events:none;z-index:38;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;}
+  .citybar.show{transform:translateX(-50%);opacity:1;pointer-events:auto;}
+  .citybar .cname{font-family:var(--serif-display);font-weight:700;font-size:16px;
+    color:var(--gold-bright);letter-spacing:2px;
+    text-shadow:0 1px 0 #000,0 0 10px rgba(0,0,0,.6);
+    background:rgba(28,19,10,.78);padding:2px 16px;border-radius:4px;
+    border:1px solid var(--gold-deep);}
+  .slots{display:flex;gap:8px;padding:9px 12px;border-radius:9px;
+    background:linear-gradient(180deg,#2a1d10,#1c130a);
+    border:1px solid var(--gold-deep);box-shadow:0 4px 16px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(232,195,77,.25);}
+  .slot{width:62px;height:62px;border-radius:7px;cursor:pointer;position:relative;
+    border:1.5px dashed #6a5a3a;background:rgba(0,0,0,.3);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    transition:transform .12s,border-color .15s,background .15s;}
+  .slot:hover{transform:translateY(-3px);}
+  .slot.empty{color:#9a8a5a;font-size:26px;font-weight:700;}
+  .slot.empty:hover{border-color:var(--gold-bright);background:rgba(232,195,77,.12);}
+  .slot.built{border:1.5px solid var(--gold-deep);
+    background:linear-gradient(180deg,#3a2814,#2a1d10);color:#f0e0b8;}
+  .slot.built .bico{font-size:30px;line-height:1;}
+  .slot.built .bname{font-size:9px;margin-top:2px;color:#cbb079;text-align:center;
+    line-height:1.1;font-family:var(--serif-body);}
+  .slot.building{border:1.5px solid #4a7a9a;background:linear-gradient(180deg,#243040,#1a2230);
+    overflow:hidden;}
+  .slot.building .bico{font-size:24px;opacity:.8;}
+  .slot.building .progbar{position:absolute;left:0;bottom:0;width:0;height:4px;
+    background:linear-gradient(90deg,#6ab0d8,#a8d8f0);box-shadow:0 0 6px #6ab0d8;}
+  .slot.building .pct{font-size:9px;color:#a8d8f0;font-weight:700;}
+  .slot.active{border-color:var(--gold-bright)!important;
+    box-shadow:0 0 0 2px rgba(232,195,77,.6),0 0 14px rgba(232,195,77,.5);
+    transform:translateY(-3px);}
+  .slot .badge{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;
+    background:var(--route-hi);color:#fff;font-size:9px;font-weight:700;
+    display:none;align-items:center;justify-content:center;border:1px solid #2c1c0e;}
+  .slot.building .badge{display:flex;}
+
+  /* ========== 侧边栏 ========== */
+  .sidebar{position:absolute;top:54px;bottom:96px;width:318px;z-index:35;
+    background:linear-gradient(180deg,#2a1d10,#1c130a);
+    border:1px solid var(--gold-deep);box-shadow:0 0 20px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;color:#e8d4a0;
+    transition:transform .34s cubic-bezier(.2,.8,.2,1);}
+  .sidebar.left{left:0;border-left:none;border-radius:0 10px 10px 0;
+    transform:translateX(-112%);}
+  .sidebar.right{right:0;border-right:none;border-radius:10px 0 0 10px;
+    transform:translateX(112%);}
+  .sidebar.open{transform:translateX(0);}
+  .sb-head{display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px;border-bottom:1px solid var(--gold-deep);
+    background:linear-gradient(180deg,#3a2814,#2a1d10);}
+  .sb-head .t{font-family:var(--serif-display);font-weight:700;font-size:14px;
+    letter-spacing:2px;color:var(--gold-bright);}
+  .sb-head .x{cursor:pointer;color:#a8884a;font-size:18px;width:24px;height:24px;
+    display:flex;align-items:center;justify-content:center;border-radius:4px;transition:.15s;}
+  .sb-head .x:hover{color:#fff;background:rgba(232,195,77,.2);}
+  .sb-body{flex:1;overflow-y:auto;padding:11px 13px;}
+  .sb-body::-webkit-scrollbar{width:8px;}
+  .sb-body::-webkit-scrollbar-thumb{background:#5a3a1a;border-radius:4px;}
+  .sb-body::-webkit-scrollbar-track{background:rgba(0,0,0,.2);}
+
+  /* 左侧：城市信息 */
+  .ci-pop{display:flex;align-items:center;justify-content:space-between;
+    padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid #5a3a1a;border-radius:6px;margin-bottom:10px;}
+  .ci-pop .lab{font-size:12px;color:#cbb079;letter-spacing:1px;}
+  .ci-pop .num{font-size:24px;font-weight:700;color:var(--gold-bright);
+    font-family:var(--serif-display);}
+  .ci-sec{margin-bottom:12px;}
+  .ci-sec .h{font-size:11px;letter-spacing:2px;color:#a8884a;
+    text-transform:uppercase;margin-bottom:6px;border-bottom:1px dashed #5a3a1a;padding-bottom:3px;}
+  .yields{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .yield{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;
+    background:rgba(0,0,0,.25);border:1px solid #4a3826;font-size:13px;font-weight:600;}
+  .yield .ico{font-size:15px;}
+  .yield .v{color:#f0e0b8;}
+  .yield .v .per{color:#9fb8c0;font-size:10px;font-weight:400;}
+  .bonuses{display:flex;flex-direction:column;gap:5px;}
+  .bonus{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:5px;
+    background:rgba(0,0,0,.22);border:1px solid #4a3826;font-size:12px;}
+  .bonus .bico{font-size:16px;}
+  .bonus .bn{color:#e8d4a0;flex:1;}
+  .bonus .by{color:#ffd866;font-weight:700;font-size:11px;}
+  .empty-line{color:#7a6a4a;font-style:italic;font-size:12px;padding:4px 2px;}
+  .actions{display:flex;flex-direction:column;gap:7px;}
+  .actbtn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;
+    background:linear-gradient(180deg,#3a2814,#2a1d10);border:1px solid var(--gold-deep);
+    color:#f0e0b8;font-family:var(--serif-body);font-size:13px;text-align:left;
+    transition:transform .1s,border-color .15s,background .15s;}
+  .actbtn:hover:not(.dis){border-color:var(--gold-bright);background:linear-gradient(180deg,#4a3420,#3a2814);transform:translateX(2px);}
+  .actbtn:active:not(.dis){transform:translateX(0) translateY(1px);}
+  .actbtn.dis{opacity:.45;cursor:not-allowed;}
+  .actbtn .aico{font-size:18px;}
+  .actbtn .atxt{flex:1;}
+  .actbtn .atxt .an{font-weight:700;font-size:13px;}
+  .actbtn .atxt .ad{font-size:10.5px;color:#a8884a;}
+  .actbtn .acost{font-size:11px;color:#ffd866;font-weight:700;white-space:nowrap;}
+  .actbtn .acd{font-size:10px;color:#9fb8c0;white-space:nowrap;}
+  .garrison{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:5px;
+    background:rgba(0,0,0,.25);border:1px solid #4a3826;font-size:12px;}
+  .garrison .gico{font-size:16px;}
+  .garrison .gv{color:#f0e0b8;font-weight:700;}
+
+  /* 右侧：可建造列表 / 建筑详情 */
+  .build-card{display:flex;gap:9px;padding:9px;border-radius:7px;cursor:pointer;margin-bottom:8px;
+    background:linear-gradient(180deg,#3a2814,#2a1d10);border:1px solid var(--gold-deep);
+    transition:border-color .15s,background .15s,transform .1s;}
+  .build-card:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#4a3420,#3a2814);transform:translateY(-2px);}
+  .build-card.locked{opacity:.5;cursor:not-allowed;}
+  .build-card.locked:hover{transform:none;border-color:var(--gold-deep);}
+  .build-card .bc-ico{font-size:28px;width:40px;flex:0 0 40px;text-align:center;line-height:40px;
+    background:rgba(0,0,0,.3);border-radius:5px;border:1px solid #4a3826;}
+  .build-card .bc-mid{flex:1;min-width:0;}
+  .build-card .bc-name{font-family:var(--serif-display);font-weight:700;font-size:13px;color:#f0e0b8;}
+  .build-card .bc-eff{font-size:11px;color:#ffd866;margin-top:1px;}
+  .build-card .bc-desc{font-size:10.5px;color:#a8884a;margin-top:2px;line-height:1.3;}
+  .build-card .bc-cost{font-size:11px;color:#a8d8f0;font-weight:700;white-space:nowrap;
+    align-self:center;background:rgba(106,176,216,.12);padding:3px 7px;border-radius:4px;}
+  .build-card .bc-cost.lock{color:#c2410c;background:rgba(194,65,12,.12);}
+  .detail-box{padding:11px;border-radius:8px;background:rgba(0,0,0,.25);
+    border:1px solid var(--gold-deep);margin-bottom:10px;}
+  .detail-box .d-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .detail-box .d-ico{font-size:34px;width:48px;height:48px;flex:0 0 48px;text-align:center;
+    line-height:48px;background:rgba(0,0,0,.3);border-radius:6px;border:1px solid #4a3826;}
+  .detail-box .d-name{font-family:var(--serif-display);font-weight:700;font-size:16px;color:var(--gold-bright);}
+  .detail-box .d-eff{font-size:12px;color:#ffd866;margin-top:2px;}
+  .detail-box .d-desc{font-size:12px;color:#cbb079;line-height:1.4;margin:6px 0 10px;font-style:italic;}
+  .detail-box .d-act{display:flex;gap:8px;}
+  .dbtn{flex:1;padding:7px;border-radius:5px;cursor:pointer;font-family:var(--serif-body);
+    font-size:12px;font-weight:700;border:1px solid #5a3a1a;transition:.15s;}
+  .dbtn.cancel{background:#3a1818;color:#f0b0a0;border-color:#6a2a1a;}
+  .dbtn.cancel:hover{background:#4a2020;}
+  .dbtn.demolish{background:#3a1818;color:#f0b0a0;border-color:#6a2a1a;}
+  .dbtn.demolish:hover{background:#4a2020;}
+  .sb-hint{font-size:12px;color:#a8884a;font-style:italic;text-align:center;padding:18px 8px;line-height:1.5;}
+
+  /* ========== Toast ========== */
+  .toasts{position:absolute;top:52px;left:50%;transform:translateX(-50%);z-index:70;
+    display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;}
+  .toast{background:linear-gradient(180deg,#3a2814,#2a1d10);color:#f0e0b8;
+    border:1px solid var(--gold-deep);border-radius:5px;padding:6px 16px;font-size:13px;
+    box-shadow:0 4px 14px rgba(0,0,0,.5);
+    animation:tin .3s ease,tout .4s ease 2.3s forwards;}
+  .toast b{color:var(--gold-bright);}
+  @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes tout{to{opacity:0;transform:translateY(-8px)}}
+
+  .vign{position:absolute;inset:0;pointer-events:none;z-index:30;
+    background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(58,36,14,.28) 100%);}
+
+  @media (max-width:900px){
+    .sidebar{width:260px}
+    .stat{font-size:11px;padding:2px 6px}
+    .topbar .title{font-size:12px}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="frame">
+    <svg id="map" viewBox="0 0 1200 820" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="sea" cx="50%" cy="42%" r="75%">
+          <stop offset="0%"  stop-color="#7ea2b4"/>
+          <stop offset="60%" stop-color="#5b8599"/>
+          <stop offset="100%" stop-color="#44687b"/>
+        </radialGradient>
+        <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#ecd9aa"/>
+          <stop offset="55%" stop-color="#e0c98f"/>
+          <stop offset="100%" stop-color="#cdaf78"/>
+        </linearGradient>
+        <filter id="coast" x="-6%" y="-6%" width="112%" height="112%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7" result="t"/>
+          <feDisplacementMap in="SourceGraphic" in2="t" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id="grain" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" stitchTiles="stitch" result="n"/>
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.30  0 0 0 0 0.22  0 0 0 0 0.12  0 0 0 0.08 0"/>
+        </filter>
+        <symbol id="compass" viewBox="-60 -60 120 120">
+          <circle r="54" fill="#f0e0b8" stroke="#7a5a32" stroke-width="1.4" opacity="0.92"/>
+          <circle r="46" fill="none" stroke="#7a5a32" stroke-width="0.7" stroke-dasharray="2 3"/>
+          <g fill="#4a2c12">
+            <polygon points="0,-50 6,0 0,50 -6,0"/>
+            <polygon points="-50,0 0,6 50,0 0,-6" fill="#7a5a32"/>
+            <polygon points="0,-50 6,0 0,0 -6,0" fill="#2c1c0e"/>
+            <polygon points="0,50 6,0 0,0 -6,0" fill="#2c1c0e"/>
+          </g>
+          <circle r="4" fill="#c9a227" stroke="#2c1c0e" stroke-width="1"/>
+          <text x="0" y="-58" text-anchor="middle" font-family="Palatino Linotype,serif" font-size="11" fill="#5a3a1a" font-weight="700">N</text>
+          <text x="0" y="64" text-anchor="middle" font-family="Palatino Linotype,serif" font-size="11" fill="#5a3a1a" font-weight="700">S</text>
+          <text x="-58" y="3" text-anchor="middle" font-family="Palatino Linotype,serif" font-size="11" fill="#5a3a1a" font-weight="700">W</text>
+          <text x="58" y="3" text-anchor="middle" font-family="Palatino Linotype,serif" font-size="11" fill="#5a3a1a" font-weight="700">E</text>
+        </symbol>
+      </defs>
+
+      <rect x="0" y="0" width="1200" height="820" fill="url(#sea)" id="bg"/>
+      <g stroke="#7ea2b4" stroke-width="0.8" fill="none" opacity="0.35">
+        <path d="M120 700 q40 -8 80 0 t80 0 t80 0 t80 0"/>
+        <path d="M60 760 q40 -8 80 0 t80 0 t80 0 t80 0 t80 0"/>
+        <path d="M780 730 q40 -8 80 0 t80 0 t80 0"/>
+        <path d="M900 120 q40 -8 80 0 t80 0"/>
+        <path d="M40 160 q40 -8 80 0 t80 0"/>
+      </g>
+      <g id="rhumbs" stroke="#5a3a1a" stroke-width="0.5" fill="none" opacity="0.10"></g>
+
+      <g filter="url(#coast)">
+        <path d="M 150 300 C 200 230, 250 205, 320 205 C 400 205, 480 235, 560 220
+                 C 640 205, 740 250, 820 295 C 900 335, 960 330, 1000 360
+                 C 1060 400, 1140 440, 1150 520 C 1158 580, 1150 630, 1110 645
+                 C 1050 660, 980 620, 920 560 C 870 510, 810 495, 760 480
+                 C 660 500, 560 510, 470 500 C 400 495, 360 480, 320 460
+                 C 250 440, 190 430, 150 410 C 120 380, 120 340, 150 300 Z"
+              fill="url(#land)" stroke="#7a5a32" stroke-width="2.2"/>
+      </g>
+      <g filter="url(#coast)">
+        <ellipse cx="900" cy="650" rx="42" ry="20" fill="url(#land)" stroke="#7a5a32" stroke-width="2"/>
+      </g>
+      <g filter="url(#coast)" opacity="0.92">
+        <ellipse cx="815" cy="555" rx="15" ry="8" fill="url(#land)" stroke="#7a5a32" stroke-width="1.5"/>
+        <circle cx="250" cy="560" r="7" fill="url(#land)" stroke="#7a5a32" stroke-width="1.4"/>
+        <circle cx="300" cy="600" r="5" fill="url(#land)" stroke="#7a5a32" stroke-width="1.2"/>
+      </g>
+
+      <g stroke="#7a5a32" stroke-width="1.1" fill="none" opacity="0.55">
+        <path d="M620 250 l8 -11 l8 11 l9 -13 l8 13 M660 252 l7 -10 l8 10 M595 258 l7 -10 l8 10"/>
+        <path d="M860 360 l7 -11 l8 11 l8 -12 l7 12"/>
+        <path d="M1010 540 l7 -10 l7 10 l7 -11 l7 11"/>
+        <path d="M250 360 l6 -9 l6 9 l6 -10 l6 10"/>
+      </g>
+      <g fill="#5a6a3a" opacity="0.4">
+        <circle cx="420" cy="280" r="3.2"/><circle cx="436" cy="286" r="3"/><circle cx="448" cy="278" r="2.8"/>
+        <circle cx="700" cy="430" r="3"/><circle cx="714" cy="436" r="2.8"/><circle cx="688" cy="440" r="3"/>
+      </g>
+
+      <rect x="0" y="0" width="1200" height="820" filter="url(#grain)" opacity="0.5" pointer-events="none"/>
+      <g pointer-events="none" opacity="0.5">
+        <ellipse cx="160" cy="700" rx="80" ry="50" fill="#9a7338" opacity="0.12"/>
+        <ellipse cx="1050" cy="160" rx="70" ry="45" fill="#7a5a32" opacity="0.10"/>
+        <ellipse cx="560" cy="640" rx="60" ry="38" fill="#8a6432" opacity="0.10"/>
+      </g>
+
+      <g id="routes-layer"></g>
+      <use href="#compass" x="160" y="690" width="110" height="110"/>
+      <g id="cities-layer"></g>
+    </svg>
+
+    <!-- 顶部条 -->
+    <div class="topbar">
+      <div class="title">十字军东征 · 圣地之路 <em>Iter Sanctum</em></div>
+      <div class="spacer"></div>
+      <div class="stat"><span class="ico">🔬</span><span id="t-sci">0</span><span class="per">+<span id="t-sci-per">0</span>/回</span></div>
+      <div class="stat"><span class="ico">🎭</span><span id="t-cult">0</span><span class="per">+<span id="t-cult-per">0</span>/回</span></div>
+      <div class="stat"><span class="ico">✨</span><span id="t-faith">0</span><span class="per">+<span id="t-faith-per">0</span>/回</span></div>
+      <div class="stat gold"><span class="ico">💰</span><span id="t-gold">0</span><span class="per">+<span id="t-gold-per">0</span>/回</span></div>
+      <div class="stat"><span class="ico">🎓</span><span id="t-tech">0</span></div>
+      <div class="turnbox"><span class="cnt">第 <span id="t-turn">1</span> 回合</span>
+        <button class="nextbtn" id="next-turn">下一回合 ▶</button>
+      </div>
+    </div>
+
+    <!-- 底部建筑槽位 -->
+    <div class="citybar" id="citybar">
+      <div class="cname" id="cb-name">—</div>
+      <div class="slots" id="slots"></div>
+    </div>
+
+    <!-- 左侧：城市信息 -->
+    <div class="sidebar left" id="sb-left">
+      <div class="sb-head"><span class="t" id="sl-title">城市概览</span><span class="x" data-side="left">×</span></div>
+      <div class="sb-body" id="sl-body"></div>
+    </div>
+
+    <!-- 右侧：可建造 / 建筑详情 -->
+    <div class="sidebar right" id="sb-right">
+      <div class="sb-head"><span class="t" id="sr-title">建造</span><span class="x" data-side="right">×</span></div>
+      <div class="sb-body" id="sr-body"></div>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+    <div class="tip" id="tip"></div>
+    <div class="vign"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SVGNS="http://www.w3.org/2000/svg";
+const $=id=>document.getElementById(id);
+const svg=$("map"), routesG=$("routes-layer"), citiesG=$("cities-layer");
+const tip=$("tip");
+function el(tag,attrs){const n=document.createElementNS(SVGNS,tag);
+  if(attrs)for(const k in attrs)n.setAttribute(k,attrs[k]);return n;}
+
+// —— 产出图标 ——
+const Y={food:"🌾",prod:"⚙️",gold:"💰",sci:"🔬",faith:"✨",cult:"🎭"};
+const YNAME={food:"粮食",prod:"产能",gold:"金币",sci:"科技",faith:"信仰",cult:"文化"};
+
+// —— 建筑目录 ——
+const BUILDINGS={
+  granary:  {cn:"粮仓",   icon:"🌰", cost:50,  yields:{food:2},                 desc:"增加粮食储备，加速人口增长。"},
+  library:  {cn:"图书馆", icon:"📚", cost:60,  yields:{sci:2},  unlocks:["research"], desc:"积累知识，开启研发科技行动。"},
+  market:   {cn:"市场",   icon:"🪙", cost:70,  yields:{gold:2}, unlocks:["merchant"],  desc:"繁荣贸易，开启派遣商人行动。"},
+  barracks: {cn:"兵营",   icon:"🛡️", cost:70,  yields:{prod:1}, unlocks:["train"],    desc:"训练常备军，开启招兵行动。"},
+  temple:   {cn:"神庙",   icon:"⛪", cost:80,  yields:{faith:2},unlocks:["pray"],     desc:"凝聚信仰，开启传播信仰行动。"},
+  workshop: {cn:"工坊",   icon:"🔨", cost:90,  yields:{prod:2},                    desc:"提升产能，加速后续建造。"},
+  harbor:   {cn:"港口",   icon:"⚓", cost:80,  yields:{gold:2,food:1}, req:"port",  desc:"连通海路，繁荣港口贸易。仅港口城可建。"},
+  wall:     {cn:"城墙",   icon:"🧱", cost:100, yields:{},                          desc:"加固城防，抵御围攻。"},
+  agora:    {cn:"集市",   icon:"🏛️", cost:60, yields:{gold:1,cult:1},             desc:"城邦集会之地，促进文化交流。"},
+  university:{cn:"大学",  icon:"🎓", cost:160, yields:{sci:3}, unlocks:["research"],tech:1, desc:"高等学府，大幅提升科技产出。需科技≥1。"},
+  mint:     {cn:"铸币厂", icon:"🏦", cost:140, yields:{gold:3}, tech:2,             desc:"铸造金币，充盈国库。需科技≥2。"},
+};
+
+// —— 行动 ——
+const ACTIONS={
+  train:    {cn:"招兵",     icon:"⚔️", cost:{gold:60},  desc:"征召一名士兵驻防。"},
+  research: {cn:"研发科技", icon:"🧪", cost:{gold:50},  desc:"推进科技等级，解锁高级建筑。"},
+  merchant: {cn:"派遣商人", icon:"🛒", cd:3,            desc:"商队归来，立即获得金币。"},
+  pray:     {cn:"传播信仰", icon:"🙏", cd:3,            desc:"传播信仰，立即获得信仰值。"},
+};
+
+// —— 城市 ——
+const CITIES=[
+  {id:"massilia",  cn:"马赛",     lat:"Massilia",         x:200,  y:395, type:"port",  pop:4, start:["harbor"],            slots:6},
+  {id:"genova",    cn:"热那亚",   lat:"Genua",            x:295,  y:345, type:"port",  pop:5, start:["harbor","market"],     slots:6},
+  {id:"roma",      cn:"罗马",     lat:"Roma",             x:390,  y:440, type:"holy",  pop:6, start:["temple","agora"],      slots:6},
+  {id:"venezia",   cn:"威尼斯",   lat:"Venetia",          x:495,  y:335, type:"great", pop:7, start:["market","wall"],       slots:7},
+  {id:"vindobona", cn:"维也纳",   lat:"Vindobona",        x:545,  y:245, type:"land",  pop:3, start:["granary","barracks"],  slots:5},
+  {id:"ragusa",    cn:"拉古萨",   lat:"Ragusa",           x:590,  y:450, type:"port",  pop:3, start:["harbor"],              slots:5},
+  {id:"constant",  cn:"君士坦丁堡",lat:"Constantinopolis", x:735,  y:360, type:"great", pop:8, start:["market","wall","library"],slots:8},
+  {id:"nicosia",   cn:"尼科西亚", lat:"Nicosia",          x:900,  y:645, type:"port",  pop:3, start:["harbor"],              slots:5},
+  {id:"antiochia", cn:"安条克",   lat:"Antiochia",        x:985,  y:425, type:"great", pop:6, start:["market","wall"],       slots:7},
+  {id:"tripolis",  cn:"的黎波里", lat:"Tripolis",         x:1045, y:510, type:"port",  pop:4, start:["harbor","market"],     slots:6},
+  {id:"acre",      cn:"阿克",     lat:"Acco",             x:1075, y:555, type:"port",  pop:4, start:["harbor","wall"],       slots:6},
+  {id:"jerusalem", cn:"耶路撒冷", lat:"Hierosolyma",      x:1105, y:605, type:"holy",  pop:5, start:["temple"],              slots:6},
+];
+const cityById=Object.create(null);CITIES.forEach(c=>cityById[c.id]=c);
+
+const ROUTES=[
+  ["massilia","genova",-22],["genova","roma",34],["roma","venezia",-30],
+  ["venezia","vindobona",22],["venezia","ragusa",34],["roma","ragusa",42],
+  ["ragusa","constant",-36],["venezia","constant",-64],["constant","nicosia",44],
+  ["nicosia","antiochia",52],["antiochia","tripolis",-24],["tripolis","acre",-20],
+  ["acre","jerusalem",30],["antiochia","jerusalem",-56],["massilia","roma",58]
+];
+
+function arcPath(a,b,bend){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y;
+  const len=Math.max(1,Math.hypot(dx,dy));const px=-dy/len,py=dx/len;
+  return `M ${a.x} ${a.y} Q ${mx+px*bend} ${my+py*bend} ${b.x} ${b.y}`;}
+
+const adj=Object.create(null);CITIES.forEach(c=>adj[c.id]=[]);
+const routeEls=[];
+ROUTES.forEach(r=>{const [aId,bId,bend]=r;const a=cityById[aId],b=cityById[bId];
+  const p=el("path",{class:"route",d:arcPath(a,b,bend),"data-a":aId,"data-b":bId,"vector-effect":"non-scaling-stroke"});
+  routesG.appendChild(p);routeEls.push({a:aId,b:bId,el:p});adj[aId].push(bId);adj[bId].push(aId);});
+
+const rh=$("rhumbs");
+for(let i=0;i<16;i++){const a=i*Math.PI/8;
+  rh.appendChild(el("line",{x1:600,y1:410,x2:600+Math.cos(a)*900,y2:410+Math.sin(a)*900}));}
+
+// —— 帝国与城市状态 ——
+const empire={gold:200,sci:0,faith:0,cult:0,turn:1,tech:0};
+const CS=Object.create(null);
+CITIES.forEach(c=>{
+  const slots=[];
+  c.start.forEach((bid,i)=>{ if(BUILDINGS[bid]) slots.push({state:"built",id:bid}); });
+  for(let i=slots.length;i<c.slots;i++) slots.push({state:"empty"});
+  CS[c.id]={pop:c.pop,food:0,slots,cooldowns:{},garrison:0};
+});
+
+function typeBonus(type){return {holy:{faith:1,cult:1,sci:1},great:{gold:2,cult:1},
+  port:{gold:1,food:1},land:{food:1,prod:1}}[type]||{};}
+
+function cityYields(id){const c=cityById[id];
+  const y={food:2,prod:1,gold:1,sci:1,faith:0,cult:0};
+  const tb=typeBonus(c.type);for(const k in tb)y[k]+=tb[k];
+  const cs=CS[id];
+  for(const s of cs.slots) if(s.state==="built"){const b=BUILDINGS[s.id];
+    for(const k in b.yields)y[k]+=b.yields[k];}
+  return y;}
+
+function buildingBonuses(id){const cs=CS[id];const list=[];
+  for(const s of cs.slots) if(s.state==="built"){const b=BUILDINGS[s.id];
+    const ys=Object.entries(b.yields).map(([k,v])=>Y[k]+v).join(" ");
+    if(ys) list.push({icon:b.icon,name:b.cn,ys});}
+  return list;}
+
+function cityActions(id){const cs=CS[id];const s=new Set();
+  for(const slot of cs.slots) if(slot.state==="built"){const b=BUILDINGS[slot.id];
+    (b.unlocks||[]).forEach(u=>s.add(u));}
+  return [...s];}
+
+function buildableFor(id){const cs=CS[id];const c=cityById[id];const out=[];
+  const have=new Set();for(const s of cs.slots) if(s.state!=="empty")have.add(s.id);
+  for(const bid in BUILDINGS){const b=BUILDINGS[bid];
+    if(have.has(bid))continue;
+    if(b.req==="port"&&c.type!=="port")continue;
+    if(b.tech&&empire.tech<b.tech)continue;
+    out.push(bid);}
+  return out;}
+
+// —— 选中状态 ——
+const SEL={cityId:null,activeSlot:null};
+function curCity(){return SEL.cityId;}
+
+function selectCity(id){
+  SEL.cityId=id; SEL.activeSlot=null;
+  closeSidebar("left"); closeSidebar("right");
+  Object.values(cityEls).forEach(g=>g.classList.remove("sel"));
+  cityEls[id].classList.add("sel");
+  highlightCityRoutes(id);
+  renderCitybar(); renderTop();
+}
+function deselect(){
+  SEL.cityId=null; SEL.activeSlot=null;
+  Object.values(cityEls).forEach(g=>g.classList.remove("sel"));
+  routeEls.forEach(r=>{r.el.classList.remove("hi");r.el.classList.remove("sel");});
+  closeSidebar("left"); closeSidebar("right");
+  renderCitybar();
+}
+function highlightCityRoutes(id){
+  routeEls.forEach(r=>{r.el.classList.remove("hi");r.el.classList.remove("sel");
+    if(r.a===id||r.b===id)r.el.classList.add("sel");});
+}
+function openSidebar(side){$("sb-"+side).classList.add("open");}
+function closeSidebar(side){$("sb-"+side).classList.remove("open");}
+function closeBoth(){closeSidebar("left");closeSidebar("right");SEL.activeSlot=null;renderSlots();}
+
+function clickSlot(idx){
+  if(!SEL.cityId)return;
+  SEL.activeSlot=idx;
+  openSidebar("left"); openSidebar("right");
+  renderSlots(); renderLeft(); renderRight();
+}
+
+// —— 渲染：顶部 ——
+function empirePerTurn(){let g=0,s=0,f=0,c=0;
+  for(const id in CS){const y=cityYields(id);g+=y.gold;s+=y.sci;f+=y.faith;c+=y.cult;}
+  return {gold:g,sci:s,faith:f,cult:c};}
+function renderTop(){const p=empirePerTurn();
+  $("t-gold").textContent=Math.floor(empire.gold);
+  $("t-gold-per").textContent=p.gold;
+  $("t-sci").textContent=Math.floor(empire.sci);
+  $("t-sci-per").textContent=p.sci;
+  $("t-cult").textContent=Math.floor(empire.cult);
+  $("t-cult-per").textContent=p.cult;
+  $("t-faith").textContent=Math.floor(empire.faith);
+  $("t-faith-per").textContent=p.faith;
+  $("t-tech").textContent=empire.tech;
+  $("t-turn").textContent=empire.turn;
+}
+
+// —— 渲染：底部槽位 ——
+function renderCitybar(){const bar=$("citybar");
+  if(!SEL.cityId){bar.classList.remove("show");return;}
+  bar.classList.add("show");
+  $("cb-name").textContent=cityById[SEL.cityId].cn;
+  renderSlots();}
+function renderSlots(){const box=$("slots");box.innerHTML="";
+  if(!SEL.cityId)return;const cs=CS[SEL.cityId];
+  cs.slots.forEach((s,i)=>{
+    const d=document.createElement("div");
+    d.className="slot "+(s.state==="built"?"built":s.state==="building"?"building":"empty");
+    if(i===SEL.activeSlot)d.classList.add("active");
+    if(s.state==="empty"){d.textContent="+";d.title="空槽位 · 点击建造";}
+    else if(s.state==="built"){const b=BUILDINGS[s.id];
+      d.innerHTML=`<span class="bico">${b.icon}</span><span class="bname">${b.cn}</span>`;}
+    else{const b=BUILDINGS[s.id];const pct=Math.min(100,Math.floor(s.progress/s.cost*100));
+      d.innerHTML=`<span class="bico">${b.icon}</span><span class="pct">${pct}%</span>
+        <span class="badge">⏳</span><span class="progbar" style="width:${pct}%"></span>`;
+      d.title=`建造中：${b.cn}（${s.progress}/${s.cost} 产能）`;}
+    d.addEventListener("click",()=>clickSlot(i));
+    box.appendChild(d);
+  });
+}
+
+// —— 渲染：左侧城市信息 ——
+function renderLeft(){if(!SEL.cityId)return;const id=SEL.cityId;const c=cityById[id];
+  const cs=CS[id];const y=cityYields(id);const bn=buildingBonuses(id);const acts=cityActions(id);
+  $("sl-title").textContent=c.cn+" · 城市概览";
+  let h="";
+  h+=`<div class="ci-pop"><span class="lab">人口 POPULATION</span><span class="num">${cs.pop}</span></div>`;
+  h+=`<div class="ci-sec"><div class="h">每回合产出</div><div class="yields">`;
+  for(const k of ["food","prod","gold","sci","faith","cult"]){
+    h+=`<div class="yield"><span class="ico">${Y[k]}</span><span class="v">${y[k]}<span class="per">/回</span></span></div>`;}
+  h+=`</div></div>`;
+  h+=`<div class="ci-sec"><div class="h">建筑带来的加成</div><div class="bonuses">`;
+  if(bn.length===0)h+=`<div class="empty-line">尚无建筑加成</div>`;
+  else bn.forEach(b=>{h+=`<div class="bonus"><span class="bico">${b.icon}</span><span class="bn">${b.name}</span><span class="by">${b.ys}</span></div>`;});
+  h+=`</div></div>`;
+  h+=`<div class="ci-sec"><div class="h">可用行动</div><div class="actions">`;
+  if(acts.length===0)h+=`<div class="empty-line">建造特定建筑后解锁行动</div>`;
+  else acts.forEach(aid=>{const a=ACTIONS[aid];let costTxt="",dis=false;
+    if(a.cost){costTxt=Object.entries(a.cost).map(([k,v])=>Y[k]+v).join(" ");
+      if(empire.gold<(a.cost.gold||0)){dis=true;}}
+    if(a.cd&&cs.cooldowns[aid]>0){costTxt=`冷却 ${cs.cooldowns[aid]}回`;dis=true;}
+    h+=`<button class="actbtn${dis?" dis":""}" data-act="${aid}">
+      <span class="aico">${a.icon}</span><span class="atxt"><div class="an">${a.cn}</div><div class="ad">${a.desc}</div></span>
+      <span class="${a.cd?"acd":"acost"}">${costTxt||"免费"}</span></button>`;});
+  h+=`</div></div>`;
+  h+=`<div class="ci-sec"><div class="garrison"><span class="gico">⚔️</span>驻军 <span class="gv">${cs.garrison}</span> 名</div></div>`;
+  $("sl-body").innerHTML=h;
+  $("sl-body").querySelectorAll(".actbtn").forEach(b=>b.addEventListener("click",()=>{
+    if(b.classList.contains("dis"))return;doAction(b.dataset.act);}));
+}
+
+// —— 渲染：右侧建造列表（+ 选中槽位详情） ——
+function renderRight(){
+  if(!SEL.cityId||SEL.activeSlot===null)return;
+  const id=SEL.cityId;const cs=CS[id];const slot=cs.slots[SEL.activeSlot];
+  let h="";
+  // 若选中非空槽位，顶部显示该建筑详情（可取消/拆除）
+  if(slot.state!=="empty"){
+    const b=BUILDINGS[slot.id];
+    const eff=Object.entries(b.yields).map(([k,v])=>Y[k]+"+"+v).join("  ");
+    h+=`<div class="detail-box">
+      <div class="d-top"><div class="d-ico">${b.icon}</div>
+        <div><div class="d-name">${b.cn}</div><div class="d-eff">${eff||"无产出加成"}</div></div></div>
+      <div class="d-desc">${b.desc}</div>`;
+    if(slot.state==="building"){
+      const pct=Math.min(100,Math.floor(slot.progress/slot.cost*100));
+      h+=`<div style="font-size:12px;color:#a8d8f0;margin-bottom:8px">建造中：${slot.progress}/${slot.cost} 产能（${pct}%）</div>
+        <div class="d-act"><button class="dbtn cancel" data-cancel="1">取消建造</button></div>`;}
+    else{
+      h+=`<div class="d-act"><button class="dbtn demolish" data-dem="1">拆除建筑</button></div>`;}
+    h+=`</div>`;
+  }
+  // 下方始终展示可建造建筑列表
+  $("sr-title").textContent="可建造建筑";
+  const list=buildableFor(id);
+  if(list.length===0)h+=`<div class="sb-hint">该城市已无更多可建造建筑。<br>研发科技可解锁高级建筑。</div>`;
+  else list.forEach(bid=>{const b=BUILDINGS[bid];
+    const eff=Object.entries(b.yields).map(([k,v])=>Y[k]+"+"+v).join("  ");
+    h+=`<div class="build-card" data-build="${bid}">
+      <div class="bc-ico">${b.icon}</div>
+      <div class="bc-mid"><div class="bc-name">${b.cn}</div>
+        <div class="bc-eff">${eff||"无产出加成"}</div>
+        <div class="bc-desc">${b.desc}</div></div>
+      <div class="bc-cost">⚙️${b.cost}</div></div>`;});
+  $("sr-body").innerHTML=h;
+  const body=$("sr-body");
+  body.querySelectorAll(".build-card").forEach(c=>c.addEventListener("click",()=>{
+    startBuild(SEL.cityId,SEL.activeSlot,c.dataset.build);}));
+  const cc=body.querySelector('[data-cancel]'),dd=body.querySelector('[data-dem]');
+  if(cc)cc.addEventListener("click",()=>cancelBuild(id,SEL.activeSlot));
+  if(dd)dd.addEventListener("click",()=>demolish(id,SEL.activeSlot));
+}
+
+// —— 建造操作 ——
+function startBuild(id,slotIdx,bid){
+  const cs=CS[id];
+  // 若选中槽位非空，自动找第一个空槽位
+  let target=cs.slots[slotIdx];
+  if(target.state!=="empty"){
+    const emptyIdx=cs.slots.findIndex(s=>s.state==="empty");
+    if(emptyIdx===-1){toast("没有空槽位了");return;}
+    slotIdx=emptyIdx;target=cs.slots[slotIdx];SEL.activeSlot=slotIdx;
+  }
+  target.state="building";target.id=bid;target.progress=0;target.cost=BUILDINGS[bid].cost;
+  toast(`开始建造 <b>${BUILDINGS[bid].cn}</b>`);
+  renderSlots();renderRight();renderLeft();
+}
+function cancelBuild(id,slotIdx){const slot=CS[id].slots[slotIdx];
+  if(slot.state!=="building")return;
+  toast(`已取消 <b>${BUILDINGS[slot.id].cn}</b> 的建造`);
+  slot.state="empty";slot.id=null;slot.progress=0;slot.cost=0;
+  renderSlots();renderRight();renderLeft();}
+function demolish(id,slotIdx){const slot=CS[id].slots[slotIdx];
+  if(slot.state!=="built")return;
+  toast(`拆除了 <b>${BUILDINGS[slot.id].cn}</b>`);
+  slot.state="empty";slot.id=null;
+  renderSlots();renderRight();renderLeft();renderTop();}
+
+// —— 行动 ——
+function doAction(aid){const id=SEL.cityId;if(!id)return;const cs=CS[id];const a=ACTIONS[aid];
+  if(a.cd&&cs.cooldowns[aid]>0){toast(`${a.cn} 冷却中（${cs.cooldowns[aid]} 回合）`);return;}
+  if(a.cost&&a.cost.gold&&empire.gold<a.cost.gold){toast("金币不足");return;}
+  if(aid==="train"){empire.gold-=60;cs.garrison++;toast(`征召了一名士兵 · 驻军 ${cs.garrison}`);}
+  else if(aid==="research"){empire.gold-=50;empire.tech++;toast(`研发推进 · 科技等级 <b>${empire.tech}</b>`);}
+  else if(aid==="merchant"){empire.gold+=40;cs.cooldowns.merchant=3;toast("商队归来 · <b>+40 金</b>");}
+  else if(aid==="pray"){empire.faith+=25;cs.cooldowns.pray=3;toast("信仰传播 · <b>+25 ✨</b>");}
+  renderLeft();renderTop();}
+
+// —— 下一回合 ——
+function nextTurn(){
+  for(const id in CS){
+    const cs=CS[id];const y=cityYields(id);
+    empire.gold+=y.gold;empire.sci+=y.sci;empire.faith+=y.faith;empire.cult+=y.cult;
+    cs.food+=y.food;
+    const need=10+cs.pop*6;
+    if(cs.food>=need){cs.food-=need;cs.pop++;toast(`<b>${cityById[id].cn}</b> 人口增长至 ${cs.pop}`);}
+    for(const slot of cs.slots) if(slot.state==="building"){
+      slot.progress+=y.prod;
+      if(slot.progress>=slot.cost){slot.state="built";slot.progress=0;
+        toast(`<b>${cityById[id].cn}</b> 建造完成：${BUILDINGS[slot.id].cn}`);}}
+    for(const k in cs.cooldowns) if(cs.cooldowns[k]>0)cs.cooldowns[k]--;
+  }
+  empire.turn++;
+  renderTop();renderSlots();renderLeft();renderRight();
+}
+
+// —— Toast ——
+function toast(msg){const t=document.createElement("div");t.className="toast";
+  t.innerHTML=msg;$("toasts").appendChild(t);setTimeout(()=>t.remove(),2800);}
+
+// —— 城市节点 ——
+const cityEls=Object.create(null);
+CITIES.forEach(c=>{
+  const g=el("g",{class:"city"+(c.type==="holy"?" holy":""),transform:`translate(${c.x},${c.y})`,"data-id":c.id});
+  g.appendChild(el("path",{class:"cross",d:"M 0 -20 L 0 -9 M -5 -16 L 5 -16"}));
+  g.appendChild(el("circle",{class:"ring",r:8}));
+  g.appendChild(el("circle",{class:"dot",r:4.2,fill:{holy:"#c9a227",great:"#8a3a2a",port:"#3f6f88",land:"#4a5a3a"}[c.type]}));
+  const lbl=el("text",{class:"lbl","text-anchor":"middle",y:24});lbl.textContent=c.cn;g.appendChild(lbl);
+  const sub=el("text",{class:"lblsub","text-anchor":"middle",y:37});sub.textContent=c.lat;g.appendChild(sub);
+  g.addEventListener("mouseenter",e=>{showTip(c,e);if(!SEL.cityId)hoverRoutes(c.id);});
+  g.addEventListener("mousemove",moveTip);
+  g.addEventListener("mouseleave",()=>{tip.classList.remove("show");if(!SEL.cityId)routeEls.forEach(r=>r.el.classList.remove("hi"));});
+  g.addEventListener("click",e=>{e.stopPropagation();selectCity(c.id);});
+  citiesG.appendChild(g);cityEls[c.id]=g;
+});
+function hoverRoutes(id){routeEls.forEach(r=>{r.el.classList.remove("hi");
+  if(r.a===id||r.b===id)r.el.classList.add("hi");});}
+function showTip(c,e){tip.innerHTML=`<b>${c.cn}</b> · ${c.lat}<span class="lat">${c.desc||"点击查看城市"}</span>`;
+  tip.classList.add("show");moveTip(e);}
+function moveTip(e){const fr=document.querySelector(".frame").getBoundingClientRect();
+  tip.style.left=(e.clientX-fr.left)+"px";tip.style.top=(e.clientY-fr.top)+"px";}
+
+// 给城市补一句描述（用于 tip）
+const DESC={massilia:"南法港口，扬帆东渡的起点。",genova:"海上共和国，舰队与金币之源。",
+  roma:"教廷所在，十字军号令的发出之地。",venezia:"水都商人，东征大军的运粮者。",
+  vindobona:"北方来路，陆路南下的咽喉。",ragusa:"亚得里亚海明珠，中途补给港。",
+  constant:"横跨欧亚的黄金之城，必经之关。",nicosia:"塞浦路斯中途港，渡海踏足圣地前最后补给。",
+  antiochia:"圣地第一座被攻克的城，十字军公国之都。",tripolis:"黎凡特海岸的伯爵领，海陆要冲。",
+  acre:"圣地最后的十字军堡垒，海上门户。",jerusalem:"圣城，东征的终点与圣地之心。"};
+CITIES.forEach(c=>c.desc=DESC[c.id]);
+
+// 背景点击取消选择
+$("bg").addEventListener("click",deselect);
+// 侧边栏关闭按钮
+document.querySelectorAll(".sb-head .x").forEach(x=>x.addEventListener("click",()=>{
+  if(x.dataset.side==="left")closeSidebar("left");else closeSidebar("right");}));
+
+$("next-turn").addEventListener("click",nextTurn);
+
+renderTop();
+})();
+</script>
+</body>
+</html>

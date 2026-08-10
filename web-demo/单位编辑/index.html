@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单位编辑 · 装备与策略</title>
+<style>
+  :root{
+    --bg:#14110d;
+    --bg-2:#1d1812;
+    --panel:#241d14;
+    --panel-2:#2e2519;
+    --line:#4a3a24;
+    --line-2:#6a5436;
+    --ink:#e8dcc4;
+    --ink-2:#c4b596;
+    --ink-dim:#8a7a5c;
+    --gold:#d4af37;
+    --gold-bright:#f0d264;
+    --hl:#c2410c;
+    --hl-2:#e8852a;
+    --blue:#4a90c2;
+    --red:#c2553a;
+    --green:#7ab85a;
+    --font-display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Microsoft YaHei","Songti SC",serif;
+    --font-body:Georgia,"Times New Roman","Microsoft YaHei","Songti SC",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);
+    font-family:var(--font-body);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .app{display:flex;height:100vh;width:100vw;}
+
+  /* —— 左半边：单位详情 —— */
+  .left{flex:1 1 60%;display:flex;flex-direction:column;gap:10px;padding:12px 12px 12px 14px;min-width:0;}
+  .panel{background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(212,175,55,.12);}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;
+    padding:7px 12px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#352a1a,#2a2114);border-radius:8px 8px 0 0;}
+  .panel-head .t{font-family:var(--font-display);font-weight:700;font-size:13px;
+    letter-spacing:2px;color:var(--gold-bright);text-shadow:0 1px 0 #000;}
+  .panel-head .sub{font-size:11px;color:var(--ink-dim);font-style:italic;}
+
+  /* —— a 区（装备+属性）—— */
+  .a{flex:0 0 auto;display:grid;grid-template-columns:0.66fr 1fr;gap:10px;}
+  .a-wrap{padding-bottom:11px;}
+  /* a1 装备栏（1列 4行） */
+  .equip-grid{display:grid;grid-template-columns:1fr;grid-template-rows:repeat(4,1fr);gap:8px;padding:10px;}
+  .slot{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:78px;border:1.5px dashed var(--line-2);border-radius:7px;cursor:pointer;
+    background:rgba(0,0,0,.28);transition:border-color .15s,background .15s,transform .1s;position:relative;}
+  .slot:hover{border-color:var(--gold-bright);background:rgba(212,175,55,.10);transform:translateY(-1px);}
+  .slot.filled{border-style:solid;border-color:var(--line-2);
+    background:linear-gradient(180deg,#3a2d1a,#241d14);}
+  .slot .sl-kind{font-size:10px;color:var(--ink-dim);letter-spacing:1px;margin-bottom:3px;}
+  .slot .sl-ico{font-size:30px;line-height:1;}
+  .slot .sl-name{font-size:11px;color:var(--ink);margin-top:3px;text-align:center;line-height:1.1;
+    padding:0 4px;font-family:var(--font-display);font-weight:700;}
+  .slot .sl-rank{font-size:9px;color:var(--gold);margin-top:1px;}
+  .slot .sl-empty{font-size:22px;color:#5a4a30;font-weight:700;}
+
+  /* a2 属性栏 */
+  .attrs{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(4,1fr);gap:6px;padding:10px;}
+  .attr{display:flex;align-items:center;justify-content:space-between;
+    padding:6px 10px;border-radius:5px;background:rgba(0,0,0,.25);
+    border:1px solid var(--line);font-size:12.5px;}
+  .attr .k{display:flex;align-items:center;gap:6px;color:var(--ink-2);}
+  .attr .k .ki{font-size:14px;}
+  .attr .v{font-family:var(--font-display);font-weight:700;color:var(--gold-bright);font-size:14px;}
+  .attr .v .bonus{color:var(--green);font-size:10px;margin-left:3px;}
+  .attr .v .malus{color:var(--red);font-size:10px;margin-left:3px;}
+
+  /* —— b 区：行动策略 —— */
+  .b{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+  .b .panel-body{flex:1;overflow:auto;padding:6px 8px;}
+  .b .panel-body::-webkit-scrollbar{width:8px;}
+  .b .panel-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
+  .strat-head,.strat-row{display:grid;grid-template-columns:2.2fr 1.4fr 1.4fr;gap:6px;align-items:stretch;}
+  .strat-head{padding:3px 4px 6px;}
+  .strat-head .sh{font-size:10.5px;letter-spacing:2px;color:var(--ink-dim);
+    text-transform:uppercase;border-bottom:1px dashed var(--line);padding-bottom:3px;}
+  .strat-list{display:flex;flex-direction:column;gap:6px;}
+  .strat-row{transition:outline .12s;border-radius:6px;padding:1px;}
+  .strat-row.active{outline:1.5px solid var(--gold-bright);}
+  .cell{display:flex;flex-direction:column;justify-content:center;min-height:42px;
+    border:1px solid var(--line);border-radius:6px;cursor:pointer;padding:5px 9px;
+    background:linear-gradient(180deg,#2e2519,#241d14);transition:border-color .15s,background .15s;}
+  .cell:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#3a2d1a,#2e2519);}
+  .cell.empty{color:var(--ink-dim);font-style:italic;border-style:dashed;justify-content:center;align-items:center;text-align:center;}
+  .cell.skill-filled{border-color:var(--line-2);}
+  .cell.cond-empty{color:#5a4a30;font-style:italic;border-style:dashed;align-items:center;justify-content:center;text-align:center;}
+  .cell .c-ico{font-size:15px;margin-right:1px;}
+  .cell .c-line{display:flex;align-items:center;gap:5px;font-size:12.5px;}
+  .cell .c-name{font-family:var(--font-display);font-weight:700;color:var(--ink);}
+  .cell .c-desc{font-size:10px;color:var(--ink-dim);margin-top:1px;line-height:1.2;}
+  .cell .c-cond{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-2);}
+  .cell.add-row{flex-direction:row;align-items:center;justify-content:center;gap:6px;
+    min-height:38px;border:1.5px dashed var(--line-2);background:rgba(0,0,0,.18);
+    color:var(--ink-dim);font-style:italic;cursor:pointer;}
+  .cell.add-row:hover{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(212,175,55,.10);}
+  .cell.add-row .plus{font-size:18px;font-weight:700;}
+  .strat-row .row-del{position:absolute;}
+  .strat-row{position:relative;}
+  .row-x{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;
+    background:#3a1a12;border:1px solid #6a2a1a;color:#f0b0a0;font-size:11px;
+    display:none;align-items:center;justify-content:center;cursor:pointer;z-index:5;line-height:1;}
+  .strat-row:hover .row-x{display:flex;}
+  .strat-row:hover .row-x:hover{background:#6a2a1a;color:#fff;}
+
+  /* —— 右半边：弹出窗口（一开始就分屏，始终占位） —— */
+  .right{flex:0 0 40%;overflow:hidden;padding:12px 12px 12px 0;min-width:0;
+    transition:flex-basis .3s cubic-bezier(.2,.8,.2,1);}
+  .right-inner{height:100%;display:flex;flex-direction:column;gap:10px;min-width:0;}
+  .modal{background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(212,175,55,.12);display:flex;flex-direction:column;flex:1;min-height:0;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;
+    padding:8px 12px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#352a1a,#2a2114);border-radius:8px 8px 0 0;}
+  .modal-head .t{font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:2px;color:var(--gold-bright);}
+  .modal-head .x{cursor:pointer;color:var(--ink-dim);font-size:18px;width:24px;height:24px;
+    display:flex;align-items:center;justify-content:center;border-radius:4px;transition:.15s;}
+  .modal-head .x:hover{color:#fff;background:rgba(212,175,55,.2);}
+  .modal-body{flex:1;overflow-y:auto;padding:8px;}
+  .modal-body::-webkit-scrollbar{width:8px;}
+  .modal-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
+  .modal-foot{padding:7px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-dim);font-style:italic;
+    background:rgba(0,0,0,.2);}
+
+  /* 仓库装备条目 */
+  .item-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--line);margin-bottom:6px;background:linear-gradient(180deg,#2e2519,#241d14);
+    transition:border-color .15s,background .15s,transform .1s;}
+  .item-row:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#3a2d1a,#2e2519);transform:translateX(2px);}
+  .item-row.equipped{border-color:var(--line-2);box-shadow:inset 3px 0 0 var(--gold);}
+  .item-row.equipped .it-tag{background:var(--gold);color:#2c1c0e;}
+  .item-row .it-ico{font-size:24px;width:34px;text-align:center;flex:0 0 34px;
+    background:rgba(0,0,0,.3);border-radius:5px;border:1px solid var(--line);line-height:34px;}
+  .item-row .it-mid{flex:1;min-width:0;}
+  .item-row .it-name{font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--ink);
+    display:flex;align-items:center;gap:6px;}
+  .item-row .it-tag{display:inline-block;background:var(--line-2);color:var(--ink);font-size:10px;
+    font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:1px;font-family:var(--font-body);}
+  .item-row .it-stat{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+  .item-row .it-stat .pos{color:var(--green);} .item-row .it-stat .neg{color:var(--red);}
+  .item-row .it-act{display:flex;gap:5px;align-items:center;}
+  .it-btn{font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;
+    border:1px solid var(--line-2);border-radius:4px;padding:3px 9px;background:#2a2114;color:var(--ink);
+    transition:.15s;white-space:nowrap;}
+  .it-btn:hover{border-color:var(--gold-bright);color:var(--gold-bright);background:#3a2d1a;}
+  .it-btn.on{background:linear-gradient(180deg,#d4af37,#a8862a);color:#2c1c0e;border-color:#6a5436;}
+  .it-btn.dis{opacity:.4;cursor:not-allowed;}
+
+  /* 选择列表（技能/条件） */
+  .pick-list{display:flex;flex-direction:column;gap:6px;padding:2px;}
+  .pick{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--line);background:linear-gradient(180deg,#2e2519,#241d14);
+    transition:border-color .15s,background .15s,transform .1s;}
+  .pick:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#3a2d1a,#2e2519);transform:translateX(2px);}
+  .pick.disabled{opacity:.45;cursor:not-allowed;}
+  .pick.disabled:hover{transform:none;border-color:var(--line);}
+  .pick.selected{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}
+  .pick .p-ico{font-size:22px;width:32px;text-align:center;flex:0 0 32px;}
+  .pick .p-mid{flex:1;min-width:0;}
+  .pick .p-name{font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--ink);}
+  .pick .p-desc{font-size:11px;color:var(--ink-dim);margin-top:1px;line-height:1.3;}
+  .pick .p-mark{font-size:11px;color:var(--gold-bright);font-weight:700;}
+  .pick-clear{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px;border-radius:6px;
+    cursor:pointer;border:1.5px dashed var(--red);background:rgba(194,85,58,.10);
+    color:var(--red);font-size:12px;font-style:italic;transition:.15s;margin-bottom:8px;}
+  .pick-clear:hover{background:rgba(194,85,58,.20);border-color:var(--red);}
+
+  .hint-row{font-size:11.5px;color:var(--ink-dim);line-height:1.5;padding:6px 8px;font-style:italic;}
+
+  @media (max-width:880px){
+    .a{grid-template-columns:1fr;}
+    .right.open{flex-basis:60%;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== 左半边 ===== -->
+  <div class="left">
+    <!-- 顶部标题（单位名） -->
+    <div class="panel a-wrap" style="padding:0 0 0;">
+      <div class="panel-head"><span class="t">单位详情</span><span class="sub" id="unit-sub">— 待编辑 —</span></div>
+    </div>
+
+    <!-- a 区 -->
+    <div class="a">
+      <!-- a1 装备栏 -->
+      <div class="panel">
+        <div class="panel-head"><span class="t">装 备</span><span class="sub">Equipment</span></div>
+        <div class="equip-grid" id="equip-grid"></div>
+      </div>
+      <!-- a2 属性栏 -->
+      <div class="panel">
+        <div class="panel-head"><span class="t">属 性</span><span class="sub">Attributes</span></div>
+        <div class="attrs" id="attrs"></div>
+      </div>
+    </div>
+
+    <!-- b 区 策略 -->
+    <div class="panel b">
+      <div class="panel-head"><span class="t">行动策略</span><span class="sub">最多 8 条 · Tactics</span></div>
+      <div class="panel-body">
+        <div class="strat-head">
+          <div class="sh">技能名</div><div class="sh">条件 1</div><div class="sh">条件 2</div>
+        </div>
+        <div class="strat-list" id="strat-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 右半边：弹出窗口（始终分屏，初始空态） ===== -->
+  <div class="right" id="right">
+    <div class="right-inner">
+      <div class="modal" id="modal">
+        <div class="modal-head">
+          <span class="t" id="modal-title">右侧面板</span>
+          <span class="x" id="modal-x">×</span>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-foot" id="modal-foot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const right=$("right"), modalBody=$("modal-body"), modalTitle=$("modal-title"), modalFoot=$("modal-foot");
+
+// ===== 数据 =====
+// 装备部位（4 个槽位）
+const SLOT_KINDS=["武器","护甲","饰品","靴子"];
+const SLOT_ICON={武器:"⚔️",护甲:"🛡️",饰品:"💍",靴子:"👢"};
+// 属性定义
+const ATTR_DEFS=[
+  {key:"str",cn:"力量",ico:"💪"},{key:"agi",cn:"敏捷",ico:"💨"},
+  {key:"int",cn:"智力",ico:"🧠"},{key:"vit",cn:"体质",ico:"❤️"},
+  {key:"luk",cn:"幸运",ico:"🍀"},{key:"def",cn:"防御",ico:"🛡️"},
+  {key:"spd",cn:"速度",ico:"⚡"},{key:"acc",cn:"命中",ico:"🎯"}
+];
+// 基础属性（裸装）
+const BASE_ATTRS={str:14,agi:11,int:9,vit:13,luk:7,def:8,spd:10,acc:9};
+
+// 仓库装备（同名可多个）。type 决定能装到哪个槽位；stats 为属性加成。
+const INVENTORY=[
+  {id:1, name:"铁剑",     type:"武器", icon:"⚔️", stats:{str:4,acc:2},                       rank:"C"},
+  {id:2, name:"铁剑",     type:"武器", icon:"⚔️", stats:{str:4,acc:2},                       rank:"C"},
+  {id:3, name:"银光长剑",  type:"武器", icon:"🗡️", stats:{str:7,agi:2,acc:3},                 rank:"B"},
+  {id:4, name:"符文法杖",  type:"武器", icon:"🪄", stats:{int:6,acc:1},                       rank:"B"},
+  {id:5, name:"锁子甲",   type:"护甲", icon:"🦺", stats:{def:5,vit:3,spd:-1},                 rank:"C"},
+  {id:6, name:"锁子甲",   type:"护甲", icon:"🦺", stats:{def:5,vit:3,spd:-1},                 rank:"C"},
+  {id:7, name:"秘银板甲",  type:"护甲", icon:"🛡️", stats:{def:9,vit:5,spd:-2},                rank:"A"},
+  {id:8, name:"速度之戒",  type:"饰品", icon:"💍", stats:{spd:4,agi:2},                       rank:"B"},
+  {id:9, name:"幸运护符",  type:"饰品", icon:"📿", stats:{luk:5,acc:1},                       rank:"C"},
+  {id:10,name:"贤者之石",  type:"饰品", icon:"💎", stats:{int:5,luk:2},                       rank:"A"},
+  {id:11,name:"旅者短靴",  type:"靴子", icon:"👢", stats:{spd:3,agi:1},                       rank:"C"},
+  {id:12,name:"疾风长靴",  type:"靴子", icon:"👟", stats:{spd:5,agi:2},                       rank:"B"},
+  {id:13,name:"疾风长靴",  type:"靴子", icon:"👟", stats:{spd:5,agi:2},                       rank:"B"},
+];
+
+// 预设技能（先不生成到面板上）
+const SKILLS=[
+  {id:"sk_atk",  cn:"重击",     icon:"💥", desc:"造成 150% 物理伤害。"},
+  {id:"sk_def",  cn:"坚守",     icon:"🛡️", desc:"本回合防御提升 50%。"},
+  {id:"sk_heal", cn:"治疗术",   icon:"✨", desc:"恢复 30% 最大生命。"},
+  {id:"sk_fire", cn:"火球术",   icon:"🔥", desc:"造成 120% 火属性魔法伤害。"},
+  {id:"sk_pois", cn:"毒刃",     icon:"☠️", desc:"攻击附带中毒，持续 3 回合。"},
+  {id:"sk_stun", cn:"震慑",     icon:"⚡", desc:"攻击有 30% 概率眩晕目标。"},
+  {id:"sk_chrg", cn:"蓄力",     icon:"🌀", desc:"下回合伤害提升 80%。"},
+  {id:"sk_flee", cn:"撤退",     icon:"🏃", desc:"脱离战斗，保留 50% 血量。"},
+];
+
+// 预设条件
+const CONDS=[
+  {id:"c_hp_hi",  cn:"生命 > 50%",   icon:"❤️", desc:"当前生命高于半数时。"},
+  {id:"c_hp_lo",  cn:"生命 < 30%",   icon:"💔", desc:"当前生命危急时。"},
+  {id:"c_enemy3", cn:"敌人数 ≥ 3",   icon:"👥", desc:"场上敌人为 3 或更多。"},
+  {id:"c_first",  cn:"首回合",        icon:"1️⃣", desc:"战斗的第一回合。"},
+  {id:"c_night",  cn:"夜间",          icon:"🌙", desc:"环境为夜间时。"},
+  {id:"c_mp_en",  cn:"蓝量充足",      icon:"🔷", desc:"魔法值大于技能消耗。"},
+  {id:"c_ally",   cn:"有友军存活",    icon:"🤝", desc:"队伍中有其他存活单位。"},
+  {id:"c_boss",   cn:"目标为精英",    icon:"👑", desc:"目标为精英 / Boss 时。"},
+];
+
+// ===== 状态 =====
+// equipSlots: {武器:itemId|null, 护甲:.., 饰品:.., 靴子:..}
+const state={
+  unitName:"十字军骑士",
+  equipSlots:{武器:null,护甲:null,饰品:null,靴子:null},
+  strategies:[],     // [{skill:skillId|null, cond1:condId|null, cond2:condId|null}]
+  modal:null,        // {kind:"equip"|"skill"|"cond", slotKind?, stratIdx?, condSlot?}
+};
+
+// ===== 工具 =====
+function invItem(id){return INVENTORY.find(i=>i.id===id);}
+function isEquipped(itemId){for(const k in state.equipSlots)if(state.equipSlots[k]===itemId)return true;return false;}
+function equippedInSlot(itemId){for(const k in state.equipSlots)if(state.equipSlots[k]===itemId)return k;return null;}
+function slotKindForType(type){return type;} // 武器->武器 等
+
+function attrTotals(){
+  const a={};for(const k in BASE_ATTRS)a[k]=BASE_ATTRS[k];
+  for(const kind in state.equipSlots){const id=state.equipSlots[kind];
+    if(id==null)continue;const it=invItem(id);if(!it)continue;
+    for(const k in it.stats)a[k]=(a[k]||0)+it.stats[k];}
+  return a;
+}
+
+// ===== 渲染：装备栏 =====
+function renderEquip(){
+  const g=$("equip-grid");g.innerHTML="";
+  SLOT_KINDS.forEach(kind=>{
+    const id=state.equipSlots[kind];const it=id!=null?invItem(id):null;
+    const d=document.createElement("div");
+    d.className="slot"+(it?" filled":"");
+    if(it){
+      d.innerHTML=`<div class="sl-kind">${SLOT_ICON[kind]} ${kind}</div>
+        <div class="sl-ico">${it.icon}</div>
+        <div class="sl-name">${it.name}</div>
+        <div class="sl-rank">品阶 ${it.rank}</div>`;
+    }else{
+      d.innerHTML=`<div class="sl-kind">${SLOT_ICON[kind]} ${kind}</div>
+        <div class="sl-empty">+</div><div class="sl-name" style="color:var(--ink-dim)">空 槽 位</div>`;
+    }
+    d.addEventListener("click",()=>openEquipModal(kind));
+    g.appendChild(d);
+  });
+}
+
+// ===== 渲染：属性栏 =====
+function renderAttrs(){
+  const totals=attrTotals();
+  const box=$("attrs");box.innerHTML="";
+  ATTR_DEFS.forEach(def=>{
+    const base=BASE_ATTRS[def.key];const total=totals[def.key];
+    const diff=total-base;const cls=diff>0?"bonus":(diff<0?"malus":"");
+    const diffTxt=diff!==0?`<span class="${cls}">${diff>0?"+":""}${diff}</span>`:"";
+    const d=document.createElement("div");d.className="attr";
+    d.innerHTML=`<div class="k"><span class="ki">${def.ico}</span>${def.cn}</div>
+      <div class="v">${total}${diffTxt}</div>`;
+    box.appendChild(d);
+  });
+}
+
+// ===== 渲染：策略列表 =====
+function renderStrat(){
+  const list=$("strat-list");list.innerHTML="";
+  state.strategies.forEach((row,idx)=>{
+    const r=document.createElement("div");r.className="strat-row";
+    r.dataset.idx=idx;
+    // 名称格
+    const cSkill=makeCell("skill",row.skill,idx);
+    // 条件1格
+    const cCond1=makeCondCell("cond1",row.cond1,idx);
+    // 条件2格
+    const cCond2=makeCondCell("cond2",row.cond2,idx);
+    r.appendChild(cSkill);r.appendChild(cCond1);r.appendChild(cCond2);
+    // 删除行按钮
+    const x=document.createElement("div");x.className="row-x";x.textContent="×";
+    x.title="删除此策略行";
+    x.addEventListener("click",e=>{e.stopPropagation();delRow(idx);});
+    r.appendChild(x);
+    list.appendChild(r);
+  });
+  // 没有策略（或策略数 < 8）时，最后一行直接是「新增技能」
+  if(state.strategies.length<8){
+    const add=document.createElement("div");add.className="cell add-row";
+    add.innerHTML=`<span class="plus">+</span> 新增技能（${state.strategies.length}/8）`;
+    add.addEventListener("click",()=>addRow());
+    list.appendChild(add);
+  }else{
+    const full=document.createElement("div");
+    full.className="hint-row";full.textContent="已达上限 8 条策略。";
+    list.appendChild(full);
+  }
+}
+
+function makeCell(kind,skillId,idx){
+  const c=document.createElement("div");
+  const sk=skillId?SKILLS.find(s=>s.id===skillId):null;
+  c.className="cell"+(sk?" skill-filled":" empty");
+  if(sk){
+    c.innerHTML=`<div class="c-line"><span class="c-ico">${sk.icon}</span><span class="c-name">${sk.cn}</span></div>
+      <div class="c-desc">${sk.desc}</div>`;
+  }else{
+    c.innerHTML=`<span>+ 选择技能</span>`;
+  }
+  c.addEventListener("click",()=>openSkillModal(idx));
+  return c;
+}
+function makeCondCell(field,condId,idx){
+  const c=document.createElement("div");
+  const cd=condId?CONDS.find(x=>x.id===condId):null;
+  c.className="cell"+(cd?"":" cond-empty");
+  if(cd){
+    c.innerHTML=`<div class="c-cond"><span class="c-ico">${cd.icon}</span><span>${cd.cn}</span></div>`;
+  }else{
+    c.innerHTML=`<span>+ 条件</span>`;
+  }
+  c.addEventListener("click",()=>openCondModal(idx,field));
+  return c;
+}
+
+// ===== 右侧弹窗 =====
+function openRight(title,foot){
+  modalTitle.textContent=title;
+  modalFoot.textContent=foot||"";
+  right.classList.add("open");
+}
+function showIdle(){right.classList.remove("open");renderIdle();}
+function renderIdle(){
+  modalTitle.textContent="右侧面板";
+  modalFoot.textContent="";
+  modalBody.innerHTML="";
+  const e=document.createElement("div");e.className="hint-row";
+  e.innerHTML=`尚未选择目标。<br><br>请点击左侧：<br>· 装备栏的某个槽位 → 仓库列表<br>· 策略行的技能格 → 技能选择<br>· 策略行的条件格 → 条件选择`;
+  modalBody.appendChild(e);
+}
+function closeRight(){
+  showIdle();
+  state.modal=null;
+}
+
+// —— 装备弹窗 ——
+function openEquipModal(slotKind){
+  state.modal={kind:"equip",slotKind};
+  openRight(`仓库 · ${slotKind}槽位`,"点击装备进行装备 / 卸下。同名装备可有多件，已装备者标 E。");
+  renderEquipList(slotKind);
+}
+function renderEquipList(slotKind){
+  modalBody.innerHTML="";
+  const usable=INVENTORY.filter(i=>i.type===slotKind);
+  if(usable.length===0){
+    const e=document.createElement("div");e.className="hint-row";
+    e.textContent="仓库中没有该类型的装备。";modalBody.appendChild(e);return;
+  }
+  // 按是否已装备排序：未装备在前
+  usable.sort((a,b)=>{const ea=isEquipped(a.id)?1:0,eb=isEquipped(b.id)?1:0;return ea-eb;});
+  usable.forEach(it=>{
+    const row=document.createElement("div");row.className="item-row"+(isEquipped(it.id)?" equipped":"");
+    const mySlot=equippedInSlot(it.id);
+    const inThisSlot=mySlot===slotKind;
+    const inOtherSlot=mySlot&&mySlot!==slotKind;
+    const statsTxt=Object.entries(it.stats).map(([k,v])=>{
+      const def=ATTR_DEFS.find(a=>a.key===k);const cls=v>=0?"pos":"neg";
+      return `<span class="${cls}">${def?def.cn:k} ${v>0?"+":""}${v}</span>`;
+    }).join("  ");
+    row.innerHTML=`
+      <div class="it-ico">${it.icon}</div>
+      <div class="it-mid">
+        <div class="it-name">${isEquipped(it.id)?'<span class="it-tag">E</span>':''}${it.name}
+          <span style="font-size:10px;color:var(--ink-dim);font-weight:400">· 品阶 ${it.rank}</span></div>
+        <div class="it-stat">${statsTxt}</div>
+      </div>
+      <div class="it-act"></div>`;
+    const act=row.querySelector(".it-act");
+    if(inThisSlot){
+      const b=document.createElement("button");b.className="it-btn";b.textContent="卸下";
+      b.addEventListener("click",e=>{e.stopPropagation();unequip(slotKind);});
+      act.appendChild(b);
+    }else if(inOtherSlot){
+      const b=document.createElement("button");b.className="it-btn dis";b.textContent="已装备于"+mySlot;
+      b.disabled=true;act.appendChild(b);
+    }else{
+      const b=document.createElement("button");b.className="it-btn on";b.textContent="装备";
+      b.addEventListener("click",e=>{e.stopPropagation();equip(slotKind,it.id);});
+      act.appendChild(b);
+    }
+    // 整行点击：若未装备则装备；若装在本槽则卸下
+    row.addEventListener("click",()=>{
+      if(inThisSlot)unequip(slotKind);
+      else if(!inOtherSlot)equip(slotKind,it.id);
+    });
+    modalBody.appendChild(row);
+  });
+}
+function equip(slotKind,itemId){
+  // 若该装备已在别槽，先卸下
+  for(const k in state.equipSlots)if(state.equipSlots[k]===itemId)state.equipSlots[k]=null;
+  state.equipSlots[slotKind]=itemId;
+  renderEquip();renderAttrs();renderEquipList(slotKind);
+}
+function unequip(slotKind){state.equipSlots[slotKind]=null;
+  renderEquip();renderAttrs();renderEquipList(slotKind);}
+
+// —— 技能选择弹窗 ——
+function openSkillModal(stratIdx,isNew){
+  state.modal={kind:"skill",stratIdx,isNew:!!isNew};
+  const foot=isNew
+    ?"选择一个技能新增为策略；若不选择而点击别处，不会插入空行。"
+    :"点击技能进行更换；同名技能可在多行重复配置。点击「卸下技能」清除该格。";
+  openRight("选择技能",foot);
+  renderSkillList(stratIdx,!!isNew);
+}
+function renderSkillList(stratIdx,isNew){
+  modalBody.innerHTML="";
+  const cur=isNew?null:state.strategies[stratIdx].skill;
+  // 卸下按钮仅在编辑已有技能时出现（新增态无当前技能可卸）
+  if(!isNew && cur){
+    const clr=document.createElement("div");clr.className="pick-clear";
+    clr.innerHTML=`<span>🗑️</span> 卸下技能（${SKILLS.find(s=>s.id===cur).cn}）`;
+    clr.addEventListener("click",()=>{state.strategies[stratIdx].skill=null;renderStrat();});
+    modalBody.appendChild(clr);
+  }
+  const pl=document.createElement("div");pl.className="pick-list";
+  SKILLS.forEach(sk=>{
+    const p=document.createElement("div");p.className="pick"+(cur===sk.id?" selected":"");
+    p.innerHTML=`<div class="p-ico">${sk.icon}</div>
+      <div class="p-mid"><div class="p-name">${sk.cn}</div><div class="p-desc">${sk.desc}</div></div>
+      <div class="p-mark">${cur===sk.id?"✓ 已选":""}</div>`;
+    p.addEventListener("click",()=>{
+      if(isNew){
+        if(state.strategies.length>=8)return;
+        // 选定技能后才真正插入这一行（带技能），避免插入空白行
+        const ni=state.strategies.push({skill:sk.id,cond1:null,cond2:null})-1;
+        renderStrat();
+        openSkillModal(ni,false);   // 切到编辑态：显示已选与卸下
+      }else{
+        state.strategies[stratIdx].skill=sk.id;renderStrat();
+      }
+    });
+    pl.appendChild(p);
+  });
+  modalBody.appendChild(pl);
+}
+
+// —— 条件选择弹窗 ——
+function openCondModal(stratIdx,field){
+  state.modal={kind:"cond",stratIdx,field};
+  openRight(`选择条件 · ${field==="cond1"?"条件 1":"条件 2"}`,"点击条件进行设置；点击「卸下条件」清除该格。");
+  renderCondList(stratIdx,field);
+}
+function renderCondList(stratIdx,field){
+  modalBody.innerHTML="";
+  const cur=state.strategies[stratIdx][field];
+  if(cur){
+    const clr=document.createElement("div");clr.className="pick-clear";
+    clr.innerHTML=`<span>🗑️</span> 卸下条件（${CONDS.find(c=>c.id===cur).cn}）`;
+    clr.addEventListener("click",()=>{state.strategies[stratIdx][field]=null;renderStrat();});
+    modalBody.appendChild(clr);
+  }
+  const pl=document.createElement("div");pl.className="pick-list";
+  CONDS.forEach(cd=>{
+    const p=document.createElement("div");p.className="pick"+(cur===cd.id?" selected":"");
+    // 同一策略内 cond1/cond2 不能相同
+    const other=field==="cond1"?"cond2":"cond1";
+    const dup=state.strategies[stratIdx][other]===cd.id;
+    if(dup)p.classList.add("disabled");
+    p.innerHTML=`<div class="p-ico">${cd.icon}</div>
+      <div class="p-mid"><div class="p-name">${cd.cn}${dup?" （已用于另一条件）":""}</div><div class="p-desc">${cd.desc}</div></div>
+      <div class="p-mark">${cur===cd.id?"✓":""}</div>`;
+    if(!dup)p.addEventListener("click",()=>{state.strategies[stratIdx][field]=cd.id;renderStrat();});
+    pl.appendChild(p);
+  });
+  modalBody.appendChild(pl);
+}
+
+// ===== 策略增删 =====
+function addRow(){
+  if(state.strategies.length>=8)return;
+  // 新增态：不插入空行，直接弹出技能选择；选定技能后才真正插入
+  openSkillModal(-1,true);
+}
+function delRow(idx){
+  const wasOpenSkill=state.modal&&state.modal.kind==="skill"&&state.modal.stratIdx===idx;
+  state.strategies.splice(idx,1);
+  renderStrat();
+  // 若当前删除的行正在右侧编辑，回到空态
+  if(wasOpenSkill)closeRight();
+}
+
+// ===== 初始化 =====
+function init(){
+  $("unit-sub").textContent=state.unitName+" · Lv.12";
+  // 初始预装两件装备，让属性栏有加成可看
+  state.equipSlots["武器"]=3;  // 银光长剑
+  state.equipSlots["护甲"]=7;  // 秘银板甲
+  // 初始无策略：第一行直接是「新增技能」
+  renderEquip();renderAttrs();renderStrat();
+  renderIdle();
+}
+$("modal-x").addEventListener("click",closeRight);
+
+// 点击左半边的空白处（非按钮/格子）→ 右侧回到初始空态
+const leftEl=document.querySelector(".left");
+leftEl.addEventListener("mousedown",e=>{
+  // 只处理鼠标左键
+  if(e.button!==0)return;
+  // 找到最近的可交互元素；若点中的是按钮/槽位/格子，则不处理（交给它们自己的 click）
+  if(e.target.closest(".slot,.cell,.row-x,.it-btn,.pick,.pick-clear,.panel-head"))return;
+  closeRight();
+});
+
+init();
+})();
+</script>
+</body>
+</html>

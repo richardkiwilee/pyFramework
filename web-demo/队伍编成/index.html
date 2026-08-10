@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>队伍编成 · 棋盘滚轮 × 单位编辑</title>
+<style>
+  :root{
+    --bg:#0c0a08;
+    --bg-2:#14110d;
+    --panel:#241d14;
+    --panel-2:#2e2519;
+    --line:#4a3a24;
+    --line-2:#6a5436;
+    --ink:#e8dcc4;
+    --ink-2:#c4b596;
+    --ink-dim:#8a7a5c;
+    --gold:#d4af37;
+    --gold-bright:#f0d264;
+    --glow:#ffd86b;
+    --red:#c2553a;
+    --green:#7ab85a;
+    --blue:#4a90c2;
+    --tile-light:#c9b48f;
+    --tile-light-2:#b3a07e;
+    --tile-dark:#6b5a42;
+    --tile-dark-2:#5a4c38;
+    --font-display:"Palatino Linotype","Book Antiqua",Palatino,Georgia,"Microsoft YaHei","Songti SC",serif;
+    --font-body:Georgia,"Times New Roman","Microsoft YaHei","Songti SC",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);
+    font-family:var(--font-body);color:var(--ink);user-select:none;-webkit-font-smoothing:antialiased;}
+  body{display:flex;flex-direction:column;}
+  kbd{display:inline-block;padding:1px 6px;margin:0 2px;border-radius:5px;font-family:inherit;
+    font-size:11px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);}
+
+  .app{display:flex;flex:1 1 auto;min-height:0;width:100vw;padding-top:30px;padding-bottom:28px;}
+
+  /* ===== 顶/底提示 ===== */
+  .top-bar{position:fixed;top:0;left:0;right:0;height:30px;display:flex;align-items:center;
+    justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,0));
+    font-family:var(--font-display);font-size:13px;letter-spacing:3px;color:var(--gold-bright);
+    z-index:80;pointer-events:none;text-shadow:0 1px 0 #000;}
+  .hint-bar{position:fixed;bottom:0;left:0;right:0;height:28px;display:flex;align-items:center;
+    justify-content:center;font-size:12px;letter-spacing:1px;color:var(--ink-dim);font-style:italic;
+    background:linear-gradient(0deg,rgba(0,0,0,.6),rgba(0,0,0,0));z-index:80;pointer-events:none;}
+
+  /* ===== 左半边：以九宫格为元素的垂直滚轮 ===== */
+  .zone-left{flex:1 1 56%;position:relative;display:flex;flex-direction:column;
+    min-width:0;border:2px solid rgba(212,175,55,.25);border-radius:10px;margin:8px 4px 8px 10px;
+    background:radial-gradient(700px 420px at 50% 30%, #1a160f 0%, transparent 65%),
+               radial-gradient(500px 320px at 50% 100%, #0a0806 0%, transparent 60%), var(--bg);
+    transition:border-color .2s, box-shadow .2s;overflow:hidden;}
+  .zone-left.focused{border-color:var(--gold-bright);
+    box-shadow:0 0 0 1px rgba(240,210,100,.25) inset, 0 0 26px rgba(240,210,100,.18);}
+  .zone-right{flex:0 0 44%;position:relative;display:flex;flex-direction:column;
+    min-width:0;border:2px solid rgba(212,175,55,.25);border-radius:10px;margin:8px 10px 8px 4px;
+    background:linear-gradient(180deg,#1d1812,#14110d);transition:border-color .2s, box-shadow .2s;overflow:hidden;}
+  .zone-right.focused{border-color:var(--gold-bright);
+    box-shadow:0 0 0 1px rgba(240,210,100,.25) inset, 0 0 26px rgba(240,210,100,.18);}
+
+  /* —— 滚轮机身（占满左区主体） —— */
+  .reel-machine{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:0;padding:6px;}
+  .reel-container{position:relative;width:250px;height:450px;border-radius:18px;overflow:hidden;
+    cursor:ns-resize;
+    background:linear-gradient(180deg,#05030c 0%,#0e0a22 50%,#05030c 100%);
+    border:2px solid rgba(212,175,55,.32);
+    box-shadow:0 0 0 6px #120c2e inset, 0 0 24px rgba(0,0,0,.8) inset, 0 0 30px rgba(0,0,0,.5);}
+  .reel{position:absolute;top:0;left:0;width:100%;height:100%;
+    perspective:1000px;perspective-origin:50% 50%;}
+  .item{position:absolute;top:50%;left:50%;width:250px;height:150px;
+    margin-left:-125px;margin-top:-75px;
+    will-change:transform,opacity;transform-origin:50% 50%;
+    backface-visibility:hidden;transition:filter .15s;pointer-events:none;}
+  .item.settled{pointer-events:auto;}
+  .scrolling .item{filter:blur(.4px);}
+
+  /* —— 单个九宫格棋盘（等距 2D 投影） —— */
+  .board{position:relative;width:100%;height:100%;}
+  .board .lab{position:absolute;top:2px;left:0;right:0;text-align:center;
+    font-family:var(--font-display);font-size:12px;letter-spacing:2px;
+    color:var(--gold-bright);text-shadow:0 1px 2px #000;z-index:8;}
+  .board .cap-mark{position:absolute;top:17px;left:0;right:0;text-align:center;
+    font-size:10px;color:var(--ink-dim);font-style:italic;z-index:8;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px;}
+  .bcells{position:absolute;inset:0;}
+  .bcell{position:absolute;width:78px;height:40px;
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+    box-shadow:0 4px 7px rgba(0,0,0,.45);
+    transition:filter .15s, box-shadow .15s;cursor:pointer;}
+  .bcell.light{background:linear-gradient(135deg,var(--tile-light),var(--tile-light-2));}
+  .bcell.dark{background:linear-gradient(135deg,var(--tile-dark),var(--tile-dark-2));}
+  .bcell.target-hint{box-shadow:0 0 0 2px var(--gold-bright) inset, 0 0 14px rgba(240,210,100,.5);}
+  .board.dim .bcell{filter:brightness(.36) saturate(.7);}
+  .board.dim .bcell.has-unit.selected{filter:brightness(1.12) saturate(1.05);}
+  .bpiece{position:absolute;width:30px;height:30px;margin-left:-15px;margin-top:-15px;
+    display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,.6));cursor:pointer;
+    transition:transform .25s cubic-bezier(.2,.8,.2,1), filter .25s;will-change:transform,filter;}
+  .board.dim .bpiece{filter:brightness(.32) saturate(.5) drop-shadow(0 4px 4px rgba(0,0,0,.6));}
+  .board.dim .bpiece.selected{
+    filter:drop-shadow(0 0 10px rgba(255,216,107,.9)) drop-shadow(0 4px 4px rgba(0,0,0,.5));
+    transform:scale(1.2);}
+  .bpiece.move-src{animation:pulseRing 1s ease-in-out infinite;}
+  @keyframes pulseRing{0%,100%{filter:drop-shadow(0 0 6px rgba(120,200,255,.8));}50%{filter:drop-shadow(0 0 14px rgba(120,200,255,1));}}
+  .bpiece .crown{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:12px;
+    text-shadow:0 0 4px rgba(255,216,107,.9);pointer-events:none;}
+  .bpiece .pname{position:absolute;top:32px;left:50%;transform:translateX(-50%);
+    font-size:8px;font-family:var(--font-display);font-weight:700;color:var(--ink);
+    white-space:nowrap;text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;}
+
+  /* —— 聚光灯（覆盖在居中棋盘的选中单位上） —— */
+  .spotlight{position:absolute;top:0;left:0;width:0;height:0;pointer-events:none;opacity:0;
+    transition:opacity .3s, left .4s cubic-bezier(.2,.8,.2,1), top .4s cubic-bezier(.2,.8,.2,1);
+    transform:translate(-50%,-100%);z-index:40;}
+  .spotlight.on{opacity:1;}
+  .spotlight .cone{position:absolute;left:50%;bottom:0;width:96px;height:130px;margin-left:-48px;
+    background:linear-gradient(180deg,rgba(255,232,150,0) 0%,rgba(255,224,120,.06) 30%,
+      rgba(255,216,107,.18) 70%,rgba(255,216,107,.34) 100%);
+    clip-path:polygon(38% 0%,62% 0%,100% 100%,0% 100%);filter:blur(2px);mix-blend-mode:screen;}
+  .spotlight .halo{position:absolute;left:50%;bottom:0;width:160px;height:150px;margin-left:-80px;
+    background:radial-gradient(closest-side,rgba(255,216,107,.18),rgba(255,216,107,0) 75%);
+    clip-path:polygon(30% 0%,70% 0%,100% 100%,0% 100%);filter:blur(7px);mix-blend-mode:screen;}
+  .spotlight .pool{position:absolute;left:50%;bottom:-26px;width:104px;height:54px;margin-left:-52px;
+    background:radial-gradient(closest-side,rgba(255,232,150,.6),rgba(255,216,107,.14) 60%,rgba(255,216,107,0) 80%);
+    border-radius:50%;filter:blur(4px);mix-blend-mode:screen;}
+  .spotlight .emitter{position:absolute;left:50%;top:-132px;width:16px;height:16px;margin-left:-8px;
+    background:radial-gradient(closest-side,#fff7df,rgba(255,216,107,0) 70%);border-radius:50%;filter:blur(2px);}
+
+  /* —— 选中框（指示居中棋盘） —— */
+  .indicator{position:absolute;top:150px;left:0;width:100%;height:150px;pointer-events:none;
+    border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);
+    box-shadow:0 0 0 1px rgba(212,175,55,.22), 0 0 26px rgba(212,175,55,.22) inset;
+    background:linear-gradient(90deg,rgba(255,207,63,0) 0%,rgba(255,207,63,.07) 50%,rgba(255,207,63,0) 100%);}
+  .indicator::before,.indicator::after{content:"";position:absolute;top:50%;width:9px;height:9px;
+    margin-top:-4.5px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px var(--glow);}
+  .indicator::before{left:6px;} .indicator::after{right:6px;}
+  .mask{position:absolute;left:0;width:100%;height:150px;pointer-events:none;z-index:5;}
+  .mask-top{top:0;background:linear-gradient(180deg,#05030c 0%,rgba(5,3,12,.7) 70%,rgba(5,3,12,0) 100%);}
+  .mask-bottom{bottom:0;background:linear-gradient(0deg,#05030c 0%,rgba(5,3,12,.7) 70%,rgba(5,3,12,0) 100%);}
+
+  /* —— 行动条（底部，含新增队伍） —— */
+  .act-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:7px 12px;
+    border-top:1px solid var(--line);background:linear-gradient(180deg,#1a140d,#120e08);
+    min-height:46px;flex-wrap:wrap;}
+  .act-bar .lab{font-size:11px;color:var(--ink-dim);font-style:italic;margin-right:auto;
+    max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4;}
+  .act-bar .lab b{color:var(--gold-bright);font-style:normal;font-family:var(--font-display);}
+  .act-btn{font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;
+    border:1px solid var(--line-2);border-radius:5px;padding:5px 11px;background:#2a2114;color:var(--ink);
+    transition:.15s;white-space:nowrap;}
+  .act-btn:hover{border-color:var(--gold-bright);color:var(--gold-bright);background:#3a2d1a;}
+  .act-btn.primary{background:linear-gradient(180deg,#d4af37,#a8862a);color:#2c1c0e;border-color:#6a5436;}
+  .act-btn.primary:hover{filter:brightness(1.1);}
+  .act-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .act-btn.danger{border-color:#6a2a1a;color:#f0b0a0;}
+  .act-btn.danger:hover{background:#3a1a12;color:#fff;border-color:var(--red);}
+
+  /* ===== 右半边：单位编辑左半部分 ===== */
+  .ed-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#352a1a,#2a2114);}
+  .ed-head .t{font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:2px;
+    color:var(--gold-bright);text-shadow:0 1px 0 #000;display:flex;align-items:center;gap:8px;}
+  .ed-head .t .u-ico{font-size:20px;}
+  .ed-head .sub{font-size:11px;color:var(--ink-dim);font-style:italic;}
+  .ed-body{flex:1 1 auto;display:flex;flex-direction:column;gap:9px;padding:10px;min-height:0;overflow:auto;}
+  .ed-body::-webkit-scrollbar{width:8px;} .ed-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
+  .panel{background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:8px;
+    box-shadow:0 4px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(212,175,55,.12);}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#352a1a,#2a2114);border-radius:8px 8px 0 0;}
+  .panel-head .t{font-family:var(--font-display);font-weight:700;font-size:12px;letter-spacing:2px;color:var(--gold-bright);}
+  .panel-head .sub{font-size:10px;color:var(--ink-dim);font-style:italic;}
+
+  .a{flex:0 0 auto;display:grid;grid-template-columns:0.7fr 1fr;gap:9px;}
+  .equip-grid{display:grid;grid-template-columns:1fr;grid-template-rows:repeat(4,1fr);gap:7px;padding:9px;}
+  .slot{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60px;
+    border:1.5px dashed var(--line-2);border-radius:7px;cursor:pointer;background:rgba(0,0,0,.28);
+    transition:border-color .15s,background .15s,transform .1s;position:relative;}
+  .slot:hover{border-color:var(--gold-bright);background:rgba(212,175,55,.10);transform:translateY(-1px);}
+  .slot.filled{border-style:solid;border-color:var(--line-2);background:linear-gradient(180deg,#3a2d1a,#241d14);}
+  .slot .sl-kind{font-size:10px;color:var(--ink-dim);letter-spacing:1px;margin-bottom:2px;}
+  .slot .sl-ico{font-size:26px;line-height:1;}
+  .slot .sl-name{font-size:11px;color:var(--ink);margin-top:2px;text-align:center;line-height:1.1;
+    padding:0 4px;font-family:var(--font-display);font-weight:700;}
+  .slot .sl-rank{font-size:9px;color:var(--gold);margin-top:1px;}
+  .slot .sl-empty{font-size:20px;color:#5a4a30;font-weight:700;}
+
+  .attrs{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(4,1fr);gap:5px;padding:9px;}
+  .attr{display:flex;align-items:center;justify-content:space-between;padding:5px 9px;border-radius:5px;
+    background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:12px;}
+  .attr .k{display:flex;align-items:center;gap:5px;color:var(--ink-2);}
+  .attr .k .ki{font-size:13px;}
+  .attr .v{font-family:var(--font-display);font-weight:700;color:var(--gold-bright);font-size:13px;}
+  .attr .v .bonus{color:var(--green);font-size:10px;margin-left:2px;}
+  .attr .v .malus{color:var(--red);font-size:10px;margin-left:2px;}
+
+  .b{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+  .b .panel-body{flex:1;overflow:auto;padding:6px 8px;}
+  .b .panel-body::-webkit-scrollbar{width:8px;} .b .panel-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
+  .strat-head,.strat-row{display:grid;grid-template-columns:2.2fr 1.4fr 1.4fr;gap:6px;align-items:stretch;}
+  .strat-head{padding:3px 4px 6px;}
+  .strat-head .sh{font-size:10px;letter-spacing:2px;color:var(--ink-dim);
+    text-transform:uppercase;border-bottom:1px dashed var(--line);padding-bottom:3px;}
+  .strat-list{display:flex;flex-direction:column;gap:6px;}
+  .strat-row{transition:outline .12s;border-radius:6px;padding:1px;position:relative;}
+  .strat-row.active{outline:1.5px solid var(--gold-bright);}
+  .cell{display:flex;flex-direction:column;justify-content:center;min-height:40px;
+    border:1px solid var(--line);border-radius:6px;cursor:pointer;padding:4px 8px;
+    background:linear-gradient(180deg,#2e2519,#241d14);transition:border-color .15s,background .15s;}
+  .cell:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#3a2d1a,#2e2519);}
+  .cell.empty{color:var(--ink-dim);font-style:italic;border-style:dashed;justify-content:center;align-items:center;text-align:center;}
+  .cell.skill-filled{border-color:var(--line-2);}
+  .cell.cond-empty{color:#5a4a30;font-style:italic;border-style:dashed;align-items:center;justify-content:center;text-align:center;}
+  .cell .c-ico{font-size:14px;margin-right:1px;}
+  .cell .c-line{display:flex;align-items:center;gap:4px;font-size:12px;}
+  .cell .c-name{font-family:var(--font-display);font-weight:700;color:var(--ink);}
+  .cell .c-desc{font-size:10px;color:var(--ink-dim);margin-top:1px;line-height:1.2;}
+  .cell .c-cond{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-2);}
+  .cell.add-row{flex-direction:row;align-items:center;justify-content:center;gap:6px;min-height:36px;
+    border:1.5px dashed var(--line-2);background:rgba(0,0,0,.18);color:var(--ink-dim);
+    font-style:italic;cursor:pointer;}
+  .cell.add-row:hover{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(212,175,55,.10);}
+  .cell.add-row .plus{font-size:17px;font-weight:700;}
+  .row-x{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;
+    background:#3a1a12;border:1px solid #6a2a1a;color:#f0b0a0;font-size:10px;
+    display:none;align-items:center;justify-content:center;cursor:pointer;z-index:5;line-height:1;}
+  .strat-row:hover .row-x{display:flex;}
+  .strat-row:hover .row-x:hover{background:#6a2a1a;color:#fff;}
+  .hint-row{font-size:11px;color:var(--ink-dim);line-height:1.5;padding:6px 8px;font-style:italic;}
+
+  .ed-idle{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;
+    color:var(--ink-dim);font-style:italic;padding:20px;line-height:1.7;}
+
+  /* ===== 左侧覆盖层：选择窗口（装备/技能/条件/放置/选队长） ===== */
+  .overlay{position:absolute;inset:0;z-index:70;display:none;flex-direction:column;
+    background:linear-gradient(180deg,#1d1812,#14110d);border-radius:8px;
+    box-shadow:0 0 0 1px var(--gold) inset, 0 10px 30px rgba(0,0,0,.6);}
+  .overlay.on{display:flex;}
+  .ov-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#352a1a,#2a2114);border-radius:8px 8px 0 0;}
+  .ov-head .t{font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:2px;color:var(--gold-bright);}
+  .ov-head .x{cursor:pointer;color:var(--ink-dim);font-size:18px;width:24px;height:24px;
+    display:flex;align-items:center;justify-content:center;border-radius:4px;transition:.15s;}
+  .ov-head .x:hover{color:#fff;background:rgba(212,175,55,.2);}
+  .ov-body{flex:1;overflow-y:auto;padding:8px;}
+  .ov-body::-webkit-scrollbar{width:8px;} .ov-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px;}
+  .ov-foot{padding:7px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-dim);
+    font-style:italic;background:rgba(0,0,0,.2);}
+
+  .item-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--line);margin-bottom:6px;background:linear-gradient(180deg,#2e2519,#241d14);
+    transition:border-color .15s,background .15s,transform .1s;}
+  .item-row:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#3a2d1a,#2e2519);transform:translateX(2px);}
+  .item-row.equipped{border-color:var(--line-2);box-shadow:inset 3px 0 0 var(--gold);}
+  .item-row .it-ico{font-size:22px;width:32px;text-align:center;flex:0 0 32px;
+    background:rgba(0,0,0,.3);border-radius:5px;border:1px solid var(--line);line-height:32px;}
+  .item-row .it-mid{flex:1;min-width:0;}
+  .item-row .it-name{font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--ink);
+    display:flex;align-items:center;gap:6px;}
+  .item-row .it-tag{display:inline-block;background:var(--line-2);color:var(--ink);font-size:10px;
+    font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:1px;font-family:var(--font-body);}
+  .item-row .it-stat{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+  .item-row .it-stat .pos{color:var(--green);} .item-row .it-stat .neg{color:var(--red);}
+  .item-row .it-act{display:flex;gap:5px;align-items:center;}
+  .it-btn{font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer;
+    border:1px solid var(--line-2);border-radius:4px;padding:3px 9px;background:#2a2114;color:var(--ink);
+    transition:.15s;white-space:nowrap;}
+  .it-btn:hover{border-color:var(--gold-bright);color:var(--gold-bright);background:#3a2d1a;}
+  .it-btn.on{background:linear-gradient(180deg,#d4af37,#a8862a);color:#2c1c0e;border-color:#6a5436;}
+  .it-btn.dis{opacity:.4;cursor:not-allowed;}
+
+  .pick-list{display:flex;flex-direction:column;gap:6px;padding:2px;}
+  .pick{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--line);background:linear-gradient(180deg,#2e2519,#241d14);
+    transition:border-color .15s,background .15s,transform .1s;}
+  .pick:hover{border-color:var(--gold-bright);background:linear-gradient(180deg,#3a2d1a,#2e2519);transform:translateX(2px);}
+  .pick.disabled{opacity:.45;cursor:not-allowed;}
+  .pick.disabled:hover{transform:none;border-color:var(--line);}
+  .pick.selected{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}
+  .pick .p-ico{font-size:21px;width:30px;text-align:center;flex:0 0 30px;}
+  .pick .p-mid{flex:1;min-width:0;}
+  .pick .p-name{font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--ink);}
+  .pick .p-desc{font-size:11px;color:var(--ink-dim);margin-top:1px;line-height:1.3;}
+  .pick .p-mark{font-size:11px;color:var(--gold-bright);font-weight:700;}
+  .pick-clear{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px;border-radius:6px;
+    cursor:pointer;border:1.5px dashed var(--red);background:rgba(194,85,58,.10);
+    color:var(--red);font-size:12px;font-style:italic;transition:.15s;margin-bottom:8px;}
+  .pick-clear:hover{background:rgba(194,85,58,.20);border-color:var(--red);}
+
+  /* —— Toast —— */
+  .toast{position:fixed;left:50%;bottom:46px;transform:translateX(-50%) translateY(8px);
+    background:#2a2114;border:1px solid var(--gold);color:var(--ink);padding:8px 18px;
+    border-radius:6px;z-index:90;opacity:0;transition:opacity .25s, transform .25s;
+    pointer-events:none;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:80%;text-align:center;}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.err{border-color:var(--red);color:#f0b0a0;}
+</style>
+</head>
+<body>
+
+<div class="top-bar" id="top-bar">队伍编成 · 棋盘滚轮 × 单位编辑</div>
+
+<div class="app">
+  <!-- ===== 左半边：以九宫格为元素的垂直滚轮 ===== -->
+  <div class="zone-left focused" id="zone-left">
+    <div class="reel-machine" id="reel-machine">
+      <div class="reel-container" id="reel-container">
+        <div class="reel" id="reel"></div>
+        <div class="indicator"></div>
+        <div class="spotlight" id="spotlight">
+          <div class="halo"></div><div class="cone"></div><div class="pool"></div><div class="emitter"></div>
+        </div>
+        <div class="mask mask-top"></div>
+        <div class="mask mask-bottom"></div>
+      </div>
+    </div>
+
+    <div class="act-bar" id="act-bar">
+      <span class="lab" id="act-lab">—</span>
+      <button class="act-btn" id="btn-prev">‹ 上一队</button>
+      <button class="act-btn" id="btn-next">下一队 ›</button>
+      <button class="act-btn primary" id="btn-new-team">＋ 新增队伍</button>
+    </div>
+
+    <!-- 覆盖左侧的选择窗口 -->
+    <div class="overlay" id="overlay">
+      <div class="ov-head">
+        <span class="t" id="ov-title">选择</span>
+        <span class="x" id="ov-x">×</span>
+      </div>
+      <div class="ov-body" id="ov-body"></div>
+      <div class="ov-foot" id="ov-foot"></div>
+    </div>
+  </div>
+
+  <!-- ===== 右半边：单位编辑左半部分 ===== -->
+  <div class="zone-right" id="zone-right">
+    <div class="ed-head">
+      <span class="t" id="ed-title"><span class="u-ico" id="ed-ico">—</span><span id="ed-name">尚未选择单位</span></span>
+      <span class="sub" id="ed-sub">—</span>
+    </div>
+    <div class="ed-body" id="ed-body">
+      <div class="ed-idle" id="ed-idle">滚轮选中一支队伍后，点击棋盘上的单位<br>查看并编辑其装备与策略</div>
+    </div>
+  </div>
+</div>
+
+<div class="hint-bar" id="hint-bar">焦点：<b>左</b> · <kbd>↑</kbd><kbd>↓</kbd>/滚轮 滚动队伍 · <kbd>←</kbd><kbd>→</kbd> 切换棋盘单位 · <kbd>空格</kbd> 移动模式 · <kbd>Del</kbd> 移除单位 · <kbd>E</kbd> 焦点→右 · <kbd>Q</kbd> 焦点→左 · <kbd>Esc</kbd> 关闭弹窗</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+
+// ============================================================
+//  数据：单位花名册 / 仓库 / 技能 / 条件 / 队伍（棋盘）
+// ============================================================
+const SLOT_KINDS=["武器","护甲","饰品","靴子"];
+const SLOT_ICON={武器:"⚔️",护甲:"🛡️",饰品:"💍",靴子:"👢"};
+const ATTR_DEFS=[
+  {key:"str",cn:"力量",ico:"💪"},{key:"agi",cn:"敏捷",ico:"💨"},
+  {key:"int",cn:"智力",ico:"🧠"},{key:"vit",cn:"体质",ico:"❤️"},
+  {key:"luk",cn:"幸运",ico:"🍀"},{key:"def",cn:"防御",ico:"🛡️"},
+  {key:"spd",cn:"速度",ico:"⚡"},{key:"acc",cn:"命中",ico:"🎯"}
+];
+const INVENTORY=[
+  {id:1, name:"铁剑",    type:"武器", icon:"⚔️", stats:{str:4,acc:2},       rank:"C"},
+  {id:2, name:"铁剑",    type:"武器", icon:"⚔️", stats:{str:4,acc:2},       rank:"C"},
+  {id:3, name:"银光长剑", type:"武器", icon:"🗡️", stats:{str:7,agi:2,acc:3}, rank:"B"},
+  {id:4, name:"符文法杖", type:"武器", icon:"🪄", stats:{int:6,acc:1},       rank:"B"},
+  {id:5, name:"锁子甲",  type:"护甲", icon:"🦺", stats:{def:5,vit:3,spd:-1}, rank:"C"},
+  {id:6, name:"锁子甲",  type:"护甲", icon:"🦺", stats:{def:5,vit:3,spd:-1}, rank:"C"},
+  {id:7, name:"秘银板甲", type:"护甲", icon:"🛡️", stats:{def:9,vit:5,spd:-2},rank:"A"},
+  {id:8, name:"速度之戒", type:"饰品", icon:"💍", stats:{spd:4,agi:2},      rank:"B"},
+  {id:9, name:"幸运护符", type:"饰品", icon:"📿", stats:{luk:5,acc:1},      rank:"C"},
+  {id:10,name:"贤者之石", type:"饰品", icon:"💎", stats:{int:5,luk:2},      rank:"A"},
+  {id:11,name:"旅者短靴", type:"靴子", icon:"👢", stats:{spd:3,agi:1},       rank:"C"},
+  {id:12,name:"疾风长靴", type:"靴子", icon:"👟", stats:{spd:5,agi:2},       rank:"B"},
+  {id:13,name:"疾风长靴", type:"靴子", icon:"👟", stats:{spd:5,agi:2},       rank:"B"}
+];
+const SKILLS=[
+  {id:"sk_atk", cn:"重击",   icon:"💥", desc:"造成 150% 物理伤害。"},
+  {id:"sk_def", cn:"坚守",   icon:"🛡️", desc:"本回合防御提升 50%。"},
+  {id:"sk_heal",cn:"治疗术", icon:"✨", desc:"恢复 30% 最大生命。"},
+  {id:"sk_fire",cn:"火球术", icon:"🔥", desc:"造成 120% 火属性魔法伤害。"},
+  {id:"sk_pois",cn:"毒刃",   icon:"☠️", desc:"攻击附带中毒，持续 3 回合。"},
+  {id:"sk_stun",cn:"震慑",   icon:"⚡", desc:"攻击有 30% 概率眩晕目标。"},
+  {id:"sk_chrg",cn:"蓄力",   icon:"🌀", desc:"下回合伤害提升 80%。"},
+  {id:"sk_flee",cn:"撤退",   icon:"🏃", desc:"脱离战斗，保留 50% 血量。"}
+];
+const CONDS=[
+  {id:"c_hp_hi", cn:"生命 > 50%", icon:"❤️", desc:"当前生命高于半数时。"},
+  {id:"c_hp_lo", cn:"生命 < 30%", icon:"💔", desc:"当前生命危急时。"},
+  {id:"c_enemy3",cn:"敌人数 ≥ 3",icon:"👥", desc:"场上敌人为 3 或更多。"},
+  {id:"c_first", cn:"首回合",    icon:"1️⃣", desc:"战斗的第一回合。"},
+  {id:"c_night", cn:"夜间",      icon:"🌙", desc:"环境为夜间时。"},
+  {id:"c_mp_en", cn:"蓝量充足",  icon:"🔷", desc:"魔法值大于技能消耗。"},
+  {id:"c_ally",  cn:"有友军存活", icon:"🤝", desc:"队伍中有其他存活单位。"},
+  {id:"c_boss",  cn:"目标为精英", icon:"👑", desc:"目标为精英 / Boss 时。"}
+];
+
+// 单位花名册（装备/策略为各单位自有）
+const UNITS=[
+  {id:"u1",name:"十字军骑士",icon:"⚔️",color:"#ffd86b",lv:12,
+    base:{str:14,agi:11,int:9,vit:13,luk:7,def:8,spd:10,acc:9},
+    equip:{武器:3,护甲:7,饰品:null,靴子:null},
+    strat:[{skill:"sk_atk",cond1:"c_hp_hi",cond2:null},{skill:"sk_def",cond1:null,cond2:null}]},
+  {id:"u2",name:"圣殿弓手",icon:"🏹",color:"#7fd4ff",lv:10,
+    base:{str:10,agi:15,int:8,vit:11,luk:9,def:6,spd:14,acc:16},
+    equip:{武器:null,护甲:5,饰品:null,靴子:11},
+    strat:[{skill:"sk_stun",cond1:"c_first",cond2:null}]},
+  {id:"u3",name:"治愈祭司",icon:"✨",color:"#9affb0",lv:11,
+    base:{str:6,agi:9,int:17,vit:10,luk:8,def:5,spd:11,acc:10},
+    equip:{武器:4,护甲:null,饰品:10,靴子:null},
+    strat:[{skill:"sk_heal",cond1:"c_hp_lo",cond2:"c_ally"}]},
+  {id:"u4",name:"暗影刺客",icon:"🗡️",color:"#d59aff",lv:9,
+    base:{str:12,agi:17,int:7,vit:9,luk:11,def:5,spd:18,acc:14},
+    equip:{武器:null,护甲:null,饰品:null,靴子:12},
+    strat:[]},
+  {id:"u5",name:"魔法师",icon:"🪄",color:"#ff8a5b",lv:10,
+    base:{str:6,agi:8,int:18,vit:9,luk:10,def:5,spd:9,acc:12},
+    equip:{武器:null,护甲:null,饰品:null,靴子:null},
+    strat:[{skill:"sk_fire",cond1:"c_mp_en",cond2:null}]},
+  {id:"u6",name:"铁卫",icon:"🛡️",color:"#c9b48f",lv:13,
+    base:{str:13,agi:7,int:7,vit:17,luk:5,def:14,spd:6,acc:8},
+    equip:{武器:null,护甲:6,饰品:null,靴子:null},
+    strat:[{skill:"sk_def",cond1:"c_hp_lo",cond2:null}]}
+];
+
+// 队伍（每队 = 一个九宫格棋盘）。layout 给出单位与格子；captain 为队长单位 id。
+const TEAMS=[
+  {id:"t1",name:"前锋阵",color:"#ffd86b",captain:"u1",
+    layout:[{id:"u1",r:0,c:1},{id:"u2",r:1,c:0},{id:"u3",r:1,c:2},{id:"u6",r:2,c:1}]},
+  {id:"t2",name:"铁壁阵",color:"#7fd4ff",captain:"u6",
+    layout:[{id:"u6",r:0,c:1},{id:"u1",r:1,c:0},{id:"u3",r:1,c:1},{id:"u2",r:1,c:2},{id:"u4",r:2,c:1}]},
+  {id:"t3",name:"魔法阵",color:"#9affb0",captain:"u5",
+    layout:[{id:"u3",r:0,c:0},{id:"u5",r:0,c:1},{id:"u1",r:1,c:1},{id:"u2",r:2,c:0},{id:"u4",r:2,c:2}]},
+  {id:"t4",name:"刺杀阵",color:"#d59aff",captain:"u4",
+    layout:[{id:"u4",r:0,c:0},{id:"u5",r:0,c:2},{id:"u1",r:1,c:1},{id:"u2",r:2,c:0},{id:"u3",r:2,c:1},{id:"u6",r:2,c:2}]},
+  {id:"t5",name:"双子阵",color:"#ff8a5b",captain:"u1",
+    layout:[{id:"u1",r:0,c:0},{id:"u6",r:0,c:2},{id:"u3",r:2,c:0},{id:"u5",r:2,c:2}]},
+  {id:"t6",name:"纵列阵",color:"#4a90c2",captain:"u1",
+    layout:[{id:"u1",r:0,c:1},{id:"u4",r:1,c:1},{id:"u2",r:2,c:1}]}
+];
+const ROWS=3,COLS=3;
+
+// 棋盘几何（等距 2D 投影）：菱形格 78×40，间距 2，水平步长 (78+2)/2=40
+const TW=78, TH=40, GAP=2;
+function isoX(r,c){return (c-r)*(TW+GAP)/2;}   // 步长 40
+function isoY(r,c){return (c+r)*(TH+GAP)/2;}   // 步长 21
+// 棋盘内容相对 item 中心偏移；y 需上移让菱形整体居中（菱形 y 跨度 0..84，中点 42）
+function cellCenterX(r,c){return isoX(r,c);}
+function cellCenterY(r,c){return isoY(r,c)-42;}
+
+// ============================================================
+//  状态
+// ============================================================
+const FocusZone={LEFT:0,RIGHT:1};
+let focus=FocusZone.LEFT;
+let activeTeamIdx=0;      // 当前居中（激活）的队伍索引
+let selUnitId=null;      // 激活队伍中选中的单位
+let moveSrcId=null;      // 移动/交换源单位（同队内）
+let overlayKind=null;
+let overlayCtx=null;
+let settled=true;        // 滚轮是否停稳
+
+// ============================================================
+//  滚轮（元素 = 九宫格棋盘）
+// ============================================================
+const reelEl=$("reel"), reelContainer=$("reel-container"), spotlightEl=$("spotlight");
+const itemH=150, range=2, slots=2*range+1;
+let current=0,target=0,velocity=0,snapping=false,snapTimer=null;
+const slotEls=[];
+for(let s=0;s<slots;s++){
+  const el=document.createElement("div");el.className="item";
+  el.innerHTML='<div class="board"><div class="lab"></div><div class="cap-mark"></div><div class="bcells"></div></div>';
+  reelEl.appendChild(el);slotEls.push(el);
+}
+let lastCenteredIdx=-1;
+
+function modN(i){const n=TEAMS.length;return n?((i%n)+n)%n:0;}
+function activeTeam(){return TEAMS[modN(activeTeamIdx)];}
+function unitById(id){return UNITS.find(u=>u.id===id);}
+function teamUnitAt(team,r,c){return team.layout.find(l=>l.r===r&&l.c===c);}
+function teamUnitIds(team){return team.layout.map(l=>l.id);}
+
+// 渲染单个棋盘到 slot（按 team）
+function renderBoardInto(slotEl,teamIdx){
+  const team=TEAMS[teamIdx];
+  const board=slotEl.querySelector(".board");
+  const lab=board.querySelector(".lab");
+  const cap=board.querySelector(".cap-mark");
+  const cells=board.querySelector(".bcells");
+  lab.textContent=team.name+"　"+team.layout.length+"/9";
+  const capU=unitById(team.captain);
+  cap.textContent=capU?("队长："+capU.name):"（无队长）";
+  // 重建格子（轻量：首次或 team 变化时重建）
+  if(slotEl._teamIdx!==teamIdx){
+    cells.innerHTML="";
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement("div");
+      cell.className="bcell "+(((r+c)%2===0)?"light":"dark");
+      cell.dataset.r=r;cell.dataset.c=c;cell.dataset.teamIdx=teamIdx;
+      cell.style.left=(125+cellCenterX(r,c)-39)+"px";
+      cell.style.top=(75+cellCenterY(r,c)-20)+"px";
+      cell.addEventListener("click",onBcellClick);
+      cells.appendChild(cell);
+    }
+    slotEl._teamIdx=teamIdx;
+  }
+  // 重建单位
+  const oldPieces=cells.querySelectorAll(".bpiece");
+  oldPieces.forEach(p=>p.remove());
+  const isActive=teamIdx===modN(activeTeamIdx)&&settled;
+  board.classList.toggle("dim",isActive&&!!selUnitId);
+  team.layout.forEach(it=>{
+    const u=unitById(it.id);if(!u)return;
+    const isSel=isActive&&it.id===selUnitId;
+    const isMove=isActive&&it.id===moveSrcId;
+    const isCap=it.id===team.captain;
+    const p=document.createElement("div");
+    p.className="bpiece"+(isSel?" selected":"")+(isMove?" move-src":"");
+    p.style.color=u.color;
+    p.style.left=(125+cellCenterX(it.r,it.c))+"px";
+    p.style.top=(75+cellCenterY(it.r,it.c))+"px";
+    p.innerHTML=u.icon;
+    if(isCap){const cr=document.createElement("span");cr.className="crown";cr.textContent="👑";p.appendChild(cr);}
+    const nm=document.createElement("span");nm.className="pname";nm.textContent=u.name;p.appendChild(nm);
+    p.dataset.uid=it.id;p.dataset.teamIdx=teamIdx;p.dataset.r=it.r;p.dataset.c=it.c;
+    p.addEventListener("click",onPieceClick);
+    cells.appendChild(p);
+    // 选中格高亮
+    const cell=cells.querySelector('.bcell[data-r="'+it.r+'"][data-c="'+it.c+'"]');
+    if(cell)cell.classList.toggle("has-unit",true),cell.classList.toggle("selected",isSel);
+  });
+  // 清掉空格的 has-unit/selected
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const cell=cells.querySelector('.bcell[data-r="'+r+'"][data-c="'+c+'"]');
+    if(cell && !teamUnitAt(team,r,c)){cell.classList.remove("has-unit");cell.classList.remove("selected");}
+  }
+}
+
+function renderReel(){
+  const base=Math.round(current);
+  for(let k=0;k<slots;k++){
+    const off=k-range;
+    const i=base+off;
+    const teamIdx=modN(i);
+    const distance=i-current;
+    const abs=Math.abs(distance);
+    const scale=Math.max(0.42,1-abs*0.26);
+    const opacity=Math.max(0,1-abs*0.40);
+    const ty=distance*itemH;
+    const node=slotEls[k];
+    renderBoardInto(node,teamIdx);
+    const isActiveSlot=(teamIdx===modN(activeTeamIdx)&&settled&&abs<0.001);
+    node.classList.toggle("settled",isActiveSlot);
+    node.style.transform="translateY("+ty.toFixed(2)+"px) scale("+scale.toFixed(3)+")";
+    node.style.opacity=opacity.toFixed(3);
+    node.style.zIndex=String(100-Math.round(abs*10));
+  }
+}
+
+function animateReel(){
+  const n=TEAMS.length;
+  const diff=target-current;
+  if(Math.abs(diff)<0.0005&&Math.abs(velocity)<0.0005&&!snapping){
+    current=target;renderReel();
+    reelContainer.classList.remove("scrolling");
+    onReelSettled();
+    requestAnimationFrame(animateReel);return;
+  }
+  if(n>0)reelContainer.classList.add("scrolling");
+  settled=false;
+  current+=diff*0.16;velocity=diff*0.16;
+  if(snapping&&n>0){
+    target=Math.round(target);
+    if(Math.abs(target-current)<0.01){current=target;snapping=false;}
+  }
+  renderReel();
+  requestAnimationFrame(animateReel);
+}
+function onReelSettled(){
+  settled=true;
+  const idx=modN(Math.round(current));
+  if(idx!==lastCenteredIdx){
+    lastCenteredIdx=idx;
+    activeTeamIdx=idx;
+    onActiveTeamChanged();
+  }else{
+    // 仍需刷新一次让 dim/交互态生效
+    renderReel();
+  }
+  positionSpotlight();
+  updateActBar();
+}
+function onActiveTeamChanged(){
+  const t=activeTeam();
+  // 选中单位若不在该队 → 回退到队长（若无则 null）
+  if(!selUnitId||!t.layout.some(l=>l.id===selUnitId)){
+    selUnitId=t.captain&&t.layout.some(l=>l.id===t.captain)?t.captain:(t.layout[0]?t.layout[0].id:null);
+  }
+  moveSrcId=null;
+  renderReel();
+  setActiveUnit(selUnitId);
+  positionSpotlight();
+  updateActBar();
+}
+function positionSpotlight(){
+  if(!selUnitId){spotlightEl.classList.remove("on");return;}
+  const t=activeTeam();
+  const it=t.layout.find(l=>l.id===selUnitId);
+  if(!it){spotlightEl.classList.remove("on");return;}
+  // reel-container 中心 = (125, 225)；棋盘中心相对 item 中心已含偏移
+  const cx=125+cellCenterX(it.r,it.c);
+  const cy=225+cellCenterY(it.r,it.c);
+  spotlightEl.classList.add("on");
+  spotlightEl.style.left=cx+"px";spotlightEl.style.top=cy+"px";
+}
+function reelFeed(dir,big){
+  if(TEAMS.length===0)return;
+  const step=big?TEAMS.length:1;
+  target+=dir*step;snapping=true;settled=false;
+  clearTimeout(snapTimer);snapTimer=setTimeout(function(){snapping=false;},200);
+  updateActBar();
+}
+function scrollToTeam(idx){
+  if(TEAMS.length===0)return;
+  target=idx;snapping=true;settled=false;
+  clearTimeout(snapTimer);snapTimer=setTimeout(function(){snapping=false;},200);
+  updateActBar();
+}
+reelContainer.addEventListener("wheel",function(e){
+  if(focus!==FocusZone.LEFT)return;
+  e.preventDefault();
+  if(TEAMS.length===0)return;
+  target+=e.deltaY/100*0.9;snapping=false;settled=false;
+  clearTimeout(snapTimer);snapTimer=setTimeout(function(){snapping=true;},130);
+  updateActBar();
+},{passive:false});
+
+// —— 棋盘交互 ——
+function onPieceClick(e){
+  e.stopPropagation();
+  const el=e.currentTarget;
+  const tIdx=+el.dataset.teamIdx, uid=el.dataset.uid;
+  // 点非激活队的单位 → 滚到该队
+  if(!settled||tIdx!==modN(activeTeamIdx)){scrollToTeam(tIdx);return;}
+  const t=activeTeam();
+  if(moveSrcId){
+    if(uid===moveSrcId){moveSrcId=null;renderReel();updateActBar();return;}
+    // 交换两个单位的位置
+    const a=t.layout.find(l=>l.id===moveSrcId);
+    const b=t.layout.find(l=>l.id===uid);
+    if(a&&b){const tr=a.r,tc=a.c;a.r=b.r;a.c=b.c;b.r=tr;b.c=tc;}
+    moveSrcId=null;selUnitId=uid;
+    renderReel();setActiveUnit(uid);positionSpotlight();updateActBar();
+    return;
+  }
+  selUnitId=uid;
+  renderReel();setActiveUnit(uid);positionSpotlight();updateActBar();
+}
+function onBcellClick(e){
+  e.stopPropagation();
+  const el=e.currentTarget;
+  const tIdx=+el.dataset.teamIdx, r=+el.dataset.r, c=+el.dataset.c;
+  if(!settled||tIdx!==modN(activeTeamIdx)){scrollToTeam(tIdx);return;}
+  const t=activeTeam();
+  const occ=teamUnitAt(t,r,c);
+  if(moveSrcId){
+    if(occ&&occ.id===moveSrcId){moveSrcId=null;renderReel();updateActBar();return;}
+    const a=t.layout.find(l=>l.id===moveSrcId);
+    if(a){if(occ){const tr=a.r,tc=a.c;a.r=occ.r;a.c=occ.c;occ.r=tr;occ.c=tc;}
+      else{a.r=r;a.c=c;}}
+    moveSrcId=null;selUnitId=a?a.id:selUnitId;
+    renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
+    return;
+  }
+  if(occ){selUnitId=occ.id;renderReel();setActiveUnit(occ.id);positionSpotlight();updateActBar();return;}
+  // 空格 → 放置单位
+  openPlacerOverlay(t,r,c);
+}
+
+// ============================================================
+//  行动条
+// ============================================================
+function updateActBar(){
+  const lab=$("act-lab");
+  const t=activeTeam();
+  const sel=selUnitId?unitById(selUnitId):null;
+  if(moveSrcId){
+    const s=unitById(moveSrcId);
+    lab.innerHTML=`移动中：<b>${s?s.name:""}</b> · 点击目标格（被占则交换）/ 点回自己取消`;
+  }else if(sel){
+    const capTag=sel.id===t.captain?" · 队长":"";
+    lab.innerHTML=`<b>${t.name}</b> · ${sel.name}${capTag}（${sel.id}）`;
+  }else{
+    lab.innerHTML=`<b>${t.name}</b> · ${t.layout.length}/9 人 · 点击空格放置单位`;
+  }
+}
+$("btn-prev").addEventListener("click",()=>reelFeed(-1));
+$("btn-next").addEventListener("click",()=>reelFeed(1));
+$("btn-new-team").addEventListener("click",()=>openCaptainOverlay());
+
+// ============================================================
+//  右侧：单位编辑左半部分
+// ============================================================
+const edBody=$("ed-body"), edIdle=$("ed-idle");
+function setActiveUnit(id){
+  selUnitId=id;
+  renderEditor();
+}
+function renderEditor(){
+  const u=selUnitId?unitById(selUnitId):null;
+  $("ed-ico").textContent=u?u.icon:"—";
+  $("ed-name").textContent=u?u.name:"尚未选择单位";
+  $("ed-sub").textContent=u?(u.name+" · Lv."+u.lv):"—";
+  if(!u){edIdle.style.display="flex";edBody.querySelectorAll(".panel").forEach(p=>p.remove());return;}
+  edIdle.style.display="none";
+  edBody.querySelectorAll(".panel").forEach(p=>p.remove());
+  const a=document.createElement("div");a.className="a";
+  a.appendChild(buildEquipPanel(u));
+  a.appendChild(buildAttrPanel(u));
+  edBody.appendChild(a);
+  edBody.appendChild(buildStratPanel(u));
+}
+function invItem(id){return INVENTORY.find(i=>i.id===id);}
+function isEquipped(u,id){for(const k in u.equip)if(u.equip[k]===id)return true;return false;}
+function equippedInSlot(u,id){for(const k in u.equip)if(u.equip[k]===id)return k;return null;}
+function attrTotals(u){
+  const a={};for(const k in u.base)a[k]=u.base[k];
+  for(const kind in u.equip){const id=u.equip[kind];if(id==null)continue;
+    const it=invItem(id);if(!it)continue;for(const k in it.stats)a[k]=(a[k]||0)+it.stats[k];}
+  return a;
+}
+function buildEquipPanel(u){
+  const p=document.createElement("div");p.className="panel";
+  p.innerHTML=`<div class="panel-head"><span class="t">装 备</span><span class="sub">Equipment</span></div>`;
+  const g=document.createElement("div");g.className="equip-grid";
+  SLOT_KINDS.forEach(kind=>{
+    const id=u.equip[kind];const it=id!=null?invItem(id):null;
+    const d=document.createElement("div");d.className="slot"+(it?" filled":"");
+    if(it){d.innerHTML=`<div class="sl-kind">${SLOT_ICON[kind]} ${kind}</div>
+      <div class="sl-ico">${it.icon}</div><div class="sl-name">${it.name}</div><div class="sl-rank">品阶 ${it.rank}</div>`;}
+    else{d.innerHTML=`<div class="sl-kind">${SLOT_ICON[kind]} ${kind}</div>
+      <div class="sl-empty">+</div><div class="sl-name" style="color:var(--ink-dim)">空 槽 位</div>`;}
+    d.addEventListener("click",()=>openEquipModal(u,kind));
+    g.appendChild(d);
+  });
+  p.appendChild(g);return p;
+}
+function buildAttrPanel(u){
+  const p=document.createElement("div");p.className="panel";
+  p.innerHTML=`<div class="panel-head"><span class="t">属 性</span><span class="sub">Attributes</span></div>`;
+  const box=document.createElement("div");box.className="attrs";
+  const totals=attrTotals(u);
+  ATTR_DEFS.forEach(def=>{
+    const base=u.base[def.key],total=totals[def.key],diff=total-base;
+    const cls=diff>0?"bonus":(diff<0?"malus":"");
+    const diffTxt=diff!==0?`<span class="${cls}">${diff>0?"+":""}${diff}</span>`:"";
+    const d=document.createElement("div");d.className="attr";
+    d.innerHTML=`<div class="k"><span class="ki">${def.ico}</span>${def.cn}</div><div class="v">${total}${diffTxt}</div>`;
+    box.appendChild(d);
+  });
+  p.appendChild(box);return p;
+}
+function buildStratPanel(u){
+  const p=document.createElement("div");p.className="panel b";
+  p.innerHTML=`<div class="panel-head"><span class="t">行动策略</span><span class="sub">最多 8 条 · Tactics</span></div>`;
+  const body=document.createElement("div");body.className="panel-body";
+  body.innerHTML=`<div class="strat-head"><div class="sh">技能名</div><div class="sh">条件 1</div><div class="sh">条件 2</div></div>`;
+  const list=document.createElement("div");list.className="strat-list";
+  u.strat.forEach((row,idx)=>{
+    const r=document.createElement("div");r.className="strat-row";r.dataset.idx=idx;
+    r.appendChild(makeCell(u,"skill",row.skill,idx));
+    r.appendChild(makeCondCell(u,"cond1",row.cond1,idx));
+    r.appendChild(makeCondCell(u,"cond2",row.cond2,idx));
+    const x=document.createElement("div");x.className="row-x";x.textContent="×";x.title="删除此策略行";
+    x.addEventListener("click",e=>{e.stopPropagation();delRow(u,idx);});
+    r.appendChild(x);
+    list.appendChild(r);
+  });
+  if(u.strat.length<8){
+    const add=document.createElement("div");add.className="cell add-row";
+    add.innerHTML=`<span class="plus">+</span> 新增技能（${u.strat.length}/8）`;
+    add.addEventListener("click",()=>addRow(u));
+    list.appendChild(add);
+  }else{
+    const full=document.createElement("div");full.className="hint-row";full.textContent="已达上限 8 条策略。";
+    list.appendChild(full);
+  }
+  body.appendChild(list);p.appendChild(body);return p;
+}
+function makeCell(u,kind,skillId,idx){
+  const c=document.createElement("div");
+  const sk=skillId?SKILLS.find(s=>s.id===skillId):null;
+  c.className="cell"+(sk?" skill-filled":" empty");
+  if(sk){c.innerHTML=`<div class="c-line"><span class="c-ico">${sk.icon}</span><span class="c-name">${sk.cn}</span></div><div class="c-desc">${sk.desc}</div>`;}
+  else{c.innerHTML=`<span>+ 选择技能</span>`;}
+  c.addEventListener("click",()=>openSkillModal(u,idx,false));
+  return c;
+}
+function makeCondCell(u,field,condId,idx){
+  const c=document.createElement("div");
+  const cd=condId?CONDS.find(x=>x.id===condId):null;
+  c.className="cell"+(cd?"":" cond-empty");
+  if(cd){c.innerHTML=`<div class="c-cond"><span class="c-ico">${cd.icon}</span><span>${cd.cn}</span></div>`;}
+  else{c.innerHTML=`<span>+ 条件</span>`;}
+  c.addEventListener("click",()=>openCondModal(u,idx,field));
+  return c;
+}
+function addRow(u){if(u.strat.length>=8)return;openSkillModal(u,-1,true);}
+function delRow(u,idx){
+  u.strat.splice(idx,1);
+  if(overlayKind==="skill"||overlayKind==="cond")closeOverlay();
+  renderEditor();
+}
+
+// ============================================================
+//  覆盖左侧的选择窗口
+// ============================================================
+const overlay=$("overlay"), ovBody=$("ov-body"), ovTitle=$("ov-title"), ovFoot=$("ov-foot");
+function openOverlay(title,foot){ovTitle.textContent=title;ovFoot.textContent=foot||"";overlay.classList.add("on");}
+function closeOverlay(){overlay.classList.remove("on");overlayKind=null;overlayCtx=null;}
+$("ov-x").addEventListener("click",closeOverlay);
+
+// —— 装备弹窗 ——
+function openEquipModal(u,slotKind){
+  overlayKind="equip";overlayCtx={uid:u.id,slotKind};
+  openOverlay(`仓库 · ${slotKind}槽位 · ${u.name}`,"点击装备进行装备 / 卸下。已装备者标 E。");
+  renderEquipList(u,slotKind);
+}
+function renderEquipList(u,slotKind){
+  ovBody.innerHTML="";
+  const usable=INVENTORY.filter(i=>i.type===slotKind);
+  if(usable.length===0){const e=document.createElement("div");e.className="hint-row";e.textContent="仓库中没有该类型的装备。";ovBody.appendChild(e);return;}
+  usable.sort((a,b)=>(isEquipped(u,a.id)?1:0)-(isEquipped(u,b.id)?1:0));
+  usable.forEach(it=>{
+    const row=document.createElement("div");row.className="item-row"+(isEquipped(u,it.id)?" equipped":"");
+    const mySlot=equippedInSlot(u,it.id);
+    const inThisSlot=mySlot===slotKind, inOtherSlot=mySlot&&mySlot!==slotKind;
+    const statsTxt=Object.entries(it.stats).map(([k,v])=>{
+      const def=ATTR_DEFS.find(a=>a.key===k);const cls=v>=0?"pos":"neg";
+      return `<span class="${cls}">${def?def.cn:k} ${v>0?"+":""}${v}</span>`;
+    }).join("  ");
+    row.innerHTML=`<div class="it-ico">${it.icon}</div>
+      <div class="it-mid"><div class="it-name">${isEquipped(u,it.id)?'<span class="it-tag">E</span>':''}${it.name}
+        <span style="font-size:10px;color:var(--ink-dim);font-weight:400">· 品阶 ${it.rank}</span></div>
+        <div class="it-stat">${statsTxt}</div></div><div class="it-act"></div>`;
+    const act=row.querySelector(".it-act");
+    if(inThisSlot){const b=document.createElement("button");b.className="it-btn";b.textContent="卸下";
+      b.addEventListener("click",e=>{e.stopPropagation();unequip(u,slotKind);});act.appendChild(b);}
+    else if(inOtherSlot){const b=document.createElement("button");b.className="it-btn dis";b.textContent="已装备于"+mySlot;b.disabled=true;act.appendChild(b);}
+    else{const b=document.createElement("button");b.className="it-btn on";b.textContent="装备";
+      b.addEventListener("click",e=>{e.stopPropagation();equip(u,slotKind,it.id);});act.appendChild(b);}
+    row.addEventListener("click",()=>{if(inThisSlot)unequip(u,slotKind);else if(!inOtherSlot)equip(u,slotKind,it.id);});
+    ovBody.appendChild(row);
+  });
+}
+function equip(u,slotKind,itemId){
+  for(const k in u.equip)if(u.equip[k]===itemId)u.equip[k]=null;
+  u.equip[slotKind]=itemId;renderEquipList(u,slotKind);renderEditor();
+}
+function unequip(u,slotKind){u.equip[slotKind]=null;renderEquipList(u,slotKind);renderEditor();}
+
+// —— 技能弹窗 ——
+function openSkillModal(u,stratIdx,isNew){
+  overlayKind="skill";overlayCtx={uid:u.id,stratIdx,isNew:!!isNew};
+  const foot=isNew?"选择一个技能新增为策略；若不选择而点击别处或按 Esc，不会插入空行。"
+    :"点击技能进行更换；同名技能可在多行重复配置。点击「卸下技能」清除该格。";
+  openOverlay(`选择技能 · ${u.name}`,foot);
+  renderSkillList(u,stratIdx,!!isNew);
+}
+function renderSkillList(u,stratIdx,isNew){
+  ovBody.innerHTML="";
+  const cur=isNew?null:u.strat[stratIdx].skill;
+  if(!isNew&&cur){
+    const clr=document.createElement("div");clr.className="pick-clear";
+    clr.innerHTML=`<span>🗑️</span> 卸下技能（${SKILLS.find(s=>s.id===cur).cn}）`;
+    clr.addEventListener("click",()=>{u.strat[stratIdx].skill=null;closeOverlay();renderEditor();});
+    ovBody.appendChild(clr);
+  }
+  const pl=document.createElement("div");pl.className="pick-list";
+  SKILLS.forEach(sk=>{
+    const p=document.createElement("div");p.className="pick"+(cur===sk.id?" selected":"");
+    p.innerHTML=`<div class="p-ico">${sk.icon}</div><div class="p-mid"><div class="p-name">${sk.cn}</div><div class="p-desc">${sk.desc}</div></div><div class="p-mark">${cur===sk.id?"✓ 已选":""}</div>`;
+    p.addEventListener("click",()=>{
+      if(isNew){
+        if(u.strat.length>=8)return;
+        const ni=u.strat.push({skill:sk.id,cond1:null,cond2:null})-1;
+        renderEditor();openSkillModal(u,ni,false);
+      }else{
+        u.strat[stratIdx].skill=sk.id;closeOverlay();renderEditor();
+      }
+    });
+    pl.appendChild(p);
+  });
+  ovBody.appendChild(pl);
+}
+function openCondModal(u,stratIdx,field){
+  overlayKind="cond";overlayCtx={uid:u.id,stratIdx,field};
+  openOverlay(`选择条件 · ${field==="cond1"?"条件 1":"条件 2"} · ${u.name}`,"点击条件进行设置；点击「卸下条件」清除该格。");
+  renderCondList(u,stratIdx,field);
+}
+function renderCondList(u,stratIdx,field){
+  ovBody.innerHTML="";
+  const cur=u.strat[stratIdx][field];
+  if(cur){
+    const clr=document.createElement("div");clr.className="pick-clear";
+    clr.innerHTML=`<span>🗑️</span> 卸下条件（${CONDS.find(c=>c.id===cur).cn}）`;
+    clr.addEventListener("click",()=>{u.strat[stratIdx][field]=null;closeOverlay();renderEditor();});
+    ovBody.appendChild(clr);
+  }
+  const pl=document.createElement("div");pl.className="pick-list";
+  CONDS.forEach(cd=>{
+    const other=field==="cond1"?"cond2":"cond1";
+    const dup=u.strat[stratIdx][other]===cd.id;
+    const p=document.createElement("div");p.className="pick"+(cur===cd.id?" selected":"")+(dup?" disabled":"");
+    p.innerHTML=`<div class="p-ico">${cd.icon}</div><div class="p-mid"><div class="p-name">${cd.cn}${dup?" （已用于另一条件）":""}</div><div class="p-desc">${cd.desc}</div></div><div class="p-mark">${cur===cd.id?"✓":""}</div>`;
+    if(!dup)p.addEventListener("click",()=>{u.strat[stratIdx][field]=cd.id;closeOverlay();renderEditor();});
+    pl.appendChild(p);
+  });
+  ovBody.appendChild(pl);
+}
+
+// —— 放置单位弹窗（空格） ——
+function openPlacerOverlay(team,r,c){
+  overlayKind="place";overlayCtx={teamId:team.id,r,c};
+  const used=teamUnitIds(team);
+  openOverlay(`放置单位 · (${r+1},${c+1}) · ${team.name}`,"从花名册选择一个尚未在本队的单位放置到此格。");
+  const pl=document.createElement("div");pl.className="pick-list";
+  UNITS.forEach(u=>{
+    const inTeam=used.includes(u.id);
+    const p=document.createElement("div");p.className="pick"+(inTeam?" disabled":"");
+    p.innerHTML=`<div class="p-ico">${u.icon}</div>
+      <div class="p-mid"><div class="p-name">${u.name}${inTeam?" （已在本队）":""}</div>
+      <div class="p-desc">Lv.${u.lv} · ${u.strat.length} 条策略</div></div>
+      <div class="p-mark">${inTeam?"":"＋ 放置"}</div>`;
+    if(!inTeam)p.addEventListener("click",()=>{
+      team.layout.push({id:u.id,r:r,c:c});
+      selUnitId=u.id;moveSrcId=null;
+      closeOverlay();renderReel();setActiveUnit(u.id);positionSpotlight();updateActBar();
+    });
+    pl.appendChild(p);
+  });
+  ovBody.appendChild(pl);
+}
+
+// —— 选队长弹窗（新增队伍） ——
+function openCaptainOverlay(){
+  overlayKind="captain";overlayCtx={forNew:true};
+  openOverlay("新增队伍 · 选择队长","必须选择一名单位作为队长，否则新建失败。选择后将以队长为中心创建空队伍。");
+  const pl=document.createElement("div");pl.className="pick-list";
+  UNITS.forEach(u=>{
+    const p=document.createElement("div");p.className="pick";
+    p.innerHTML=`<div class="p-ico">${u.icon}</div>
+      <div class="p-mid"><div class="p-name">${u.name}</div>
+      <div class="p-desc">Lv.${u.lv} · 设为队长，置于棋盘中心格</div></div>
+      <div class="p-mark">👑 队长</div>`;
+    p.addEventListener("click",()=>createNewTeam(u.id));
+    pl.appendChild(p);
+  });
+  ovBody.appendChild(pl);
+}
+function createNewTeam(captainUid){
+  const cap=unitById(captainUid);if(!cap)return;
+  const nid="t"+(Date.now()%100000);
+  const team={id:nid,name:"新队伍 "+(TEAMS.length+1),color:cap.color,captain:captainUid,
+    layout:[{id:captainUid,r:1,c:1}]};
+  TEAMS.push(team);
+  const idx=TEAMS.length-1;
+  closeOverlay();
+  // 滚到新队伍
+  scrollToTeam(idx);
+  showToast("已新建队伍「"+team.name+"」，队长："+cap.name);
+}
+
+// —— Toast ——
+const toastEl=$("toast");let toastTimer=null;
+function showToast(msg,isErr){
+  toastEl.textContent=msg;
+  toastEl.classList.toggle("err",!!isErr);
+  toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toastEl.classList.remove("on"),1900);
+}
+
+// ============================================================
+//  焦点状态机 & 键盘路由
+// ============================================================
+function setZone(z){
+  focus=z;
+  $("zone-left").classList.toggle("focused",z===FocusZone.LEFT);
+  $("zone-right").classList.toggle("focused",z===FocusZone.RIGHT);
+  updateHint();
+}
+function updateHint(){
+  const hb=$("hint-bar");
+  if(focus===FocusZone.LEFT){
+    hb.innerHTML=`焦点：<b>左</b> · <kbd>↑</kbd><kbd>↓</kbd>/滚轮 滚动队伍 · <kbd>←</kbd><kbd>→</kbd> 切换棋盘单位 · <kbd>空格</kbd> 移动模式 · <kbd>Del</kbd> 移除单位 · <kbd>E</kbd> 焦点→右 · <kbd>Esc</kbd> 关闭弹窗`;
+  }else{
+    hb.innerHTML=`焦点：<b>右</b> · 点击装备槽 / 策略格 弹出选择窗（覆盖左侧） · <kbd>Q</kbd> 焦点→左 · <kbd>Esc</kbd> 关闭弹窗`;
+  }
+}
+window.addEventListener("keydown",function(e){
+  const k=e.key;
+  if(k==="Escape"){
+    if(overlay.classList.contains("on")){
+      // 新增队伍时取消 = 新建失败
+      if(overlayKind==="captain")showToast("新建失败：未选择队长，已取消。",true);
+      closeOverlay();e.preventDefault();return;
+    }
+  }
+  if(k==="e"||k==="E"){setZone(FocusZone.RIGHT);e.preventDefault();return;}
+  if(k==="q"||k==="Q"){setZone(FocusZone.LEFT);e.preventDefault();return;}
+  if(focus===FocusZone.LEFT){
+    if(k==="ArrowUp"){reelFeed(-1);e.preventDefault();return;}
+    if(k==="ArrowDown"){reelFeed(1);e.preventDefault();return;}
+    if(k==="PageUp"){reelFeed(-1,true);e.preventDefault();return;}
+    if(k==="PageDown"){reelFeed(1,true);e.preventDefault();return;}
+    if(k==="ArrowLeft"||k==="ArrowRight"){
+      const t=activeTeam();
+      if(t.layout.length===0)return;
+      let ids=t.layout.map(l=>l.id);
+      let pos=ids.indexOf(selUnitId);
+      if(pos===-1)pos=0;else pos=(pos+(k==="ArrowRight"?1:-1)+ids.length)%ids.length;
+      selUnitId=ids[pos];moveSrcId=null;
+      renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
+      e.preventDefault();return;
+    }
+    if(k==="Enter"){reelFeed(1);e.preventDefault();return;}
+    if(k==="Delete"||k==="Backspace"){
+      if(selUnitId){
+        const t=activeTeam();
+        if(selUnitId===t.captain){showToast("队长不可移除，请先在别队更换队长。",true);e.preventDefault();return;}
+        const i=t.layout.findIndex(l=>l.id===selUnitId);
+        if(i>=0){t.layout.splice(i,1);}
+        selUnitId=t.layout[0]?t.layout[0].id:null;moveSrcId=null;
+        renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
+        e.preventDefault();return;
+      }
+    }
+    if(k===" "){
+      if(selUnitId){moveSrcId=selUnitId;renderReel();updateActBar();e.preventDefault();}
+      return;
+    }
+  }
+});
+
+// 点击右侧空白处 → 关闭覆盖层
+$("zone-right").addEventListener("mousedown",function(e){
+  if(e.button!==0)return;
+  if(e.target.closest(".slot,.cell,.row-x,.it-btn,.pick,.pick-clear,.panel-head,.ed-head"))return;
+  if(overlay.classList.contains("on"))closeOverlay();
+});
+
+// 覆盖层背景点击不关闭（避免误触）；由 × 或 Esc 关闭
+
+window.addEventListener("resize",positionSpotlight);
+
+// ============================================================
+//  初始化
+// ============================================================
+function init(){
+  activeTeamIdx=0;lastCenteredIdx=0;
+  const t=activeTeam();
+  selUnitId=t.captain||(t.layout[0]?t.layout[0].id:null);
+  renderReel();
+  setActiveUnit(selUnitId);
+  positionSpotlight();
+  updateActBar();
+  setZone(FocusZone.LEFT);
+  requestAnimationFrame(animateReel);
+}
+init();
+})();
+</script>
+</body>
+</html>

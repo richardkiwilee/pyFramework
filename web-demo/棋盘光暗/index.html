@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>棋盘光暗 · 聚光灯焦点</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cell: 96px;            /* 等距投影后的格子尺寸 */
+    --gap: 4px;
+    --tile-light: #c9b48f;
+    --tile-light-2: #b3a07e;
+    --tile-dark: #6b5a42;
+    --tile-dark-2: #5a4c38;
+    --bg: #0c0a08;
+    --highlight: #ffd86b;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    user-select: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background:
+      radial-gradient(900px 500px at 50% 35%, #1a160f 0%, transparent 65%),
+      radial-gradient(700px 400px at 50% 100%, #0a0806 0%, transparent 60%),
+      var(--bg);
+    color: #e8e0d0;
+  }
+
+  /* —— 舞台：给整个棋盘一个透视空间 —— */
+  .stage {
+    position: relative;
+    width: 520px;
+    height: 460px;
+    perspective: 1400px;
+    perspective-origin: 50% 30%;
+  }
+
+  /* —— 棋盘容器：斜向 45°（绕 X 轴倾倒成等距斜视，模拟俯视棋盘） —— */
+  .board {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--cell) * 3 + var(--gap) * 2);
+    height: calc(var(--cell) * 3 + var(--gap) * 2);
+    transform: translate(-50%, -50%) rotateX(54deg);
+    transform-style: preserve-3d;
+    display: grid;
+    grid-template-columns: repeat(3, var(--cell));
+    grid-template-rows: repeat(3, var(--cell));
+    gap: var(--gap);
+  }
+
+  /* —— 格子（棋盘明暗交错） —— */
+  .cell {
+    position: relative;
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,.35) inset,
+      0 6px 14px rgba(0,0,0,.55);
+    transform-style: preserve-3d;
+  }
+  .cell.light { background: linear-gradient(135deg, var(--tile-light), var(--tile-light-2)); }
+  .cell.dark  { background: linear-gradient(135deg, var(--tile-dark), var(--tile-dark-2)); }
+
+  /* 格子整体随全局"暗"状态变暗 */
+  .dim .cell { filter: brightness(.32) saturate(.7); }
+  .dim .cell.focused { filter: brightness(1.12) saturate(1.05); }
+
+  /* —— 图形 —— */
+  .piece {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 64px; height: 64px;
+    margin: -32px 0 0 -32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    line-height: 1;
+    transform: translateZ(34px) rotateX(-54deg); /* 抵消棋盘的 X 倾倒，让图形正对屏幕"立"起 */
+    transform-style: preserve-3d;
+    filter: drop-shadow(0 8px 6px rgba(0,0,0,.6));
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), filter .35s;
+    will-change: transform, filter;
+    cursor: pointer;
+  }
+
+  /* 未聚焦时变暗 */
+  .dim .piece { filter: brightness(.28) saturate(.5) drop-shadow(0 8px 6px rgba(0,0,0,.6)); }
+  .dim .piece.focused {
+    filter: drop-shadow(0 0 14px rgba(255,216,107,.85)) drop-shadow(0 8px 6px rgba(0,0,0,.5));
+    transform: translateZ(54px) rotateX(-54deg) scale(1.18);
+  }
+
+  /* —— 聚光灯锥形光（从上而下的锥形，2D 屏幕空间叠加层） —— */
+  .spotlight {
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .35s, left .45s cubic-bezier(.2,.8,.2,1), top .45s cubic-bezier(.2,.8,.2,1);
+    /* 锚点：以锥底中心对齐 (left,top)，锥体从锚点向上收窄 */
+    transform: translate(-50%, -100%);
+    z-index: 50;
+  }
+  .spotlight.on { opacity: 1; }
+
+  /* 锥体主体：梯形（上窄下宽） */
+  .spotlight .cone {
+    position: absolute;
+    left: 50%;
+    bottom: 0;                 /* 锥底对齐 spotlight 锚点（格子中心） */
+    width: 150px;
+    height: 220px;
+    margin-left: -75px;
+    background: linear-gradient(180deg,
+      rgba(255,232,150,0) 0%,
+      rgba(255,224,120,.06) 30%,
+      rgba(255,216,107,.18) 70%,
+      rgba(255,216,107,.34) 100%);
+    clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+    filter: blur(3px);
+    mix-blend-mode: screen;
+  }
+  /* 锥体柔光晕（更宽更淡） */
+  .spotlight .halo {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 260px; height: 240px;
+    margin-left: -130px;
+    background: radial-gradient(closest-side, rgba(255,216,107,.18), rgba(255,216,107,0) 75%);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+    filter: blur(10px);
+    mix-blend-mode: screen;
+  }
+  /* 锥底光斑（地面高光圈，落在格子上） */
+  .spotlight .pool {
+    position: absolute;
+    left: 50%;
+    bottom: -45px;             /* 中心对齐格子中心，光斑覆盖到倾斜格子表面 */
+    width: 170px; height: 90px;
+    margin-left: -85px;
+    background: radial-gradient(closest-side, rgba(255,232,150,.62), rgba(255,216,107,.14) 60%, rgba(255,216,107,0) 80%);
+    border-radius: 50%;
+    filter: blur(6px);
+    mix-blend-mode: screen;
+  }
+  /* 顶部光源点（射灯出口，位于锥体顶端=光源） */
+  .spotlight .emitter {
+    position: absolute;
+    left: 50%;
+    top: -222px;               /* 锥体高 220px，光源在锥顶（spotlight 锚点上方 222px） */
+    width: 22px; height: 22px;
+    margin-left: -11px;
+    background: radial-gradient(closest-side, #fff7df, rgba(255,216,107,0) 70%);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+
+  /* —— 信息区 —— */
+  .info {
+    text-align: center;
+    line-height: 1.7;
+  }
+  .focus-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--highlight);
+    text-shadow: 0 0 16px rgba(255,216,107,.5);
+    min-height: 34px;
+  }
+  .hint {
+    margin-top: 4px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: rgba(232,224,208,.45);
+  }
+  .hint kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    margin: 0 2px;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #fff;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage" id="stage">
+    <div class="board" id="board"></div>
+    <div class="spotlight" id="spotlight">
+      <div class="halo"></div>
+      <div class="cone"></div>
+      <div class="pool"></div>
+      <div class="emitter"></div>
+    </div>
+  </div>
+
+  <div class="info">
+    <div class="focus-name" id="focusName">—</div>
+    <div class="hint">使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或点击切换焦点图形 · 聚光灯跟随</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // —— 九宫格棋盘 ——
+  var ROWS = 3, COLS = 3;
+  // 5 个图形及其名称
+  var SHAPES = [
+    { icon: "★", name: "星辰 STAR",   color: "#ffd86b" },
+    { icon: "♦", name: "菱钻 DIAMOND", color: "#7fd4ff" },
+    { icon: "▲", name: "尖塔 TOWER",   color: "#ff8a5b" },
+    { icon: "●", name: "圆球 ORB",     color: "#9affb0" },
+    { icon: "❖", name: "雪花 SNOW",    color: "#d59aff" }
+  ];
+
+  var boardEl = document.getElementById("board");
+  var spotlightEl = document.getElementById("spotlight");
+  var stageEl = document.getElementById("stage");
+  var focusNameEl = document.getElementById("focusName");
+
+  var cells = [];     // 3x3 cell DOM
+  var pieces = [];    // 5 个 {row, col, el, shape}
+  var focusIndex = 0; // 当前聚焦的图形索引（0..4）
+  var hOrder = [];    // 行优先序列：右=下一项，左=上一项（含回绕）
+  var vOrder = [];    // 列优先序列：下=下一项，上=上一项（含回绕）
+
+  // —— 构建棋盘 ——
+  function buildBoard() {
+    for (var r = 0; r < ROWS; r++) {
+      cells[r] = [];
+      for (var c = 0; c < COLS; c++) {
+        var cell = document.createElement("div");
+        cell.className = "cell " + (((r + c) % 2 === 0) ? "light" : "dark");
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        boardEl.appendChild(cell);
+        cells[r][c] = cell;
+      }
+    }
+  }
+
+  // —— 在 5 个不同格子上放置图形 ——
+  function placePieces() {
+    // 选 5 个不重复的格子
+    var all = [];
+    for (var r = 0; r < ROWS; r++)
+      for (var c = 0; c < COLS; c++)
+        all.push([r, c]);
+    // 洗牌（不使用 Math.random 之外的工具，简单 Fisher-Yates）
+    for (var i = all.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = all[i]; all[i] = all[j]; all[j] = t;
+    }
+    var chosen = all.slice(0, 5);
+
+    chosen.forEach(function (pos, idx) {
+      var r = pos[0], c = pos[1];
+      var shape = SHAPES[idx];
+      var el = document.createElement("div");
+      el.className = "piece";
+      el.textContent = shape.icon;
+      el.style.color = shape.color;
+      el.dataset.index = idx;
+      el.addEventListener("click", function () {
+        setFocus(idx);
+      });
+      cells[r][c].appendChild(el);
+      pieces.push({ row: r, col: c, el: el, shape: shape });
+    });
+
+    // 预计算两个循环序列，保证按住一个方向键能遍历所有图形
+    // 行优先（先按行，同行内按列升序）：← / → 用
+    var hIdx = pieces.map(function (_, i) { return i; }).sort(function (a, b) {
+      var pa = pieces[a], pb = pieces[b];
+      return pa.row - pb.row || pa.col - pb.col;
+    });
+    // 列优先（先按列，同列内按行升序）：↑ / ↓ 用
+    var vIdx = pieces.map(function (_, i) { return i; }).sort(function (a, b) {
+      var pa = pieces[a], pb = pieces[b];
+      return pa.col - pb.col || pa.row - pb.row;
+    });
+    hOrder = hIdx;
+    vOrder = vIdx;
+  }
+
+  // 在给定循环序列里，以当前 focusIndex 为基准，向 next(+1)/prev(-1) 移动并回绕
+  function cycle(order, dir) {
+    if (order.length === 0) return;
+    var pos = order.indexOf(focusIndex);
+    if (pos === -1) { setFocus(order[0]); return; }
+    var n = order.length;
+    var next = (pos + dir + n) % n;
+    setFocus(order[next]);
+  }
+
+  // —— 方向键移动焦点：在循环序列里前进/后退，可遍历全部 ——
+  function moveFocus(dx, dy) {
+    if (pieces.length === 0) return;
+    if (dx !== 0) cycle(hOrder, dx);   // ← → 按行优先循环
+    else if (dy !== 0) cycle(vOrder, dy); // ↑ ↓ 按列优先循环
+  }
+
+  // —— 设置焦点 ——
+  function setFocus(idx) {
+    focusIndex = idx;
+    document.body.classList.add("dim");
+    spotlightEl.classList.add("on");
+
+    pieces.forEach(function (p, i) {
+      p.el.classList.toggle("focused", i === idx);
+      var cell = cells[p.row][p.col];
+      cell.classList.toggle("focused", i === idx);
+    });
+
+    // 移动聚光灯到当前格子
+    var p = pieces[idx];
+    positionSpotlight(p.row, p.col);
+
+    focusNameEl.textContent = p.shape.name;
+    focusNameEl.style.color = p.shape.color;
+  }
+
+  // —— 聚光灯定位：基于格子中心在屏幕上的实际投影位置 ——
+  function positionSpotlight(row, col) {
+    // 用 getBoundingClientRect 取格子中心在屏幕坐标，再换算到 stage 坐标
+    var cell = cells[row][col];
+    var cr = cell.getBoundingClientRect();
+    var sr = stageEl.getBoundingClientRect();
+    var cx = cr.left + cr.width / 2 - sr.left;
+    var cy = cr.top + cr.height / 2 - sr.top;
+    // spotlight 锚点为底部中心（translate(-50%,-100%)），锥底对齐格子中心
+    spotlightEl.style.left = cx + "px";
+    spotlightEl.style.top = cy + "px"; // 锥底对齐格子中心，pool 向下覆盖格子
+  }
+
+  // —— 输入 ——
+  window.addEventListener("keydown", function (e) {
+    var handled = true;
+    switch (e.key) {
+      case "ArrowLeft":  moveFocus(-1, 0); break;
+      case "ArrowRight": moveFocus(1, 0); break;
+      case "ArrowUp":   moveFocus(0, -1); break;
+      case "ArrowDown": moveFocus(0, 1); break;
+      default: handled = false;
+    }
+    if (handled) e.preventDefault();
+  });
+
+  // —— 初始化 ——
+  buildBoard();
+  placePieces();
+  // 等布局完成（3D 变换应用）后再定位，避免 getBoundingClientRect 取到未变换的位置
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      setFocus(0);
+    });
+  });
+  // 窗口尺寸变化时重定位聚光灯
+  window.addEventListener("resize", function () {
+    positionSpotlight(pieces[focusIndex].row, pieces[focusIndex].col);
+  });
+})();
+</script>
+</body>
+</html>

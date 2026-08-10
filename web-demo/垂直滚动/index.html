@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老虎机垂直滚动</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --item-height: 110px;
+    --gold: #ffcf3f;
+    --gold-deep: #b8860b;
+    --glow: #ffd86b;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #2a1850 0%, transparent 60%),
+      radial-gradient(900px 500px at 50% 110%, #102040 0%, transparent 55%),
+      linear-gradient(180deg, #0b0a1f 0%, #060512 100%);
+    color: #fff;
+  }
+
+  /* —— 老虎机机身 —— */
+  .machine {
+    position: relative;
+    padding: 26px 30px 30px;
+    border-radius: 26px;
+    background:
+      linear-gradient(180deg, #2b2350 0%, #1a1336 100%);
+    border: 2px solid rgba(255, 207, 63, .55);
+    box-shadow:
+      0 0 0 4px rgba(0,0,0,.45) inset,
+      0 0 40px rgba(255, 207, 63, .18),
+      0 22px 60px rgba(0,0,0,.6);
+  }
+  .machine::before {
+    content: "SLOT";
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 18px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    font-size: 14px;
+    color: #2a1c00;
+    background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.5);
+  }
+
+  /* —— 滚动窗口 —— */
+  .reel-container {
+    position: relative;
+    width: 260px;
+    height: calc(var(--item-height) * 3);
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #05030c 0%, #0e0a22 50%, #05030c 100%);
+    border: 2px solid rgba(255, 207, 63, .35);
+    box-shadow:
+      0 0 0 6px #120c2e inset,
+      0 0 24px rgba(0,0,0,.8) inset;
+    cursor: ns-resize;
+  }
+
+  .reel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    perspective: 900px;
+    perspective-origin: 50% 50%;
+  }
+
+  .item {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 120px;
+    height: var(--item-height);
+    margin-left: -60px;
+    margin-top: calc(var(--item-height) / -2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 76px;
+    line-height: 1;
+    will-change: transform, opacity;
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.5));
+    transition: filter .15s;
+  }
+
+  /* —— 中间高亮选中框 —— */
+  .indicator {
+    position: absolute;
+    top: calc(var(--item-height) * 1);
+    left: 0;
+    width: 100%;
+    height: var(--item-height);
+    pointer-events: none;
+    border-top: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+    box-shadow:
+      0 0 0 1px rgba(255, 207, 63, .25),
+      0 0 30px rgba(255, 207, 63, .35) inset,
+      0 0 20px rgba(255, 207, 63, .25);
+    background:
+      linear-gradient(90deg,
+        rgba(255,207,63,0) 0%,
+        rgba(255,207,63,.10) 50%,
+        rgba(255,207,63,0) 100%);
+  }
+  .indicator::before,
+  .indicator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 10px; height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--glow);
+    box-shadow: 0 0 10px var(--glow);
+  }
+  .indicator::before { left: 6px; }
+  .indicator::after  { right: 6px; }
+
+  /* —— 上下渐变遮罩（fade） —— */
+  .mask {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: var(--item-height);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .mask-top {
+    top: 0;
+    background: linear-gradient(180deg, #05030c 0%, rgba(5,3,12,.6) 70%, rgba(5,3,12,0) 100%);
+  }
+  .mask-bottom {
+    bottom: 0;
+    background: linear-gradient(0deg,  #05030c 0%, rgba(5,3,12,.6) 70%, rgba(5,3,12,0) 100%);
+  }
+
+  /* —— 信息区 —— */
+  .info {
+    text-align: center;
+    line-height: 1.6;
+  }
+  .selected {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--gold);
+    text-shadow: 0 0 18px rgba(255, 207, 63, .6);
+    min-height: 38px;
+  }
+  .hint {
+    margin-top: 4px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,.45);
+  }
+  .hint kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    margin: 0 2px;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #fff;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+  }
+
+  .scrolling .item { filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)) blur(.4px); }
+</style>
+</head>
+<body>
+
+  <div class="machine">
+    <div class="reel-container" id="reel-container">
+      <div class="reel" id="reel"></div>
+      <div class="indicator"></div>
+      <div class="mask mask-top"></div>
+      <div class="mask mask-bottom"></div>
+    </div>
+  </div>
+
+  <div class="info">
+    <div class="selected" id="selected">🍒</div>
+    <div class="hint">滚动鼠标 <kbd>滚轮</kbd> 或按 <kbd>↑</kbd> <kbd>↓</kbd> 选择 · 点击符号定位</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // —— 符号数据（无限循环） ——
+  var SYMBOLS = ["🍒", "🍋", "🍊", "🍇", "🍉", "🍓", "🔔", "⭐", "💎", "7️⃣"];
+  var NAMES = {
+    "🍒": "樱桃 CHERRY", "🍋": "柠檬 LEMON", "🍊": "橙子 ORANGE",
+    "🍇": "葡萄 GRAPE", "🍉": "西瓜 WATERMELON", "🍓": "草莓 STRAWBERRY",
+    "🔔": "铃铛 BELL", "⭐": "星星 STAR", "💎": "钻石 DIAMOND", "7️⃣": "幸运七 LUCKY 7"
+  };
+  var N = SYMBOLS.length;
+
+  var itemHeight = 110;          // 与 CSS --item-height 保持一致
+  var range = 4;                 // 中心上下各渲染多少个
+  var slots = 2 * range + 1;     // 固定 DOM 节点数
+
+  var current = 0;   // 当前位置（浮点，单位：item）
+  var target  = 0;   // 目标位置
+  var velocity = 0;  // 用于动画尾部的微动效
+  var snapping = false;
+  var snapTimer = null;
+  var lastWheelAt = 0;
+
+  var reelEl = document.getElementById("reel");
+  var containerEl = document.getElementById("reel-container");
+  var selectedEl = document.getElementById("selected");
+
+  // —— 预创建固定数量的 slot ——
+  var slotEls = [];
+  for (var s = 0; s < slots; s++) {
+    var el = document.createElement("div");
+    el.className = "item";
+    reelEl.appendChild(el);
+    slotEls.push(el);
+  }
+
+  function mod(i) { return ((i % N) + N) % N; }
+
+  function render() {
+    var base = Math.round(current);
+    for (var k = 0; k < slots; k++) {
+      var offset = k - range;                 // -range .. range
+      var i = base + offset;                  // 逻辑索引（可超出 0..N-1）
+      var itemIdx = mod(i);
+      var distance = i - current;             // 距中心的浮点距离
+
+      var abs = Math.abs(distance);
+      var scale = Math.max(0.32, 1 - abs * 0.16);
+      var opacity = Math.max(0, 1 - abs * 0.30);
+      var rotateX = distance * 22;            // 3D 透视
+      var ty = distance * itemHeight;
+
+      var node = slotEls[k];
+      if (node._idx !== itemIdx) {             // 内容变了才改 textContent
+        node.textContent = SYMBOLS[itemIdx];
+        node._idx = itemIdx;
+      }
+      node.style.transform =
+        "translateY(" + ty.toFixed(2) + "px) scale(" + scale.toFixed(3) +
+        ") rotateX(" + rotateX.toFixed(2) + "deg)";
+      node.style.opacity = opacity.toFixed(3);
+      node.style.zIndex = String(100 - Math.round(abs * 10));
+    }
+
+    // 当前选中
+    var rounded = Math.round(current);
+    var sel = SYMBOLS[mod(rounded)];
+    if (selectedEl._sel !== sel) {
+      selectedEl._sel = sel;
+      selectedEl.textContent = sel;
+      selectedEl.title = NAMES[sel] || "";
+    }
+  }
+
+  // —— 动画循环 ——
+  function animate() {
+    var diff = target - current;
+    if (Math.abs(diff) < 0.0005 && Math.abs(velocity) < 0.0005 && !snapping) {
+      current = target;
+      render();
+      containerEl.classList.remove("scrolling");
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    containerEl.classList.add("scrolling");
+
+    // 缓动靠近 target
+    current += diff * 0.16;
+    velocity = diff * 0.16;
+
+    // 吸附：用户停止滚动手势一段时间后，把 target 收敛到整数
+    if (snapping) {
+      target = Math.round(target);
+      if (Math.abs(target - current) < 0.01) {
+        current = target;
+        snapping = false;
+      }
+    }
+
+    render();
+    requestAnimationFrame(animate);
+  }
+
+  // —— 滚轮控制 ——
+  containerEl.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    // deltaY 每格约 100，映射为移动 item 数（可加速）
+    var step = e.deltaY / 100;          // 基础步长 = 1 item / 100px deltaY
+    // 触摸板/连续滚动会叠加，鼠标滚轮单次也顺滑
+    target += step * 0.9;
+    snapping = false;
+    lastWheelAt = performance.now();
+
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () { snapping = true; }, 130);
+  }, { passive: false });
+
+  // —— 键盘控制 ——
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowUp")   { target -= 1; snapping = true; e.preventDefault(); }
+    if (e.key === "ArrowDown") { target += 1; snapping = true; e.preventDefault(); }
+    if (e.key === "PageUp")    { target -= N; snapping = true; e.preventDefault(); }
+    if (e.key === "PageDown")  { target += N; snapping = true; e.preventDefault(); }
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () { snapping = false; }, 200);
+  });
+
+  // —— 点击符号定位到该项 ——
+  reelEl.addEventListener("click", function (e) {
+    var node = e.target.closest(".item");
+    if (!node) return;
+    var idx = slotEls.indexOf(node);
+    if (idx === -1) return;
+    var offset = idx - range;
+    var base = Math.round(current);
+    var i = base + offset;
+    // 滚到使该项居中：target = i
+    target = i;
+    snapping = true;
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () { snapping = false; }, 250);
+  });
+
+  // 阻止页面滚动
+  document.body.addEventListener("wheel", function (e) { e.preventDefault(); }, { passive: false });
+
+  render();
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
