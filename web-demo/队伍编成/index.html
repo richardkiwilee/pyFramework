@@ -63,15 +63,15 @@
   /* —— 滚轮机身（占满左区主体） —— */
   .reel-machine{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;
     min-height:0;padding:6px;}
-  .reel-container{position:relative;width:250px;height:450px;border-radius:18px;overflow:hidden;
+  .reel-container{position:relative;width:var(--reel-w,250px);height:var(--reel-h,450px);border-radius:18px;overflow:hidden;
     cursor:ns-resize;
     background:linear-gradient(180deg,#05030c 0%,#0e0a22 50%,#05030c 100%);
     border:2px solid rgba(212,175,55,.32);
     box-shadow:0 0 0 6px #120c2e inset, 0 0 24px rgba(0,0,0,.8) inset, 0 0 30px rgba(0,0,0,.5);}
   .reel{position:absolute;top:0;left:0;width:100%;height:100%;
     perspective:1000px;perspective-origin:50% 50%;}
-  .item{position:absolute;top:50%;left:50%;width:250px;height:150px;
-    margin-left:-125px;margin-top:-75px;
+  .item{position:absolute;top:50%;left:50%;width:var(--reel-w,250px);height:var(--item-h,150px);
+    margin-left:calc(var(--reel-w,250px)/-2);margin-top:calc(var(--item-h,150px)/-2);
     will-change:transform,opacity;transform-origin:50% 50%;
     backface-visibility:hidden;transition:filter .15s;pointer-events:none;}
   .item.settled{pointer-events:auto;}
@@ -92,7 +92,7 @@
     transition:filter .15s, box-shadow .15s;cursor:pointer;}
   .bcell.light{background:linear-gradient(135deg,var(--tile-light),var(--tile-light-2));}
   .bcell.dark{background:linear-gradient(135deg,var(--tile-dark),var(--tile-dark-2));}
-  .bcell.target-hint{box-shadow:0 0 0 2px var(--gold-bright) inset, 0 0 14px rgba(240,210,100,.5);}
+  .bcell.target-hint{box-shadow:0 0 0 2px var(--green) inset, 0 0 16px rgba(122,184,90,.55);background:rgba(122,184,90,.25)!important;}
   .board.dim .bcell{filter:brightness(.36) saturate(.7);}
   .board.dim .bcell.has-unit.selected{filter:brightness(1.12) saturate(1.05);}
   .bpiece{position:absolute;width:30px;height:30px;margin-left:-15px;margin-top:-15px;
@@ -130,14 +130,14 @@
     background:radial-gradient(closest-side,#fff7df,rgba(255,216,107,0) 70%);border-radius:50%;filter:blur(2px);}
 
   /* —— 选中框（指示居中棋盘） —— */
-  .indicator{position:absolute;top:150px;left:0;width:100%;height:150px;pointer-events:none;
+  .indicator{position:absolute;top:var(--item-h,150px);left:0;width:100%;height:var(--item-h,150px);pointer-events:none;
     border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);
     box-shadow:0 0 0 1px rgba(212,175,55,.22), 0 0 26px rgba(212,175,55,.22) inset;
     background:linear-gradient(90deg,rgba(255,207,63,0) 0%,rgba(255,207,63,.07) 50%,rgba(255,207,63,0) 100%);}
   .indicator::before,.indicator::after{content:"";position:absolute;top:50%;width:9px;height:9px;
     margin-top:-4.5px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px var(--glow);}
   .indicator::before{left:6px;} .indicator::after{right:6px;}
-  .mask{position:absolute;left:0;width:100%;height:150px;pointer-events:none;z-index:5;}
+  .mask{position:absolute;left:0;width:100%;height:var(--item-h,150px);pointer-events:none;z-index:5;}
   .mask-top{top:0;background:linear-gradient(180deg,#05030c 0%,rgba(5,3,12,.7) 70%,rgba(5,3,12,0) 100%);}
   .mask-bottom{bottom:0;background:linear-gradient(0deg,#05030c 0%,rgba(5,3,12,.7) 70%,rgba(5,3,12,0) 100%);}
 
@@ -465,6 +465,7 @@ let focus=FocusZone.LEFT;
 let activeTeamIdx=0;      // 当前居中（激活）的队伍索引
 let selUnitId=null;      // 激活队伍中选中的单位
 let moveSrcId=null;      // 移动/交换源单位（同队内）
+let moveTargetRC=null;  // 键盘移动模式下的目标格 {r,c}
 let overlayKind=null;
 let overlayCtx=null;
 let settled=true;        // 滚轮是否停稳
@@ -473,7 +474,7 @@ let settled=true;        // 滚轮是否停稳
 //  滚轮（元素 = 九宫格棋盘）
 // ============================================================
 const reelEl=$("reel"), reelContainer=$("reel-container"), spotlightEl=$("spotlight");
-const itemH=150, range=2, slots=2*range+1;
+let reelW=250,reelH=450,itemH=150;const range=2,slots=2*range+1;
 let current=0,target=0,velocity=0,snapping=false,snapTimer=null;
 const slotEls=[];
 for(let s=0;s<slots;s++){
@@ -506,8 +507,8 @@ function renderBoardInto(slotEl,teamIdx){
       const cell=document.createElement("div");
       cell.className="bcell "+(((r+c)%2===0)?"light":"dark");
       cell.dataset.r=r;cell.dataset.c=c;cell.dataset.teamIdx=teamIdx;
-      cell.style.left=(125+cellCenterX(r,c)-39)+"px";
-      cell.style.top=(75+cellCenterY(r,c)-20)+"px";
+      cell.style.left=(reelW/2+cellCenterX(r,c)-39)+"px";
+      cell.style.top=(itemH/2+cellCenterY(r,c)-20)+"px";
       cell.addEventListener("click",onBcellClick);
       cells.appendChild(cell);
     }
@@ -526,8 +527,8 @@ function renderBoardInto(slotEl,teamIdx){
     const p=document.createElement("div");
     p.className="bpiece"+(isSel?" selected":"")+(isMove?" move-src":"");
     p.style.color=u.color;
-    p.style.left=(125+cellCenterX(it.r,it.c))+"px";
-    p.style.top=(75+cellCenterY(it.r,it.c))+"px";
+    p.style.left=(reelW/2+cellCenterX(it.r,it.c))+"px";
+    p.style.top=(itemH/2+cellCenterY(it.r,it.c))+"px";
     p.innerHTML=u.icon;
     if(isCap){const cr=document.createElement("span");cr.className="crown";cr.textContent="👑";p.appendChild(cr);}
     const nm=document.createElement("span");nm.className="pname";nm.textContent=u.name;p.appendChild(nm);
@@ -542,6 +543,14 @@ function renderBoardInto(slotEl,teamIdx){
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
     const cell=cells.querySelector('.bcell[data-r="'+r+'"][data-c="'+c+'"]');
     if(cell && !teamUnitAt(team,r,c)){cell.classList.remove("has-unit");cell.classList.remove("selected");}
+  }
+  // 键盘移动模式：高亮目标格
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const cell=cells.querySelector('.bcell[data-r="'+r+'"][data-c="'+c+'"]');
+    if(cell){
+      const isTarget=isActive&&moveSrcId&&moveTargetRC&&r===moveTargetRC.r&&c===moveTargetRC.c;
+      cell.classList.toggle("target-hint",isTarget);
+    }
   }
 }
 
@@ -605,20 +614,39 @@ function onActiveTeamChanged(){
   if(!selUnitId||!t.layout.some(l=>l.id===selUnitId)){
     selUnitId=t.captain&&t.layout.some(l=>l.id===t.captain)?t.captain:(t.layout[0]?t.layout[0].id:null);
   }
-  moveSrcId=null;
+  moveSrcId=null;moveTargetRC=null;
   renderReel();
   setActiveUnit(selUnitId);
   positionSpotlight();
   updateActBar();
+}
+// 键盘移动模式：确认移动到目标格
+function execMoveToTarget(){
+  if(!moveSrcId||!moveTargetRC)return;
+  const t=activeTeam();
+  const {r,c}=moveTargetRC;
+  const occ=teamUnitAt(t,r,c);
+  if(occ&&occ.id===moveSrcId){
+    // 目标格就是源单位 → 取消移动
+    moveSrcId=null;moveTargetRC=null;
+  }else{
+    const a=t.layout.find(l=>l.id===moveSrcId);
+    if(a){
+      if(occ){const tr=a.r,tc=a.c;a.r=occ.r;a.c=occ.c;occ.r=tr;occ.c=tc;}
+      else{a.r=r;a.c=c;}
+    }
+    moveSrcId=null;moveTargetRC=null;
+  }
+  renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
 }
 function positionSpotlight(){
   if(!selUnitId){spotlightEl.classList.remove("on");return;}
   const t=activeTeam();
   const it=t.layout.find(l=>l.id===selUnitId);
   if(!it){spotlightEl.classList.remove("on");return;}
-  // reel-container 中心 = (125, 225)；棋盘中心相对 item 中心已含偏移
-  const cx=125+cellCenterX(it.r,it.c);
-  const cy=225+cellCenterY(it.r,it.c);
+  // reel-container 中心 = (reelW/2, reelH/2)；棋盘中心相对 item 中心已含偏移
+  const cx=reelW/2+cellCenterX(it.r,it.c);
+  const cy=reelH/2+cellCenterY(it.r,it.c);
   spotlightEl.classList.add("on");
   spotlightEl.style.left=cx+"px";spotlightEl.style.top=cy+"px";
 }
@@ -634,6 +662,32 @@ function scrollToTeam(idx){
   target=idx;snapping=true;settled=false;
   clearTimeout(snapTimer);snapTimer=setTimeout(function(){snapping=false;},200);
   updateActBar();
+}
+// 根据可用空间动态调整滚轮尺寸，纵向填满、横向等比缩放
+function resizeReel(){
+  const machine=$("reel-machine");
+  const h=machine.clientHeight;
+  if(!h||h<200)return;
+  // reel-machine 有 padding:6px，reel-container 有 border:2px*2，box-sizing:border-box
+  // 让滚轮容器恰好填满 machine 内容区：h - 12(padding) + 4(border 计入 border-box) = h-8
+  reelH=h-8;
+  reelW=Math.round(reelH*5/9);
+  itemH=Math.round(reelH/3);
+  // 同时设置 CSS 自定义属性与直接内联样式，确保生效
+  reelContainer.style.setProperty("--reel-w",reelW+"px");
+  reelContainer.style.setProperty("--reel-h",reelH+"px");
+  reelContainer.style.setProperty("--item-h",itemH+"px");
+  reelContainer.style.width=reelW+"px";
+  reelContainer.style.height=reelH+"px";
+  // 同步更新所有 slot item 的尺寸（动态创建的元素，直接设内联最可靠）
+  slotEls.forEach(el=>{
+    el.style.width=reelW+"px";
+    el.style.height=itemH+"px";
+    el.style.marginLeft=Math.round(-reelW/2)+"px";
+    el.style.marginTop=Math.round(-itemH/2)+"px";
+  });
+  renderReel();
+  positionSpotlight();
 }
 reelContainer.addEventListener("wheel",function(e){
   if(focus!==FocusZone.LEFT)return;
@@ -653,12 +707,12 @@ function onPieceClick(e){
   if(!settled||tIdx!==modN(activeTeamIdx)){scrollToTeam(tIdx);return;}
   const t=activeTeam();
   if(moveSrcId){
-    if(uid===moveSrcId){moveSrcId=null;renderReel();updateActBar();return;}
+    if(uid===moveSrcId){moveSrcId=null;moveTargetRC=null;renderReel();updateActBar();return;}
     // 交换两个单位的位置
     const a=t.layout.find(l=>l.id===moveSrcId);
     const b=t.layout.find(l=>l.id===uid);
     if(a&&b){const tr=a.r,tc=a.c;a.r=b.r;a.c=b.c;b.r=tr;b.c=tc;}
-    moveSrcId=null;selUnitId=uid;
+    moveSrcId=null;moveTargetRC=null;selUnitId=uid;
     renderReel();setActiveUnit(uid);positionSpotlight();updateActBar();
     return;
   }
@@ -673,11 +727,11 @@ function onBcellClick(e){
   const t=activeTeam();
   const occ=teamUnitAt(t,r,c);
   if(moveSrcId){
-    if(occ&&occ.id===moveSrcId){moveSrcId=null;renderReel();updateActBar();return;}
+    if(occ&&occ.id===moveSrcId){moveSrcId=null;moveTargetRC=null;renderReel();updateActBar();return;}
     const a=t.layout.find(l=>l.id===moveSrcId);
     if(a){if(occ){const tr=a.r,tc=a.c;a.r=occ.r;a.c=occ.c;occ.r=tr;occ.c=tc;}
       else{a.r=r;a.c=c;}}
-    moveSrcId=null;selUnitId=a?a.id:selUnitId;
+    moveSrcId=null;moveTargetRC=null;selUnitId=a?a.id:selUnitId;
     renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
     return;
   }
@@ -695,13 +749,15 @@ function updateActBar(){
   const sel=selUnitId?unitById(selUnitId):null;
   if(moveSrcId){
     const s=unitById(moveSrcId);
-    lab.innerHTML=`移动中：<b>${s?s.name:""}</b> · 点击目标格（被占则交换）/ 点回自己取消`;
+    const tgt=moveTargetRC?` · 目标格 (${moveTargetRC.r+1},${moveTargetRC.c+1})`:"";
+    lab.innerHTML=`移动中：<b>${s?s.name:""}</b>${tgt} · <kbd>←</kbd><kbd>→</kbd>/<kbd>↑</kbd><kbd>↓</kbd> 遍历格子 · <kbd>空格</kbd>/<kbd>回车</kbd> 确认 · <kbd>Esc</kbd> 取消`;
   }else if(sel){
     const capTag=sel.id===t.captain?" · 队长":"";
     lab.innerHTML=`<b>${t.name}</b> · ${sel.name}${capTag}（${sel.id}）`;
   }else{
     lab.innerHTML=`<b>${t.name}</b> · ${t.layout.length}/9 人 · 点击空格放置单位`;
   }
+  updateHint();
 }
 $("btn-prev").addEventListener("click",()=>reelFeed(-1));
 $("btn-next").addEventListener("click",()=>reelFeed(1));
@@ -720,9 +776,9 @@ function renderEditor(){
   $("ed-ico").textContent=u?u.icon:"—";
   $("ed-name").textContent=u?u.name:"尚未选择单位";
   $("ed-sub").textContent=u?(u.name+" · Lv."+u.lv):"—";
-  if(!u){edIdle.style.display="flex";edBody.querySelectorAll(".panel").forEach(p=>p.remove());return;}
+  if(!u){edIdle.style.display="flex";edBody.querySelectorAll(".a, .panel").forEach(p=>p.remove());return;}
   edIdle.style.display="none";
-  edBody.querySelectorAll(".panel").forEach(p=>p.remove());
+  edBody.querySelectorAll(".a, .panel").forEach(p=>p.remove());
   const a=document.createElement("div");a.className="a";
   a.appendChild(buildEquipPanel(u));
   a.appendChild(buildAttrPanel(u));
@@ -943,7 +999,7 @@ function openPlacerOverlay(team,r,c){
       <div class="p-mark">${inTeam?"":"＋ 放置"}</div>`;
     if(!inTeam)p.addEventListener("click",()=>{
       team.layout.push({id:u.id,r:r,c:c});
-      selUnitId=u.id;moveSrcId=null;
+      selUnitId=u.id;moveSrcId=null;moveTargetRC=null;
       closeOverlay();renderReel();setActiveUnit(u.id);positionSpotlight();updateActBar();
     });
     pl.appendChild(p);
@@ -1001,7 +1057,9 @@ function setZone(z){
 }
 function updateHint(){
   const hb=$("hint-bar");
-  if(focus===FocusZone.LEFT){
+  if(moveSrcId){
+    hb.innerHTML=`焦点：<b>左</b> · 移动模式 · <kbd>←</kbd><kbd>→</kbd>/<kbd>↑</kbd><kbd>↓</kbd> 遍历棋盘格 · <kbd>空格</kbd>/<kbd>回车</kbd> 确认 · <kbd>Esc</kbd> 取消`;
+  }else if(focus===FocusZone.LEFT){
     hb.innerHTML=`焦点：<b>左</b> · <kbd>↑</kbd><kbd>↓</kbd>/滚轮 滚动队伍 · <kbd>←</kbd><kbd>→</kbd> 切换棋盘单位 · <kbd>空格</kbd> 移动模式 · <kbd>Del</kbd> 移除单位 · <kbd>E</kbd> 焦点→右 · <kbd>Esc</kbd> 关闭弹窗`;
   }else{
     hb.innerHTML=`焦点：<b>右</b> · 点击装备槽 / 策略格 弹出选择窗（覆盖左侧） · <kbd>Q</kbd> 焦点→左 · <kbd>Esc</kbd> 关闭弹窗`;
@@ -1010,6 +1068,7 @@ function updateHint(){
 window.addEventListener("keydown",function(e){
   const k=e.key;
   if(k==="Escape"){
+    if(moveSrcId){moveSrcId=null;moveTargetRC=null;renderReel();updateActBar();e.preventDefault();return;}
     if(overlay.classList.contains("on")){
       // 新增队伍时取消 = 新建失败
       if(overlayKind==="captain")showToast("新建失败：未选择队长，已取消。",true);
@@ -1019,34 +1078,62 @@ window.addEventListener("keydown",function(e){
   if(k==="e"||k==="E"){setZone(FocusZone.RIGHT);e.preventDefault();return;}
   if(k==="q"||k==="Q"){setZone(FocusZone.LEFT);e.preventDefault();return;}
   if(focus===FocusZone.LEFT){
-    if(k==="ArrowUp"){reelFeed(-1);e.preventDefault();return;}
-    if(k==="ArrowDown"){reelFeed(1);e.preventDefault();return;}
+    if(k==="ArrowUp"){
+      if(moveSrcId&&moveTargetRC){
+        moveTargetRC={r:((moveTargetRC.r-1)%3+3)%3,c:moveTargetRC.c};
+        renderReel();e.preventDefault();return;
+      }
+      reelFeed(-1);e.preventDefault();return;
+    }
+    if(k==="ArrowDown"){
+      if(moveSrcId&&moveTargetRC){
+        moveTargetRC={r:((moveTargetRC.r+1)%3+3)%3,c:moveTargetRC.c};
+        renderReel();e.preventDefault();return;
+      }
+      reelFeed(1);e.preventDefault();return;
+    }
     if(k==="PageUp"){reelFeed(-1,true);e.preventDefault();return;}
     if(k==="PageDown"){reelFeed(1,true);e.preventDefault();return;}
     if(k==="ArrowLeft"||k==="ArrowRight"){
+      // 移动模式：遍历棋盘上所有 9 个格子
+      if(moveSrcId&&moveTargetRC){
+        const idx=moveTargetRC.r*3+moveTargetRC.c;
+        const nidx=((idx+(k==="ArrowRight"?1:-1))%9+9)%9;
+        moveTargetRC={r:Math.floor(nidx/3),c:nidx%3};
+        renderReel();e.preventDefault();return;
+      }
       const t=activeTeam();
       if(t.layout.length===0)return;
       let ids=t.layout.map(l=>l.id);
       let pos=ids.indexOf(selUnitId);
       if(pos===-1)pos=0;else pos=(pos+(k==="ArrowRight"?1:-1)+ids.length)%ids.length;
-      selUnitId=ids[pos];moveSrcId=null;
+      selUnitId=ids[pos];moveSrcId=null;moveTargetRC=null;
       renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
       e.preventDefault();return;
     }
-    if(k==="Enter"){reelFeed(1);e.preventDefault();return;}
+    if(k==="Enter"){
+      if(moveSrcId&&moveTargetRC){execMoveToTarget();e.preventDefault();return;}
+      reelFeed(1);e.preventDefault();return;
+    }
     if(k==="Delete"||k==="Backspace"){
       if(selUnitId){
         const t=activeTeam();
         if(selUnitId===t.captain){showToast("队长不可移除，请先在别队更换队长。",true);e.preventDefault();return;}
         const i=t.layout.findIndex(l=>l.id===selUnitId);
         if(i>=0){t.layout.splice(i,1);}
-        selUnitId=t.layout[0]?t.layout[0].id:null;moveSrcId=null;
+        selUnitId=t.layout[0]?t.layout[0].id:null;moveSrcId=null;moveTargetRC=null;
         renderReel();setActiveUnit(selUnitId);positionSpotlight();updateActBar();
         e.preventDefault();return;
       }
     }
     if(k===" "){
-      if(selUnitId){moveSrcId=selUnitId;renderReel();updateActBar();e.preventDefault();}
+      if(moveSrcId&&moveTargetRC){execMoveToTarget();e.preventDefault();return;}
+      if(selUnitId){
+        moveSrcId=selUnitId;
+        const t=activeTeam();const src=t.layout.find(l=>l.id===selUnitId);
+        moveTargetRC=src?{r:src.r,c:src.c}:null;
+        renderReel();updateActBar();e.preventDefault();
+      }
       return;
     }
   }
@@ -1061,13 +1148,14 @@ $("zone-right").addEventListener("mousedown",function(e){
 
 // 覆盖层背景点击不关闭（避免误触）；由 × 或 Esc 关闭
 
-window.addEventListener("resize",positionSpotlight);
+window.addEventListener("resize",()=>{resizeReel();});
 
 // ============================================================
 //  初始化
 // ============================================================
 function init(){
   activeTeamIdx=0;lastCenteredIdx=0;
+  resizeReel();
   const t=activeTeam();
   selUnitId=t.captain||(t.layout[0]?t.layout[0].id:null);
   renderReel();
