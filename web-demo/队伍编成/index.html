@@ -497,7 +497,7 @@ function renderBoardInto(slotEl,teamIdx){
   const lab=board.querySelector(".lab");
   const cap=board.querySelector(".cap-mark");
   const cells=board.querySelector(".bcells");
-  lab.textContent=team.name+"　"+team.layout.length+"/9";
+  lab.textContent=team.name+"　"+Math.min(team.layout.length,9)+"/9";
   const capU=unitById(team.captain);
   cap.textContent=capU?("队长："+capU.name):"（无队长）";
   // 重建格子（轻量：首次或 team 变化时重建）
@@ -984,27 +984,54 @@ function renderCondList(u,stratIdx,field){
   ovBody.appendChild(pl);
 }
 
-// —— 放置单位弹窗（空格） ——
+// —— 放置单位弹窗（仅展示待命池，即不在本队的单位） ——
 function openPlacerOverlay(team,r,c){
+  if(team.layout.length>=9){showToast("棋盘已满（9/9），无法再放置单位。",true);return;}
+  if(teamUnitAt(team,r,c)){showToast("该格已有单位。",true);return;}
   overlayKind="place";overlayCtx={teamId:team.id,r,c};
   const used=teamUnitIds(team);
-  openOverlay(`放置单位 · (${r+1},${c+1}) · ${team.name}`,"从花名册选择一个尚未在本队的单位放置到此格。");
+  const bench=UNITS.filter(u=>!used.includes(u.id));
+  openOverlay(`待命池 · 放置到 (${r+1},${c+1}) · ${team.name}`,
+    bench.length?`选择一个单位上场（${team.layout.length}/9）`:"所有单位已在本队，待命池为空。");
   const pl=document.createElement("div");pl.className="pick-list";
-  UNITS.forEach(u=>{
-    const inTeam=used.includes(u.id);
-    const p=document.createElement("div");p.className="pick"+(inTeam?" disabled":"");
-    p.innerHTML=`<div class="p-ico">${u.icon}</div>
-      <div class="p-mid"><div class="p-name">${u.name}${inTeam?" （已在本队）":""}</div>
-      <div class="p-desc">Lv.${u.lv} · ${u.strat.length} 条策略</div></div>
-      <div class="p-mark">${inTeam?"":"＋ 放置"}</div>`;
-    if(!inTeam)p.addEventListener("click",()=>{
-      team.layout.push({id:u.id,r:r,c:c});
-      selUnitId=u.id;moveSrcId=null;moveTargetRC=null;
-      closeOverlay();renderReel();setActiveUnit(u.id);positionSpotlight();updateActBar();
+  if(bench.length===0){
+    const hint=document.createElement("div");hint.className="hint-row";
+    hint.textContent="所有单位已在本队中，待命池为空。";
+    pl.appendChild(hint);
+  }else{
+    bench.forEach(u=>{
+      const p=document.createElement("div");p.className="pick";
+      p.innerHTML=`<div class="p-ico">${u.icon}</div>
+        <div class="p-mid"><div class="p-name">${u.name}</div>
+        <div class="p-desc">Lv.${u.lv} · ${u.strat.length} 条策略</div></div>
+        <div class="p-mark">＋ 放置</div>`;
+      p.addEventListener("click",()=>{
+        // 二次校验：放置瞬间棋盘可能已变化
+        if(team.layout.length>=9||teamUnitAt(team,r,c)){
+          showToast("放置失败：棋盘已满或该格已被占用。",true);closeOverlay();renderReel();return;
+        }
+        team.layout.push({id:u.id,r:r,c:c});
+        selUnitId=u.id;moveSrcId=null;moveTargetRC=null;
+        closeOverlay();renderReel();setActiveUnit(u.id);positionSpotlight();updateActBar();
+      });
+      pl.appendChild(p);
     });
-    pl.appendChild(p);
-  });
+  }
   ovBody.appendChild(pl);
+}
+
+// —— 键盘触发的放置：自动找第一个空格 ——
+function openBenchPlacer(team){
+  if(team.layout.length>=9){showToast("棋盘已满（9/9），无法再放置单位。",true);return;}
+  let emptyCell=null;
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      if(!teamUnitAt(team,r,c)){emptyCell={r,c};break;}
+    }
+    if(emptyCell)break;
+  }
+  if(!emptyCell){showToast("棋盘已满（9/9），无法再放置单位。",true);return;}
+  openPlacerOverlay(team,emptyCell.r,emptyCell.c);
 }
 
 // —— 选队长弹窗（新增队伍） ——
@@ -1060,7 +1087,7 @@ function updateHint(){
   if(moveSrcId){
     hb.innerHTML=`焦点：<b>左</b> · 移动模式 · <kbd>←</kbd><kbd>→</kbd>/<kbd>↑</kbd><kbd>↓</kbd> 遍历棋盘格 · <kbd>空格</kbd>/<kbd>回车</kbd> 确认 · <kbd>Esc</kbd> 取消`;
   }else if(focus===FocusZone.LEFT){
-    hb.innerHTML=`焦点：<b>左</b> · <kbd>↑</kbd><kbd>↓</kbd>/滚轮 滚动队伍 · <kbd>←</kbd><kbd>→</kbd> 切换棋盘单位 · <kbd>空格</kbd> 移动模式 · <kbd>Del</kbd> 移除单位 · <kbd>E</kbd> 焦点→右 · <kbd>Esc</kbd> 关闭弹窗`;
+    hb.innerHTML=`焦点：<b>左</b> · <kbd>↑</kbd><kbd>↓</kbd>/滚轮 滚动队伍 · <kbd>←</kbd><kbd>→</kbd> 切换棋盘单位 · <kbd>空格</kbd> 移动模式 · <kbd>A</kbd> 上场单位 · <kbd>Del</kbd> 移除 · <kbd>E</kbd> 焦点→右 · <kbd>Esc</kbd> 关闭弹窗`;
   }else{
     hb.innerHTML=`焦点：<b>右</b> · 点击装备槽 / 策略格 弹出选择窗（覆盖左侧） · <kbd>Q</kbd> 焦点→左 · <kbd>Esc</kbd> 关闭弹窗`;
   }
@@ -1094,6 +1121,12 @@ window.addEventListener("keydown",function(e){
     }
     if(k==="PageUp"){reelFeed(-1,true);e.preventDefault();return;}
     if(k==="PageDown"){reelFeed(1,true);e.preventDefault();return;}
+    // A 键：从待命池放置单位到第一个空格
+    if((k==="a"||k==="A")&&!moveSrcId){
+      if(overlay.classList.contains("on"))closeOverlay();
+      openBenchPlacer(activeTeam());
+      e.preventDefault();return;
+    }
     if(k==="ArrowLeft"||k==="ArrowRight"){
       // 移动模式：遍历棋盘上所有 9 个格子
       if(moveSrcId&&moveTargetRC){
