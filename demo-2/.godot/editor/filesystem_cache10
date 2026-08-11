@@ -1,0 +1,7 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1786466680
+icon.svg::CompressedTexture2D::5511125511288844447::1786466608::1786466838::1::::<><><>0<>0<>846b522bd69d9fa9e956422f618374b7<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+::res://scenes/::1786466669
+map.tscn::PackedScene::-1::1786466669::0::1::::<><><>0<>0<><>::res://scripts/map_view.gd
+::res://scripts/::1786466779
+map_view.gd::GDScript::2206015554771842945::1786466779::0::1::::<>Control<><>0<>0<><>::
