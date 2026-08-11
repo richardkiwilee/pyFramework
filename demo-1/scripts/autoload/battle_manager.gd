@@ -45,12 +45,12 @@ func create_battle_unit(char_id: String, is_enemy: bool = false) -> Dictionary:
 		"name_en": char_data.get("name_en", "???"),
 		"class_zh": char_data.get("class_zh", ""),
 		"class_id": class_data.get("id", ""),
-		"max_hp": int(_hp), "hp": int(_hp),
-		"atk": int(_atk), "def": int(_def),
-		"mag": int(_mag), "mdf": int(_mdf),
-		"spd": int(_spd), "acc": int(_acc), "eva": int(_eva),
-		"crit": int(_l5.get("Critical Rate", 10)),
-		"guard": int(_l5.get("Guard Rate", 10)),
+		"max_hp": _safe_int(_hp, 80), "hp": _safe_int(_hp, 80),
+		"atk": _safe_int(_atk, 30), "def": _safe_int(_def, 20),
+		"mag": _safe_int(_mag, 30), "mdf": _safe_int(_mdf, 20),
+		"spd": _safe_int(_spd, 30), "acc": _safe_int(_acc, 100), "eva": _safe_int(_eva, 20),
+		"crit": _safe_int(_l5.get("Critical Rate", 10)),
+		"guard": _safe_int(_l5.get("Guard Rate", 10)),
 		"ap": class_data.get("base_ap", 1),
 		"max_ap": class_data.get("base_ap", 1),
 		"pp": class_data.get("base_pp", 1),
@@ -316,6 +316,17 @@ func get_stats_summary() -> Dictionary:
 		})
 
 	return {"player": player_stats, "enemy": enemy_stats, "rounds": round_num}
+
+
+func _safe_int(val, fallback: int = 10) -> int:
+	if val is int or val is float: return int(val)
+	if val is String:
+		var digits := ""
+		for c in val:
+			if c in "0123456789":
+				digits += c
+		if digits != "": return int(digits)
+	return fallback
 
 
 func reset() -> void:
