@@ -1,0 +1,229 @@
+[gd_scene load_steps=5 format=3 uid="uid://c_main_screen"]
+
+[ext_resource type="Script" path="res://scripts/main/main_screen.gd" id="1_hzsvd"]
+[ext_resource type="Script" path="res://scripts/main/unit_editor.gd" id="2_editor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.141176, 0.113725, 0.0784314, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.290196, 0.227451, 0.141176, 0.25)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_picker"]
+bg_color = Color(0.113725, 0.094118, 0.0784314, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.831373, 0.686275, 0.215686, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[node name="MainScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hzsvd")
+
+[node name="TopBar" type="Label" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1400.0
+offset_bottom = 30.0
+text = "队伍编成 · 圣兽之王"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MainLayout" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 30.0
+offset_right = 1400.0
+offset_bottom = 822.0
+theme_override_constants/separation = 0
+
+[node name="ZoneLeft" type="PanelContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="VBoxLeft" type="VBoxContainer" parent="MainLayout/ZoneLeft"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/ZoneLeft/VBoxLeft"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BoardContainer" type="VBoxContainer" parent="MainLayout/ZoneLeft/VBoxLeft/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ActionBar" type="HBoxContainer" parent="MainLayout/ZoneLeft/VBoxLeft"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ActLab" type="Label" parent="MainLayout/ZoneLeft/VBoxLeft/ActionBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "—"
+
+[node name="BtnNewTeam" type="Button" parent="MainLayout/ZoneLeft/VBoxLeft/ActionBar"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="BtnDisband" type="Button" parent="MainLayout/ZoneLeft/VBoxLeft/ActionBar"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="BtnBattle" type="Button" parent="MainLayout/ZoneLeft/VBoxLeft/ActionBar"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Overlay" type="Control" parent="MainLayout/ZoneLeft"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="CharPicker" type="PanelContainer" parent="MainLayout/ZoneLeft/Overlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -220.0
+offset_right = 280.0
+offset_bottom = 220.0
+theme_override_styles/panel = SubResource("StyleBox_picker")
+
+[node name="Panel" type="VBoxContainer" parent="MainLayout/ZoneLeft/Overlay/CharPicker"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "选择角色"
+
+[node name="CloseBtn" type="Button" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel/Header"]
+layout_mode = 2
+text = "✕"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharList" type="VBoxContainer" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="ZoneRight" type="PanelContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="UnitEditor" type="VBoxContainer" parent="MainLayout/ZoneRight"]
+layout_mode = 2
+theme_override_constants/separation = 6
+script = ExtResource("2_editor")
+
+[node name="Header" type="HBoxContainer" parent="MainLayout/ZoneRight/UnitEditor"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="Label" parent="MainLayout/ZoneRight/UnitEditor/Header"]
+layout_mode = 2
+text = "—"
+theme_override_font_sizes/font_size = 22
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/ZoneRight/UnitEditor/Header"]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="MainLayout/ZoneRight/UnitEditor/Header/VBox"]
+layout_mode = 2
+text = "尚未选择单位"
+
+[node name="Sub" type="Label" parent="MainLayout/ZoneRight/UnitEditor/Header/VBox"]
+layout_mode = 2
+text = "—"
+
+[node name="EquipPanel" type="GridContainer" parent="MainLayout/ZoneRight/UnitEditor"]
+layout_mode = 2
+columns = 2
+
+[node name="WeaponSlot" type="Button" parent="MainLayout/ZoneRight/UnitEditor/EquipPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 65)
+text = "⚔️ 武器槽
+—"
+
+[node name="ShieldSlot" type="Button" parent="MainLayout/ZoneRight/UnitEditor/EquipPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 65)
+text = "🛡️ 盾牌槽
+—"
+
+[node name="Acc1Slot" type="Button" parent="MainLayout/ZoneRight/UnitEditor/EquipPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 65)
+text = "💍 饰品1
+—"
+
+[node name="Acc2Slot" type="Button" parent="MainLayout/ZoneRight/UnitEditor/EquipPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 65)
+text = "💍 饰品2
+—"
+
+[node name="StatsPanel" type="MarginContainer" parent="MainLayout/ZoneRight/UnitEditor"]
+layout_mode = 2
+
+[node name="StatGrid" type="GridContainer" parent="MainLayout/ZoneRight/UnitEditor/StatsPanel"]
+layout_mode = 2
+columns = 2
+
+[node name="SkillPanel" type="VBoxContainer" parent="MainLayout/ZoneRight/UnitEditor"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SkillTitle" type="Label" parent="MainLayout/ZoneRight/UnitEditor/SkillPanel"]
+layout_mode = 2
+text = "技能列表"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/ZoneRight/UnitEditor/SkillPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SkillList" type="VBoxContainer" parent="MainLayout/ZoneRight/UnitEditor/SkillPanel/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="HintBar" type="Label" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 822.0
+offset_right = 1400.0
+offset_bottom = 850.0
+horizontal_alignment = 1
+vertical_alignment = 1

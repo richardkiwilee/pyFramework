@@ -1,0 +1,4 @@
+res://scripts/battle/battle_scene.gd
+res://scripts/main/main_screen.gd
+res://scripts/main/unit_editor.gd
+res://scripts/autoload/battle_manager.gd

@@ -1,0 +1,3855 @@
+{
+  "game": "圣兽之王",
+  "game_en": "Unicorn Overlord",
+  "category": "equipment",
+  "publisher": "Vanillaware / ATLUS",
+  "platforms": [
+    "PS4",
+    "PS5",
+    "Nintendo Switch",
+    "Xbox Series X/S"
+  ],
+  "equipment_slots_note": "每个角色可装备：1件武器 + 1面盾牌（部分职业）+ 2件饰品（特定高阶职业如约瑟夫可装3件）；游戏无独立防具栏，防御类装备表现为盾牌与饰品。武器按物理攻击(ATK)/魔法攻击(MAG)、盾牌按物理防御(DEF)/格挡率(GUARD)、饰品按附加效果分类。stat字段映射：atk=物理攻击, mag=魔法攻击, def=物理防御, mdf=魔法防御, spd=先制(Initiative), hp=HP。稀有度（rarity）按获取难度划分：common普通/uncommon精良/rare稀有/epic史诗/legendary传说。",
+  "sources": [
+    "https://www.ludo.guide/guide/unicorn-overlord/item-tables (Swords/Axes full stat tables)",
+    "https://game8.co/games/Unicorn-Overlord/archives/447344 (List of All Axes)",
+    "https://game8.co/games/Unicorn-Overlord/archives/447351 (List of All Shields)",
+    "https://game8.co/games/Unicorn-Overlord/archives/447347 (List of All Bows)",
+    "https://game8.co/games/Unicorn-Overlord/archives/447488 (Best Weapons Tier List)",
+    "https://unicornoverlord.fandom.com/wiki/Category:Weapons (Fandom wiki item pages)",
+    "https://ragequithq.site/unicorn-overlord/ (Weapon/Shield/Accessory lists, Church exchange)",
+    "https://bbs.a9vg.com (圣兽之王 装备讨论)",
+    "https://gl.ali213.net/html/2024-3/1352817.html (王剑获取)",
+    "https://game.china.com/industry/gl/13003155/20240717/46868042.html (灼热细剑)",
+    "https://en.namu.wiki/w/유니콘_오버로드/아이템/방패 (Shield item page)"
+  ],
+  "equipment": [
+    {
+      "id": "sword_bronze",
+      "name_zh": "青铜剑",
+      "name_en": "Bronze Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 8
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_iron",
+      "name_zh": "铁剑",
+      "name_en": "Iron Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 15
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_steel",
+      "name_zh": "钢剑",
+      "name_en": "Steel Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 22
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_blackiron",
+      "name_zh": "黑铁剑",
+      "name_en": "Black-Iron Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 17
+      },
+      "effects": [
+        "暴击率+5%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_carnat",
+      "name_zh": "卡纳特剑",
+      "name_en": "Carnat Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 19
+      },
+      "effects": [
+        "先制+2"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_carnelian",
+      "name_zh": "红玉剑",
+      "name_en": "Carnelian Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "AP+1"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_baroque",
+      "name_zh": "巴洛克剑",
+      "name_en": "Baroque Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 13
+      },
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_bandit",
+      "name_zh": "山贼长剑",
+      "name_en": "Bandit Longsword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 18
+      },
+      "effects": [
+        "先制+3",
+        "回避+10",
+        "获得的金钱+100%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_barbarian",
+      "name_zh": "蛮族之力",
+      "name_en": "Barbarian's Might",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "HP+5"
+      ],
+      "skills": [
+        "挑衅斩：75物理威力，1段攻击，使目标挑衅（消耗1AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_greatsword",
+      "name_zh": "巨剑",
+      "name_en": "Greatsword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "武器店（后期）"
+    },
+    {
+      "id": "sword_greatwood",
+      "name_zh": "大木剑",
+      "name_en": "Greatwood Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 8,
+        "mag": 16
+      },
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_runic",
+      "name_zh": "符文剑",
+      "name_en": "Runic Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 8,
+        "mag": 14
+      },
+      "effects": [
+        "魔法防御+3"
+      ],
+      "skills": [
+        "魔法攻击：150魔法威力，1段攻击（消耗1AP）"
+      ],
+      "acquisition": "乌维尔港武器店购买，12000G",
+      "price": 12000
+    },
+    {
+      "id": "sword_spellsteel",
+      "name_zh": "魔钢剑",
+      "name_en": "Spellsteel Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 9,
+        "mag": 18
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_recruit_short",
+      "name_zh": "新兵短剑",
+      "name_en": "Recruit's Shortsword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "stats": {
+        "atk": 11
+      },
+      "effects": [
+        "最大HP+3",
+        "获得经验值+20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_hallowed",
+      "name_zh": "圣化之剑",
+      "name_en": "Hallowed Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "使用主动技能时回复10%HP",
+        "HP+5"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_roseknight",
+      "name_zh": "蔷薇骑士剑",
+      "name_en": "Rose Knight Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "先制+3",
+        "命中+10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_royalsaber",
+      "name_zh": "王家军刀",
+      "name_en": "Royal Saber",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 18
+      },
+      "effects": [
+        "先制+5"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_heavenswing",
+      "name_zh": "天翼剑",
+      "name_en": "Heavenswing Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 16
+      },
+      "effects": [
+        "命中+10",
+        "回避+10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_templar",
+      "name_zh": "圣殿骑士剑",
+      "name_en": "Templar's Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "物理防御+1",
+        "格挡率+5%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "sword_searing_rapier",
+      "name_zh": "灼热细剑",
+      "name_en": "Searing Rapier",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "skills": [
+        "灼热击：100物理威力，1段攻击，施加燃烧状态（消耗1AP）"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_viperfang",
+      "name_zh": "毒牙剑",
+      "name_en": "Viperfang",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 12
+      },
+      "skills": [
+        "毒击：100物理威力，1段攻击，施加中毒状态（消耗1AP）"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_crimson_epee",
+      "name_zh": "深红刺剑",
+      "name_en": "Crimson Epee",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "先制+3"
+      ],
+      "skills": [
+        "碎击：100物理威力，1段攻击，使目标AP-1（消耗1AP）"
+      ],
+      "acquisition": "诺德普拉日镇武器店购买，10000G",
+      "price": 10000
+    },
+    {
+      "id": "sword_sanguine",
+      "name_zh": "血之剑",
+      "name_en": "Sanguine Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 16
+      },
+      "skills": [
+        "嗜血攻击：100物理威力，1段攻击，回复造成伤害50%的HP（消耗1AP）"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_dragonbone",
+      "name_zh": "龙骨剑",
+      "name_en": "Dragonbone Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "PP+1",
+        "先制-10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_flamberge",
+      "name_zh": "炎剑",
+      "name_en": "Flamberge",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "燃烧免疫"
+      ],
+      "skills": [
+        "恐火：150物理威力，1段攻击，施加燃烧；对燃烧中目标威力+50且必定暴击（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_galecutter",
+      "name_zh": "断风剑",
+      "name_en": "Galecutter",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 22
+      },
+      "effects": [
+        "回避+20"
+      ],
+      "skills": [
+        "双重爆发：70物理威力，2目标，对飞行目标威力+80（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_moonlight_rapier",
+      "name_zh": "月光细剑",
+      "name_en": "Moonlight Rapier",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 21
+      },
+      "skills": [
+        "夜袭：150物理威力，1段攻击（限定），战斗开始时先制攻击；夜间获得PP+1（消耗1PP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_thorn",
+      "name_zh": "荆棘剑",
+      "name_en": "Thorn Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 17
+      },
+      "effects": [
+        "PP+1",
+        "HP-15"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_icefall",
+      "name_zh": "冰坠剑",
+      "name_en": "Icefall Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 19
+      },
+      "effects": [
+        "PP+1",
+        "格挡率-20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_wingcrest",
+      "name_zh": "翼纹剑",
+      "name_en": "Wingcrest Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "PP+1",
+        "暴击率-20%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_hunters_claymore",
+      "name_zh": "猎人大剑",
+      "name_en": "Hunter's Claymore",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 22
+      },
+      "effects": [
+        "追击类技能威力+20",
+        "暴击率+10%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_vorpal",
+      "name_zh": "夺命剑",
+      "name_en": "Vorpal Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 23
+      },
+      "effects": [
+        "最大HP+5",
+        "先制+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_wyvern_razor",
+      "name_zh": "飞龙刃",
+      "name_en": "Wyvern Razor",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "暴击率+10%",
+        "暴击伤害+20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_meteorite",
+      "name_zh": "陨铁剑",
+      "name_en": "Meteorite Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 24
+      },
+      "effects": [
+        "HP+20",
+        "格挡率+10%"
+      ],
+      "acquisition": "陨石/武器店"
+    },
+    {
+      "id": "sword_pursuant",
+      "name_zh": "追击之刃",
+      "name_en": "Pursuant's Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 20
+      },
+      "skills": [
+        "追击：追击攻击（消耗1PP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_cutthroat",
+      "name_zh": "刽子手恩典",
+      "name_en": "Cutthroat's Boon",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "回避+10",
+        "盲目免疫"
+      ],
+      "skills": [
+        "暗杀之钉：100物理威力，1段攻击，施加盲目；夜间威力+50且暴击（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_stingray",
+      "name_zh": "毒鲼剑",
+      "name_en": "Stingray",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "暴击率+15%",
+        "中毒免疫"
+      ],
+      "skills": [
+        "阿尔特妮之击：100物理威力（限定），1段真实命中，战斗开始时触发；若击倒目标获得PP+2（消耗1PP）"
+      ],
+      "class_restrictions": [
+        "剑斗士",
+        "剑圣"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_scorpion",
+      "name_zh": "蝎刺",
+      "name_en": "Scorpion's Sting",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "中毒免疫"
+      ],
+      "skills": [
+        "恐毒：150物理威力，1段攻击，施加中毒；对中毒目标威力+50（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_hailstorm",
+      "name_zh": "冰雹刃",
+      "name_en": "Hailstorm Edge",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 20
+      },
+      "effects": [
+        "命中+20",
+        "冻结免疫"
+      ],
+      "skills": [
+        "冰晶暗影：100物理+50魔法威力，1段真实命中，施加冻结（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_kingsblade_cornix",
+      "name_zh": "王剑科尔尼克斯",
+      "name_en": "Kingsblade Cornix",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "legendary",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "全能力值+5"
+      ],
+      "acquisition": "世界任务「雕刻的科尔尼亚石碑」完成获得（需先招募魔女亚娜，解读格鲁堡垒东侧遗迹中的褪色日记，触碰牛头人/人鱼/狮鹫/独角兽四块石板）"
+    },
+    {
+      "id": "sword_holy_unicorn_blade",
+      "name_zh": "圣独角兽剑",
+      "name_en": "Holy Unicorn Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "legendary",
+      "stats": {
+        "atk": 28
+      },
+      "effects": [
+        "AP+1",
+        "PP+1",
+        "减益免疫"
+      ],
+      "class_restrictions": [
+        "领主",
+        "高阶领主"
+      ],
+      "acquisition": "名声等级S（5000）后出现的世界任务「王家陵墓」通关获得（需击败Lv40的杰拉尔队伍）"
+    },
+    {
+      "id": "sword_notos",
+      "name_zh": "诺托斯之剑",
+      "name_en": "Notos's Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "effects": [
+        "AP+1",
+        "先制+10",
+        "回避+10"
+      ],
+      "acquisition": "「四风神兵装」地点（阿奈莫伊兵装）获得/讨伐掉落"
+    },
+    {
+      "id": "sword_sacral",
+      "name_zh": "献圣剑",
+      "name_en": "Sacral Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "effects": [
+        "异常状态免疫",
+        "使用主动技能时回复20%HP"
+      ],
+      "acquisition": "圣域（圣地）获得"
+    },
+    {
+      "id": "sword_phantom_knight",
+      "name_zh": "幻影骑士剑",
+      "name_en": "Phantom Knight's Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "mag": 16
+      },
+      "effects": [
+        "魔法防御+5"
+      ],
+      "skills": [
+        "幻影攻击：120魔法威力，1段攻击，使目标PP-1（消耗1AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_zenoiran",
+      "name_zh": "泽诺伊拉剑",
+      "name_en": "Zenoriran Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "effects": [
+        "最大HP+10",
+        "物理防御+2",
+        "魔法防御+2"
+      ],
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "sword_zenorian_knight",
+      "name_zh": "泽诺伊拉骑士剑",
+      "name_en": "Zenorian Knight's Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 20
+      },
+      "effects": [
+        "最大HP+15",
+        "物理防御+4",
+        "魔法防御+4"
+      ],
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "sword_sylphs_bane",
+      "name_zh": "风精克星",
+      "name_en": "Sylph's Bane",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "stats": {
+        "atk": 16
+      },
+      "effects": [
+        "回避+10"
+      ],
+      "skills": [
+        "音爆：70物理威力，1段攻击，对飞行目标威力+80（消耗1AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_rosularis",
+      "name_zh": "蔷薇花剑",
+      "name_en": "Rosularis Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "effects": [
+        "PP+1",
+        "HP回复+30%"
+      ],
+      "acquisition": "武器店（后期）/掉落"
+    },
+    {
+      "id": "sword_abyss_great",
+      "name_zh": "深渊巨剑",
+      "name_en": "Greatsword of the Abyss",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "effects": [
+        "被动封印免疫",
+        "即死免疫",
+        "中毒伤害-50%"
+      ],
+      "acquisition": "深渊（深渊装备）"
+    },
+    {
+      "id": "sword_abyss_cursed",
+      "name_zh": "深渊咒剑",
+      "name_en": "Cursed Blade of the Abyss",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "深渊（深渊装备）"
+    },
+    {
+      "id": "sword_mist_scimitar",
+      "name_zh": "雾之弯刀",
+      "name_en": "Mist Scimitar",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_viper",
+      "name_zh": "毒蛇剑",
+      "name_en": "Viper Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_magic_iron",
+      "name_zh": "魔铁剑",
+      "name_en": "Magic Iron Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_zenoila_soldier",
+      "name_zh": "泽诺伊拉士兵剑",
+      "name_en": "Zenoila Soldier's Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "sword_blessing_straight",
+      "name_zh": "祝福直剑",
+      "name_en": "Straight Sword of Blessing",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_crimson",
+      "name_zh": "深红剑",
+      "name_en": "Crimson Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_pan_tribe",
+      "name_zh": "潘族之剑",
+      "name_en": "Sword of the Pan Tribe",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "艾尔海姆地区"
+    },
+    {
+      "id": "sword_flying_dragon",
+      "name_zh": "飞龙之剑",
+      "name_en": "Flying Dragon's Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_scorching",
+      "name_zh": "灼热之剑",
+      "name_en": "Scorching Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_blood",
+      "name_zh": "血剑",
+      "name_en": "Blood Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "sword_wind_cutting",
+      "name_zh": "斩风刃",
+      "name_en": "Wind Cutting Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_dancers_delight",
+      "name_zh": "舞者之悦",
+      "name_en": "Dancer's Delight",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_thief_knight",
+      "name_zh": "盗贼骑士巨剑",
+      "name_en": "Greatsword of the Thief Knight",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_zenoila_knight",
+      "name_zh": "泽诺伊拉骑士之剑",
+      "name_en": "Sword of Zenoila Knight",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "sword_blue_rose",
+      "name_zh": "蓝蔷薇之剑",
+      "name_en": "Blue Rose",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_red_rose",
+      "name_zh": "红蔷薇之剑",
+      "name_en": "Red Rose",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_ice_rain",
+      "name_zh": "冰雨直剑",
+      "name_en": "Ice Rain Straight Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_assassin",
+      "name_zh": "暗杀者之剑",
+      "name_en": "Assassin's Blade",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_fighting_god",
+      "name_zh": "战神绯石剑",
+      "name_en": "Scarlet Stone Sword of Fighting God",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "epic",
+      "acquisition": "圣域/讨伐"
+    },
+    {
+      "id": "sword_scorpion_sword",
+      "name_zh": "蝎剑",
+      "name_en": "Scorpion Sword",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "sword_wind_falchion",
+      "name_zh": "风之弯刀",
+      "name_en": "Falchion of the Wind",
+      "type": "weapon",
+      "subtype": "sword",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_bronze",
+      "name_zh": "青铜斧",
+      "name_en": "Bronze Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 8
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_steel",
+      "name_zh": "钢斧",
+      "name_en": "Steel Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 22
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_blackiron",
+      "name_zh": "黑铁斧",
+      "name_en": "Black-Iron Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 17
+      },
+      "effects": [
+        "暴击率+5%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_carnat",
+      "name_zh": "卡纳特斧",
+      "name_en": "Carnat Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 19
+      },
+      "effects": [
+        "先制+2"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_carnelian",
+      "name_zh": "红玉斧",
+      "name_en": "Carnelian Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "AP+1"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_baroque",
+      "name_zh": "巴洛克斧",
+      "name_en": "Baroque Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 13
+      },
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_bandit",
+      "name_zh": "山贼手斧",
+      "name_en": "Bandit's Handaxe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 16
+      },
+      "effects": [
+        "回避+10",
+        "获得的金钱+100%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_barbarian",
+      "name_zh": "蛮族之斧",
+      "name_en": "Barbarian's Ax",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 13
+      },
+      "skills": [
+        "挑衅粉碎：75物理威力，1段攻击，使目标挑衅（消耗1AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_banishing_hammer",
+      "name_zh": "放逐之锤",
+      "name_en": "Banishing Hammer",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "skills": [
+        "放逐之击：100物理威力，横排攻击，移除目标全部增益（消耗2AP）"
+      ],
+      "class_restrictions": [
+        "战士",
+        "破甲者",
+        "熊人族"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_boareas",
+      "name_zh": "玻瑞阿斯之斧",
+      "name_en": "Boareas' Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "effects": [
+        "AP+1",
+        "先制+10",
+        "回避+10"
+      ],
+      "acquisition": "「四风神兵装」地点（阿奈莫伊兵装）获得/讨伐掉落"
+    },
+    {
+      "id": "axe_crushing",
+      "name_zh": "粉碎斧",
+      "name_en": "Crushing Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 13
+      },
+      "skills": [
+        "粉碎：100物理威力，1段攻击，施加眩晕（消耗1AP）"
+      ],
+      "acquisition": "武器店购买（带专属技能，值得购买）"
+    },
+    {
+      "id": "axe_darkknight_cleaver",
+      "name_zh": "暗黑骑士斩斧",
+      "name_en": "Dark Knight Cleaver",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 9,
+        "mag": 18
+      },
+      "skills": [
+        "绝望：真实命中，伤害取决于使用者已损失HP（消耗2AP）"
+      ],
+      "class_restrictions": [
+        "暗黑骑士",
+        "末日骑士"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_dragonbone",
+      "name_zh": "龙骨斧",
+      "name_en": "Dragonbone Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "PP+1",
+        "先制-10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_eliminator",
+      "name_zh": "处刑斧",
+      "name_en": "Eliminator",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "epic",
+      "stats": {
+        "atk": 23
+      },
+      "effects": [
+        "魔法防御-10"
+      ],
+      "skills": [
+        "处刑：100物理威力，1段攻击，施加被动封印；目标HP≤25%时即死（消耗1AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_frozen_battleaxe",
+      "name_zh": "冰结战斧",
+      "name_en": "Frozen Battleaxe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "冻结免疫"
+      ],
+      "skills": [
+        "冰碎：100物理威力，1段攻击，施加冻结；对冻结目标威力+100（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_giants_greataxe",
+      "name_zh": "巨人巨斧",
+      "name_en": "Giant's Greataxe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 18
+      },
+      "effects": [
+        "HP+20",
+        "先制-10"
+      ],
+      "skills": [
+        "重击：100物理威力，横排攻击，施加眩晕"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_golden_ram",
+      "name_zh": "金羊角斧",
+      "name_en": "Golden Ram Ax",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 17
+      },
+      "effects": [
+        "命中+20",
+        "物理防御+4"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_greatwood",
+      "name_zh": "大木斧",
+      "name_en": "Greatwood Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 8,
+        "mag": 16
+      },
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_headsmans",
+      "name_zh": "斩首斧",
+      "name_en": "Headsman's Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 16
+      },
+      "effects": [
+        "魔法防御-10"
+      ],
+      "skills": [
+        "处刑：100物理威力，1段攻击（75%命中），施加被动封印；目标HP≤25%时即死（消耗1AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "axe_hoarfrost",
+      "name_zh": "霜冻斧",
+      "name_en": "Hoarfrost Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 13
+      },
+      "skills": [
+        "冰击：100物理威力，1段攻击，施加冻结（消耗1AP）"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_icefall",
+      "name_zh": "冰坠斧",
+      "name_en": "Icefall Ax",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 19
+      },
+      "effects": [
+        "PP+1",
+        "格挡率-20%"
+      ],
+      "acquisition": "沃斯弗拉加镇购买，12000G",
+      "price": 12000
+    },
+    {
+      "id": "axe_warhammer",
+      "name_zh": "战锤",
+      "name_en": "Warhammer",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "最大HP+5",
+        "格挡率+10%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_templar",
+      "name_zh": "圣殿骑士斧",
+      "name_en": "Templar's Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "物理防御+1",
+        "格挡率+5%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "axe_spiked_hammer",
+      "name_zh": "尖刺锤",
+      "name_en": "Spiked Hammer",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "skills": [
+        "尖刺打击"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_recruit_handaxe",
+      "name_zh": "新兵手斧",
+      "name_en": "Recruit's Handaxe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "common",
+      "stats": {
+        "atk": 11
+      },
+      "effects": [
+        "最大HP+3",
+        "获得经验值+20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "axe_juggernaut",
+      "name_zh": "主宰之锤",
+      "name_en": "Juggernaut",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "legendary",
+      "stats": {
+        "atk": 24
+      },
+      "effects": [
+        "暴击伤害+30%",
+        "眩晕免疫"
+      ],
+      "skills": [
+        "大地猛击"
+      ],
+      "acquisition": "讨伐/圣域获得"
+    },
+    {
+      "id": "axe_sacral",
+      "name_zh": "献圣斧",
+      "name_en": "Sacral Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "圣域（圣地）获得"
+    },
+    {
+      "id": "axe_sanguine",
+      "name_zh": "血之斧",
+      "name_en": "Sanguine Axe",
+      "type": "weapon",
+      "subtype": "axe",
+      "rarity": "rare",
+      "skills": [
+        "嗜血攻击：回复造成伤害50%的HP"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "spear_bronze",
+      "name_zh": "青铜枪",
+      "name_en": "Bronze Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 8
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_iron",
+      "name_zh": "铁枪",
+      "name_en": "Iron Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 15
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_steel",
+      "name_zh": "钢枪",
+      "name_en": "Steel Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 22
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_blackiron",
+      "name_zh": "黑铁枪",
+      "name_en": "Black-Iron Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 17
+      },
+      "effects": [
+        "暴击率+5%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_carnat",
+      "name_zh": "卡纳特枪",
+      "name_en": "Carnat Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 19
+      },
+      "effects": [
+        "先制+2"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_baroque",
+      "name_zh": "巴洛克枪",
+      "name_en": "Baroque Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 13
+      },
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "巴巴奇莫（要塞都市）武器店购买，2000G",
+      "price": 2000
+    },
+    {
+      "id": "spear_recruit",
+      "name_zh": "新兵短枪",
+      "name_en": "Recruit's Shortspear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "stats": {
+        "atk": 11
+      },
+      "effects": [
+        "最大HP+3",
+        "获得经验值+20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_adept",
+      "name_zh": "熟手短枪",
+      "name_en": "Adept's Shortspear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "被动封印免疫",
+        "暴击率+15%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "spear_surging",
+      "name_zh": "奔涌短枪",
+      "name_en": "Surging Shortspear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "spear_runic",
+      "name_zh": "符文枪",
+      "name_en": "Runic Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 8,
+        "mag": 14
+      },
+      "effects": [
+        "魔法防御+3"
+      ],
+      "skills": [
+        "魔法攻击：150魔法威力，1段攻击（消耗1AP）"
+      ],
+      "acquisition": "贝卢姆·戈利亚村武器店购买，12000G",
+      "price": 12000
+    },
+    {
+      "id": "spear_templar",
+      "name_zh": "圣殿骑士枪",
+      "name_en": "Templar's Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "物理防御+1",
+        "格挡率+5%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "spear_unwavering",
+      "name_zh": "不动之枪",
+      "name_en": "Unwavering Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 12
+      },
+      "effects": [
+        "命中+10"
+      ],
+      "skills": [
+        "贯穿突刺：80物理威力，1段真实命中，攻击纵列敌人（消耗1AP）"
+      ],
+      "acquisition": "武器店购买，3000G（带专属技能，值得购买）",
+      "price": 3000
+    },
+    {
+      "id": "spear_corroded",
+      "name_zh": "锈蚀之枪",
+      "name_en": "Corroded Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 17
+      },
+      "skills": [
+        "暗影突刺：施加盲目状态"
+      ],
+      "acquisition": "施瓦茨鲁斯镇等武器店购买，8000G（需任务解锁）",
+      "price": 8000
+    },
+    {
+      "id": "spear_bloody",
+      "name_zh": "血腥之枪",
+      "name_en": "Bloody Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 16
+      },
+      "skills": [
+        "嗜血攻击：回复造成伤害50%的HP（消耗1AP）"
+      ],
+      "acquisition": "亚尼斯镇武器店购买，15000G",
+      "price": 15000
+    },
+    {
+      "id": "spear_crimson_sarissa",
+      "name_zh": "深红长矛",
+      "name_en": "Crimson Sarissa",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 13
+      },
+      "effects": [
+        "最大HP+15",
+        "格挡率+5%"
+      ],
+      "skills": [
+        "嗜血攻击：回复造成伤害50%的HP"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "spear_valkyrie",
+      "name_zh": "瓦尔基里战戟",
+      "name_en": "Valkyrie's Partisan",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_warrior_princess",
+      "name_zh": "战士公主战戟",
+      "name_en": "Partisan of the Warrior Princess",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "stats": {
+        "atk": 14
+      },
+      "acquisition": "购买，15000G",
+      "price": 15000
+    },
+    {
+      "id": "spear_zephyros",
+      "name_zh": "泽菲罗斯之枪",
+      "name_en": "Zephyros's Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "effects": [
+        "AP+1",
+        "先制+10",
+        "回避+10"
+      ],
+      "acquisition": "「四风神兵装」地点：弗鲁斯港附近与Lv35飞龙骑士/军士长的世界战斗胜利获得"
+    },
+    {
+      "id": "spear_orchis",
+      "name_zh": "兰花枪",
+      "name_en": "Orchis Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "武器店（后期）/掉落"
+    },
+    {
+      "id": "spear_sacral",
+      "name_zh": "献圣枪",
+      "name_en": "Sacral Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "圣域（圣地）获得"
+    },
+    {
+      "id": "spear_abyss_cursed",
+      "name_zh": "深渊咒枪",
+      "name_en": "Cursed Lance of the Abyss",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "深渊（深渊装备）"
+    },
+    {
+      "id": "spear_silver_trident",
+      "name_zh": "银三叉戟",
+      "name_en": "Silver Trident",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "legendary",
+      "skills": [
+        "闪电震荡：2AP，100威力物理/魔法混合伤害，攻击整列并施加眩晕"
+      ],
+      "acquisition": "主线「秩序的冠军」BOSS希尔达掉落"
+    },
+    {
+      "id": "spear_dragonbone",
+      "name_zh": "龙骨枪",
+      "name_en": "Dragonbone Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "先制-10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_icefall",
+      "name_zh": "冰坠枪",
+      "name_en": "Icefall Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "格挡率-20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_hoarfrost",
+      "name_zh": "霜冻枪",
+      "name_en": "Hoarfrost Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_bandit",
+      "name_zh": "山贼之枪",
+      "name_en": "Bandit's Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "spear_greatwood",
+      "name_zh": "大木枪",
+      "name_en": "Greatwood Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "rare",
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "spear_zenoilan",
+      "name_zh": "泽诺伊兰枪",
+      "name_en": "Zenoilan Spear",
+      "type": "weapon",
+      "subtype": "spear",
+      "rarity": "common",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "bow_bronze",
+      "name_zh": "青铜弓",
+      "name_en": "Bronze Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 8
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_iron",
+      "name_zh": "铁弓",
+      "name_en": "Iron Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 15
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_steel",
+      "name_zh": "钢弓",
+      "name_en": "Steel Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 22
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_blackiron",
+      "name_zh": "黑铁弓",
+      "name_en": "Black-Iron Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 17
+      },
+      "effects": [
+        "暴击率+5%"
+      ],
+      "acquisition": "沙策镇武器店购买，3000G",
+      "price": 3000
+    },
+    {
+      "id": "bow_carnat",
+      "name_zh": "卡纳特弓",
+      "name_en": "Carnat Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 19
+      },
+      "effects": [
+        "先制+2"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_baroque",
+      "name_zh": "巴洛克弓",
+      "name_en": "Baroque Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 13
+      },
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_recruit",
+      "name_zh": "新兵短弓",
+      "name_en": "Recruit's Shortbow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "stats": {
+        "atk": 11
+      },
+      "effects": [
+        "最大HP+3",
+        "获得经验值+20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_templar",
+      "name_zh": "圣殿骑士弓",
+      "name_en": "Templar's Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "stats": {
+        "atk": 15
+      },
+      "effects": [
+        "物理防御+1",
+        "格挡率+5%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "bow_flame",
+      "name_zh": "火焰弓",
+      "name_en": "Flame Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "stats": {
+        "atk": 11
+      },
+      "skills": [
+        "火焰箭：施加燃烧状态（消耗1AP）"
+      ],
+      "acquisition": "武器店购买（带专属技能，值得购买）"
+    },
+    {
+      "id": "bow_vorpal",
+      "name_zh": "夺命弓",
+      "name_en": "Vorpal Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "epic",
+      "stats": {
+        "atk": 23
+      },
+      "effects": [
+        "最大HP+5",
+        "先制+3"
+      ],
+      "acquisition": "普里加沙里港武器店购买，6000G",
+      "price": 6000
+    },
+    {
+      "id": "bow_piercing_strongbow",
+      "name_zh": "贯穿强弓",
+      "name_en": "Piercing Strongbow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "epic",
+      "stats": {
+        "atk": 21
+      },
+      "effects": [
+        "装甲碎裂II",
+        "命中+5",
+        "暴击率+20%"
+      ],
+      "skills": [
+        "贯穿射击：150物理威力，1段攻击，100%命中，使目标物理防御-50%（消耗2AP）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "bow_silver",
+      "name_zh": "银弓",
+      "name_en": "Silver Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_sacral",
+      "name_zh": "献圣弓",
+      "name_en": "Sacral Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "epic",
+      "stats": {
+        "atk": 25
+      },
+      "acquisition": "圣域（圣地）获得"
+    },
+    {
+      "id": "bow_wingcrest",
+      "name_zh": "翼纹弓",
+      "name_en": "Wingcrest Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "暴击率-20%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "bow_sanguine",
+      "name_zh": "血之弓",
+      "name_en": "Sanguine Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "skills": [
+        "嗜血攻击：回复造成伤害50%的HP"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "bow_sylph",
+      "name_zh": "风精之弓",
+      "name_en": "Sylph's Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "skills": [
+        "音爆：对飞行目标威力+80"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "bow_greatwood",
+      "name_zh": "大木弓",
+      "name_en": "Greatwood Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_hoarfrost",
+      "name_zh": "霜冻弓",
+      "name_en": "Hoarfrost Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_icefall",
+      "name_zh": "冰坠弓",
+      "name_en": "Icefall Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "格挡率-20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_dragonbone",
+      "name_zh": "龙骨弓",
+      "name_en": "Dragonbone Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "先制-10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_bandit",
+      "name_zh": "山贼之弓",
+      "name_en": "Bandit's Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "bow_zenoilan",
+      "name_zh": "泽诺伊兰弓",
+      "name_en": "Zenoilan Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "bow_hunters",
+      "name_zh": "猎人弓",
+      "name_en": "Hunter's Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "bow_runic",
+      "name_zh": "符文弓",
+      "name_en": "Runic Bow",
+      "type": "weapon",
+      "subtype": "bow",
+      "rarity": "rare",
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_bronze",
+      "name_zh": "青铜杖",
+      "name_en": "Bronze Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 8
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_iron",
+      "name_zh": "铁杖",
+      "name_en": "Iron Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 15
+      },
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_steel",
+      "name_zh": "钢杖",
+      "name_en": "Steel Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 22
+      },
+      "acquisition": "索尔姆镇武器店购买，4000G",
+      "price": 4000
+    },
+    {
+      "id": "staff_blackiron",
+      "name_zh": "黑铁杖",
+      "name_en": "Black-Iron Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 17
+      },
+      "effects": [
+        "暴击率+5%"
+      ],
+      "acquisition": "沙策镇武器店购买，3000G",
+      "price": 3000
+    },
+    {
+      "id": "staff_carnat",
+      "name_zh": "卡纳特杖",
+      "name_en": "Carnat Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 19
+      },
+      "effects": [
+        "先制+2"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_baroque",
+      "name_zh": "巴洛克杖",
+      "name_en": "Baroque Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 13
+      },
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_recruit",
+      "name_zh": "新兵杖",
+      "name_en": "Recruit's Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "stats": {
+        "mag": 11
+      },
+      "effects": [
+        "最大HP+3",
+        "获得经验值+20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_templar",
+      "name_zh": "圣殿骑士杖",
+      "name_en": "Templar's Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "stats": {
+        "mag": 15
+      },
+      "effects": [
+        "物理防御+1",
+        "格挡率+5%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "staff_clerics_cane",
+      "name_zh": "牧师手杖",
+      "name_en": "Cleric's Cane",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "legendary",
+      "stats": {
+        "mag": 18
+      },
+      "effects": [
+        "PP+1"
+      ],
+      "skills": [
+        "庇护（被动）"
+      ],
+      "acquisition": "神圣碎片兑换（教会），15个神圣碎片（库存1）",
+      "price": 15
+    },
+    {
+      "id": "staff_millenium_scepter",
+      "name_zh": "千年权杖",
+      "name_en": "Millenium Scepter",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "legendary",
+      "stats": {
+        "mag": 24
+      },
+      "skills": [
+        "三重之雨：蓄力型多段魔法攻击（消耗3AP）"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20个神圣碎片（库存1）；需完成支线「翼之骑士」解锁兑换",
+      "price": 20
+    },
+    {
+      "id": "staff_lyrical_wand",
+      "name_zh": "抒情魔杖",
+      "name_en": "Lyrical Wand",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "legendary",
+      "stats": {
+        "mag": 13
+      },
+      "effects": [
+        "AP+1"
+      ],
+      "skills": [
+        "活力治愈：赋予同伴1点AP（使用者需比目标先制高）"
+      ],
+      "acquisition": "巴巴奇莫（要塞都市）武器店购买（解放后）"
+    },
+    {
+      "id": "staff_papal_crosier",
+      "name_zh": "教皇权杖",
+      "name_en": "Papal Crosier",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "epic",
+      "stats": {
+        "mag": 25
+      },
+      "acquisition": "武器店（后期）/掉落"
+    },
+    {
+      "id": "staff_sacral_rod",
+      "name_zh": "献圣杖",
+      "name_en": "Sacral Rod",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "epic",
+      "stats": {
+        "mag": 25
+      },
+      "acquisition": "圣域（圣地）获得"
+    },
+    {
+      "id": "staff_abyss_cursed",
+      "name_zh": "深渊咒杖",
+      "name_en": "Cursed Staff of the Abyss",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "epic",
+      "stats": {
+        "mag": 25
+      },
+      "acquisition": "深渊（深渊装备）"
+    },
+    {
+      "id": "staff_lupinus",
+      "name_zh": "羽扇豆杖",
+      "name_en": "Lupinus Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "epic",
+      "stats": {
+        "mag": 25
+      },
+      "acquisition": "武器店（后期）/掉落"
+    },
+    {
+      "id": "staff_euros",
+      "name_zh": "欧罗斯之杖",
+      "name_en": "Euros's Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "epic",
+      "stats": {
+        "mag": 25
+      },
+      "acquisition": "「四风神兵装」地点（阿奈莫伊兵装）获得"
+    },
+    {
+      "id": "staff_sanguis_mea",
+      "name_zh": "吾血之杖",
+      "name_en": "Sanguis Mea",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "legendary",
+      "stats": {
+        "mag": 25
+      },
+      "effects": [
+        "AP+2",
+        "HP+20"
+      ],
+      "skills": [
+        "鲜血之雨：魔法攻击"
+      ],
+      "acquisition": "武器店（后期）/讨伐获得"
+    },
+    {
+      "id": "staff_kingstaff_albio",
+      "name_zh": "阿尔比昂王杖",
+      "name_en": "Kingstaff Albiore",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "legendary",
+      "stats": {
+        "mag": 25
+      },
+      "effects": [
+        "全能力值+5"
+      ],
+      "acquisition": "武器店（后期）/讨伐获得"
+    },
+    {
+      "id": "staff_redbark",
+      "name_zh": "赤皮杖",
+      "name_en": "Red-Bark Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "stats": {
+        "mag": 21
+      },
+      "effects": [
+        "被动封印免疫"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "staff_greatwood",
+      "name_zh": "大木杖",
+      "name_en": "Greatwood Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "stats": {
+        "mag": 16
+      },
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_icefall",
+      "name_zh": "冰坠杖",
+      "name_en": "Icefall Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "格挡率-20%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_dragonbone",
+      "name_zh": "龙骨杖",
+      "name_en": "Dragonbone Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "effects": [
+        "PP+1",
+        "先制-10"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_bandit",
+      "name_zh": "山贼之杖",
+      "name_en": "Bandit's Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "common",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "staff_runic",
+      "name_zh": "符文杖",
+      "name_en": "Runic Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "effects": [
+        "魔法防御+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "staff_sorcerer",
+      "name_zh": "术士之杖",
+      "name_en": "Sorcerer's Staff",
+      "type": "weapon",
+      "subtype": "staff",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_battle",
+      "name_zh": "战盾",
+      "name_en": "Battle Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_blessing_circle",
+      "name_zh": "祝福圆盾",
+      "name_en": "Blessing Circle Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_zenoila_soldier",
+      "name_zh": "泽诺伊拉士兵盾",
+      "name_en": "Zenoila Soldier's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "shield_recruit",
+      "name_zh": "新兵盾",
+      "name_en": "Recruit Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_bronze",
+      "name_zh": "青铜盾",
+      "name_en": "Bronze Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售",
+      "guard_rate": 13
+    },
+    {
+      "id": "shield_baroque",
+      "name_zh": "巴洛克盾",
+      "name_en": "Baroque Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "武器店出售",
+      "guard_rate": 18
+    },
+    {
+      "id": "shield_guard",
+      "name_zh": "守卫盾",
+      "name_en": "Guard Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_tower_keeper",
+      "name_zh": "守望者之盾",
+      "name_en": "Shield of the Tower Keeper",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_white_knight",
+      "name_zh": "白骑士盾",
+      "name_en": "White Knight Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "最大HP+15"
+      ],
+      "skills": [
+        "生命共享（被动）"
+      ],
+      "acquisition": "武器店/掉落",
+      "guard_rate": 15
+    },
+    {
+      "id": "shield_thorn",
+      "name_zh": "荆棘盾",
+      "name_en": "Thorn Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_feather_hunting",
+      "name_zh": "猎羽盾",
+      "name_en": "Feather Hunting Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "对空防御（Aerial Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_equestrian_hunting",
+      "name_zh": "猎骑盾",
+      "name_en": "Equestrian Hunting Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "对骑兵防御（Cavalry Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_golden_sheep_knight",
+      "name_zh": "金羊骑士之盾",
+      "name_en": "Shield of Golden Sheep Knight",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_scorching",
+      "name_zh": "灼热之盾",
+      "name_en": "Scorching Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_tree_ice",
+      "name_zh": "树冰盾",
+      "name_en": "Tree Ice Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_squire",
+      "name_zh": "侍从之盾",
+      "name_en": "Squire's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_temple_knight",
+      "name_zh": "神殿骑士盾",
+      "name_en": "Temple Knight Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "HP回复+20%"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_blue",
+      "name_zh": "蓝盾",
+      "name_en": "Blue Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_iron",
+      "name_zh": "铁盾",
+      "name_en": "Iron Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_ironclad_buckler",
+      "name_zh": "铁甲圆盾",
+      "name_en": "Ironclad Buckler",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_heavenly_winged_knight",
+      "name_zh": "天翼骑士之盾",
+      "name_en": "Heavenly Winged Knight's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_viper",
+      "name_zh": "毒蛇盾",
+      "name_en": "Viper Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "中毒免疫"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_ampheters",
+      "name_zh": "天罚之盾",
+      "name_en": "Ampheters",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_karnat",
+      "name_zh": "卡纳特盾",
+      "name_en": "Karnat Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_zenoiran",
+      "name_zh": "泽诺伊兰盾",
+      "name_en": "Zenoiran Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "shield_radiance",
+      "name_zh": "光辉之盾",
+      "name_en": "Shield of Radiance",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_blackiron",
+      "name_zh": "黑铁盾",
+      "name_en": "Black-Iron Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_beast_hunting",
+      "name_zh": "猎兽盾",
+      "name_en": "Beast Hunting Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "对野兽防御（Beast Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_blue_rose",
+      "name_zh": "蓝蔷薇盾",
+      "name_en": "Blue Rose Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "格挡效率+25%",
+        "PP+1"
+      ],
+      "skills": [
+        "皇家守卫（被动）"
+      ],
+      "acquisition": "武器店/掉落",
+      "guard_rate": 20
+    },
+    {
+      "id": "shield_scarlet",
+      "name_zh": "绯红盾",
+      "name_en": "Scarlet Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_magic_iron",
+      "name_zh": "魔铁盾",
+      "name_en": "Magic Iron Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_nameless_tower_keeper",
+      "name_zh": "无名守望者之盾",
+      "name_en": "Nameless Tower Keeper's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_mercenary_wood",
+      "name_zh": "佣兵木盾",
+      "name_en": "Mercenary Wood Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_huntsman_buckler",
+      "name_zh": "猎人圆盾",
+      "name_en": "Huntsman's Buckler",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_vorpal",
+      "name_zh": "夺命盾",
+      "name_en": "Vorpal Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "epic",
+      "acquisition": "武器店（后期）"
+    },
+    {
+      "id": "shield_steel",
+      "name_zh": "钢盾",
+      "name_en": "Steel Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "effects": [
+        "格挡效率+25%"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_icefall",
+      "name_zh": "冰坠盾",
+      "name_en": "Icefall Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "格挡效率+25%",
+        "PP+1",
+        "格挡率-20%"
+      ],
+      "acquisition": "莫斯托内加镇购买，12000G",
+      "price": 12000,
+      "guard_rate": 20
+    },
+    {
+      "id": "shield_indomitable",
+      "name_zh": "不屈之盾",
+      "name_en": "Indomitable Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "epic",
+      "acquisition": "武器店（后期）/掉落"
+    },
+    {
+      "id": "shield_wing_coat",
+      "name_zh": "翼纹章盾",
+      "name_en": "Wing coat of arms Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_holy_unicorn",
+      "name_zh": "圣独角兽圣盾",
+      "name_en": "Holy Shield of the Unicorn",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "legendary",
+      "effects": [
+        "格挡效率+25%"
+      ],
+      "acquisition": "名声/支线任务获得",
+      "guard_rate": 30
+    },
+    {
+      "id": "shield_white_rider",
+      "name_zh": "白骑手之盾",
+      "name_en": "White Rider's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "格挡效率+25%",
+        "眩晕免疫",
+        "格挡封印免疫"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_recruiter",
+      "name_zh": "招募者之盾",
+      "name_en": "Recruiter's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "effects": [
+        "格挡效率+25%",
+        "最大HP+3",
+        "获得经验值+10%"
+      ],
+      "acquisition": "武器店出售",
+      "guard_rate": 16
+    },
+    {
+      "id": "shield_templar",
+      "name_zh": "圣殿骑士盾",
+      "name_en": "Templar's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "格挡效率+25%",
+        "HP回复+20%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "shield_battler",
+      "name_zh": "斗士之盾",
+      "name_en": "Battler's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "格挡效率+25%",
+        "物理攻击+2"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_heavenswing",
+      "name_zh": "天翼盾",
+      "name_en": "Heavenswing Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "命中+10",
+        "回避+10"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_holy_knight",
+      "name_zh": "圣骑士盾",
+      "name_en": "Holy Knight's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "legendary",
+      "skills": [
+        "神圣守卫（被动）：使用主动技能时回复10%HP"
+      ],
+      "acquisition": "神圣碎片兑换（教会），15个神圣碎片（库存1）",
+      "price": 15,
+      "guard_rate": 30
+    },
+    {
+      "id": "shield_angel_hunter_buckler",
+      "name_zh": "猎天使圆盾",
+      "name_en": "Angel Hunter's Buckler",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "对空防御（Aerial Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_cavalry_hunter_buckler",
+      "name_zh": "猎骑兵圆盾",
+      "name_en": "Cavalry Hunter's Buckler",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "对骑兵防御（Cavalry Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_blessed_round",
+      "name_zh": "祝福圆盾（优良）",
+      "name_en": "Blessed Roundshield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "effects": [
+        "格挡效率+25%",
+        "使用主动技能时回复10%HP",
+        "最大HP+5"
+      ],
+      "acquisition": "武器店购买，5000G；米莉安初始装备",
+      "price": 5000,
+      "guard_rate": 20
+    },
+    {
+      "id": "shield_azure_crest",
+      "name_zh": "苍纹盾",
+      "name_en": "Azure Crest Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "legendary",
+      "effects": [
+        "PP+1"
+      ],
+      "acquisition": "要塞都市巴巴奇莫武器店购买",
+      "description": "苍纹盾：核心增伤装备，多一次PP"
+    },
+    {
+      "id": "shield_moonlight",
+      "name_zh": "月光盾",
+      "name_en": "Moonlight Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "夜间守卫（Nocturnal Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_magic_stone_buckler",
+      "name_zh": "魔石圆盾",
+      "name_en": "Magic Stone Buckler",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "魔法壁（Magic Wall）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_paladin",
+      "name_zh": "圣骑士之盾",
+      "name_en": "Paladin's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "rare",
+      "skills": [
+        "神圣守卫（Holy Guard）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "shield_barbarian",
+      "name_zh": "蛮族盾",
+      "name_en": "Barbarian's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "shield_gladiator",
+      "name_zh": "角斗士盾",
+      "name_en": "Gladiator's Shield",
+      "type": "shield",
+      "subtype": "shield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_bronze",
+      "name_zh": "青铜大盾",
+      "name_en": "Bronze Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "acquisition": "武器店出售",
+      "guard_rate": 25
+    },
+    {
+      "id": "gshield_iron",
+      "name_zh": "铁大盾",
+      "name_en": "Iron Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_steel",
+      "name_zh": "钢大盾",
+      "name_en": "Steel Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "effects": [
+        "格挡效率+50%"
+      ],
+      "acquisition": "武器店出售",
+      "guard_rate": 35
+    },
+    {
+      "id": "gshield_blackiron",
+      "name_zh": "黑铁大盾",
+      "name_en": "Black-Iron Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_carnat",
+      "name_zh": "卡纳特大盾",
+      "name_en": "Carnat Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_recruit",
+      "name_zh": "新兵大盾",
+      "name_en": "Recruit's Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "effects": [
+        "最大HP+3",
+        "获得经验值+10%"
+      ],
+      "acquisition": "武器店出售",
+      "guard_rate": 27
+    },
+    {
+      "id": "gshield_templar",
+      "name_zh": "圣殿骑士大盾",
+      "name_en": "Templar's Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "rare",
+      "effects": [
+        "HP回复+20%"
+      ],
+      "acquisition": "教会用4个神圣碎片兑换（库存5）",
+      "price": 4
+    },
+    {
+      "id": "gshield_baroque",
+      "name_zh": "巴洛克大盾",
+      "name_en": "Baroque Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "effects": [
+        "命中+5"
+      ],
+      "acquisition": "武器店出售",
+      "guard_rate": 28
+    },
+    {
+      "id": "gshield_white_knight",
+      "name_zh": "白骑士大盾",
+      "name_en": "White Knight's Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "rare",
+      "effects": [
+        "最大HP+15"
+      ],
+      "skills": [
+        "生命共享（被动）"
+      ],
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "gshield_bulwark_tower",
+      "name_zh": "壁垒塔盾",
+      "name_en": "Bulwark Towershield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "rare",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "gshield_conveyable",
+      "name_zh": "便携大盾",
+      "name_en": "Conveyable Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "effects": [
+        "先制+3"
+      ],
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_azure_crest",
+      "name_zh": "苍纹大盾",
+      "name_en": "Azure Crest Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "legendary",
+      "effects": [
+        "PP+1"
+      ],
+      "acquisition": "人物入队自带/武器店",
+      "description": "苍纹大盾：核心增伤装备，多一次PP",
+      "guard_rate": 30
+    },
+    {
+      "id": "gshield_gran_baris",
+      "name_zh": "格兰·巴里斯",
+      "name_en": "Gran Baris",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "legendary",
+      "effects": [
+        "减益免疫"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20个神圣碎片（库存1）",
+      "price": 20,
+      "guard_rate": 40
+    },
+    {
+      "id": "gshield_skiron",
+      "name_zh": "斯奇隆大盾",
+      "name_en": "Skiron's Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "legendary",
+      "effects": [
+        "格挡效率+50%",
+        "先制+5"
+      ],
+      "skills": [
+        "急速掩护（Hastened Cover）"
+      ],
+      "acquisition": "「四风神兵装」地点（阿奈莫伊兵装）获得",
+      "guard_rate": 40
+    },
+    {
+      "id": "gshield_blacksilver_pavise",
+      "name_zh": "黑银大盾",
+      "name_en": "Blacksilver Pavise",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "legendary",
+      "effects": [
+        "格挡效率+50%"
+      ],
+      "skills": [
+        "碉堡姿态（Bunker Stance）"
+      ],
+      "acquisition": "讨伐/武器店（后期）",
+      "guard_rate": 40
+    },
+    {
+      "id": "gshield_vorpal",
+      "name_zh": "夺命大盾",
+      "name_en": "Vorpal Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "epic",
+      "acquisition": "武器店（后期）"
+    },
+    {
+      "id": "gshield_icefall",
+      "name_zh": "冰坠大盾",
+      "name_en": "Icefall Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_hoarfrost",
+      "name_zh": "霜冻大盾",
+      "name_en": "Hoarfrost Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_dragonbone",
+      "name_zh": "龙骨大盾",
+      "name_en": "Dragonbone Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "rare",
+      "acquisition": "武器店出售"
+    },
+    {
+      "id": "gshield_bandit",
+      "name_zh": "山贼大盾",
+      "name_en": "Bandit's Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "acquisition": "武器店/掉落"
+    },
+    {
+      "id": "gshield_zenoilan",
+      "name_zh": "泽诺伊兰大盾",
+      "name_en": "Zenoilan Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "common",
+      "acquisition": "泽诺伊拉区域"
+    },
+    {
+      "id": "gshield_meteorite",
+      "name_zh": "陨铁大盾",
+      "name_en": "Meteorite Greatshield",
+      "type": "shield",
+      "subtype": "greatshield",
+      "rarity": "epic",
+      "acquisition": "陨石/武器店"
+    },
+    {
+      "id": "acc_carnelian_pendant",
+      "name_zh": "绯石吊坠",
+      "name_en": "Carnelian Pendant",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "AP+1"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20神圣碎片（库存2）；黑市购买10000G；任务「天使的请求」奖励",
+      "price": 20,
+      "description": "核心装备：多一次行动"
+    },
+    {
+      "id": "acc_lapis_pendant",
+      "name_zh": "苍石吊坠",
+      "name_en": "Lapis Pendant",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "PP+1"
+      ],
+      "acquisition": "神圣碎片兑换（教会），10神圣碎片（库存3）；黑市10000G；任务「天使的请求」奖励；宝箱/藏宝图",
+      "price": 10,
+      "description": "核心装备：多一次PP"
+    },
+    {
+      "id": "acc_ruby_pendant",
+      "name_zh": "红宝石吊坠",
+      "name_en": "Ruby Pendant",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "AP+2"
+      ],
+      "acquisition": "黑市/后期商店"
+    },
+    {
+      "id": "acc_sapphire_pendant",
+      "name_zh": "蓝宝石吊坠",
+      "name_en": "Sapphire Pendant",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "PP+2"
+      ],
+      "acquisition": "黑市/后期商店"
+    },
+    {
+      "id": "acc_dove_plume",
+      "name_zh": "白鸽羽毛",
+      "name_en": "Dove Plume",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "先制+10"
+      ],
+      "acquisition": "塞尔维赠送/商店"
+    },
+    {
+      "id": "acc_raven_plume",
+      "name_zh": "乌鸦羽毛",
+      "name_en": "Raven Plume",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "先制+15"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_angel_plume",
+      "name_zh": "天使羽毛",
+      "name_en": "Angel Plume",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "先制+20（自身）",
+        "同行友军先制+10"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20神圣碎片（库存1）",
+      "price": 20
+    },
+    {
+      "id": "acc_white_catear_hood",
+      "name_zh": "白猫耳兜帽",
+      "name_en": "White Cat-Ear Hood",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "PP+1",
+        "先制+10"
+      ],
+      "skills": [
+        "疾速灵感（Quick Impetus）：消耗4PP，赋予自身AP+1与追加行动"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20神圣碎片（库存1）",
+      "price": 20,
+      "description": "最强饰品之一，需配合牧师手杖/苍石吊坠攒PP"
+    },
+    {
+      "id": "acc_heavenwyvern_reins",
+      "name_zh": "天飞龙缰绳",
+      "name_en": "Heavenwyvern Reins",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "stats": {
+        "def": 3,
+        "mdf": 3
+      },
+      "effects": [
+        "飞行系（Aerial Wing）",
+        "先制+6",
+        "最大HP+10"
+      ],
+      "skills": [
+        "动态滑翔（Dynamic Glide）：消耗1PP，使用主动技能前触发，使下次攻击必定命中；HP100%时攻击+20%"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20神圣碎片（库存1）",
+      "price": 20
+    },
+    {
+      "id": "acc_heavensteed_reins",
+      "name_zh": "天马缰绳",
+      "name_en": "Heavensteed Reins",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "先制+6",
+        "最大HP+10"
+      ],
+      "skills": [
+        "动态滑翔（Dynamic Glide）"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20神圣碎片（库存1）",
+      "price": 20
+    },
+    {
+      "id": "acc_holy_broach",
+      "name_zh": "圣徽章",
+      "name_en": "Holy Broach",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "effects": [
+        "使用主动技能时回复20%HP"
+      ],
+      "acquisition": "神圣碎片兑换（教会），20神圣碎片（库存1）",
+      "price": 20
+    },
+    {
+      "id": "acc_dancers_bracelet",
+      "name_zh": "舞女手环",
+      "name_en": "Dancer's Bracelet",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "skills": [
+        "舞步（Dance）：核心增伤技能"
+      ],
+      "acquisition": "武器店购买（带专属技能，值得购买）",
+      "description": "核心增伤装备，至少携带一个"
+    },
+    {
+      "id": "acc_dancers_anklet",
+      "name_zh": "舞女脚环",
+      "name_en": "Dancer's Anklet",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "skills": [
+        "剑舞（Blade Dance）：使用主动技能后暴击率+20、暴击伤害+20，可叠加"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_gamblers_coin",
+      "name_zh": "赌徒硬币",
+      "name_en": "Gambler's Coin",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "legendary",
+      "skills": [
+        "鼓舞（Inspiration）：队友攻击前赋予攻击+30、暴击伤害+50、命中-50"
+      ],
+      "acquisition": "武器店购买（带专属技能，值得购买）"
+    },
+    {
+      "id": "acc_dirty_gamblers_coin",
+      "name_zh": "肮脏赌徒硬币",
+      "name_en": "Dirty Gambler's Coin",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "epic",
+      "skills": [
+        "广域鼓舞（Wide Inspiration）：对一排队友发动鼓舞（攻击+30、暴击伤害+50、命中-50）"
+      ],
+      "acquisition": "掉落/商店"
+    },
+    {
+      "id": "acc_lucky_coin",
+      "name_zh": "幸运硬币",
+      "name_en": "Lucky Coin",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "回避提升"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_silk_scarf",
+      "name_zh": "丝绸围巾",
+      "name_en": "Silk Scarf",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "stats": {
+        "def": 1
+      },
+      "effects": [
+        "回避+20"
+      ],
+      "acquisition": "特雷耶斯村武器店购买，1500G（初始饰品）",
+      "price": 1500
+    },
+    {
+      "id": "acc_royal_scarf",
+      "name_zh": "皇家围巾",
+      "name_en": "Royal Scarf",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "回避提升"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_blue_spectacles",
+      "name_zh": "蓝眼镜",
+      "name_en": "Blue Spectacles",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "命中提升"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_warriors_medallion",
+      "name_zh": "战士勋章",
+      "name_en": "Warrior's Medallion",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "物理攻击+2",
+        "物理攻击+10%",
+        "暴击率+10%"
+      ],
+      "acquisition": "图卢斯特武器店购买，10000G",
+      "price": 10000
+    },
+    {
+      "id": "acc_sorcerers_medallion",
+      "name_zh": "术士勋章",
+      "name_en": "Sorcerer's Medallion",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "魔法攻击+2",
+        "魔法攻击+10%",
+        "暴击率+10%"
+      ],
+      "acquisition": "贝卢姆·戈利亚村武器店购买，10000G",
+      "price": 10000
+    },
+    {
+      "id": "acc_gold_bangle",
+      "name_zh": "金手镯",
+      "name_en": "Gold Bangle",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "stats": {
+        "def": 6,
+        "mdf": 6
+      },
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_silver_bangle",
+      "name_zh": "银手镯",
+      "name_en": "Silver Bangle",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "stats": {
+        "def": 3,
+        "mdf": 3
+      },
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_gauntlets",
+      "name_zh": "护手",
+      "name_en": "Gauntlets",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "stats": {
+        "def": 1
+      },
+      "effects": [
+        "格挡率+20%"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_brown_beret",
+      "name_zh": "棕色贝雷帽",
+      "name_en": "Brown Beret",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "物理攻击+8%"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_elite_berets",
+      "name_zh": "精英贝雷帽",
+      "name_en": "Elite Berets",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "epic",
+      "effects": [
+        "物理攻击提升"
+      ],
+      "acquisition": "商店（后期）/掉落"
+    },
+    {
+      "id": "acc_guardian_grove",
+      "name_zh": "守护之环",
+      "name_en": "Guardian Grove",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_counter_belt",
+      "name_zh": "反击腰带",
+      "name_en": "Counter Belt",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "skills": [
+        "反击"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_charm_of_warding",
+      "name_zh": "庇护护符",
+      "name_en": "Charm of Warding",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "防御提升"
+      ],
+      "acquisition": "神圣碎片兑换（教会），10神圣碎片（库存1）",
+      "price": 10
+    },
+    {
+      "id": "acc_ring_of_unicorn",
+      "name_zh": "独角兽之戒",
+      "name_en": "Ring of the Unicorn",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "最大HP+5",
+        "格挡率+10%"
+      ],
+      "acquisition": "阿兰初始装备/商店"
+    },
+    {
+      "id": "acc_rookie_egg",
+      "name_zh": "新兵蛋",
+      "name_en": "Rookie Egg",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "获得经验值+100%"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_mercenary_eyepatch",
+      "name_zh": "佣兵眼罩",
+      "name_en": "Mercenary's Eyepatch",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "stats": {
+        "def": 1
+      },
+      "effects": [
+        "暴击率+20%"
+      ],
+      "acquisition": "特雷耶斯村武器店购买，1500G（初始饰品）",
+      "price": 1500
+    },
+    {
+      "id": "acc_sages_hood",
+      "name_zh": "贤者兜帽",
+      "name_en": "Sage's Hood",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "epic",
+      "stats": {
+        "mdf": 3
+      },
+      "effects": [
+        "魔法攻击+12%"
+      ],
+      "acquisition": "后期商店购买"
+    },
+    {
+      "id": "acc_silken_hood",
+      "name_zh": "丝绸兜帽",
+      "name_en": "Silken Hood",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "魔法攻击提升"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_leather_hood",
+      "name_zh": "皮兜帽",
+      "name_en": "Leather Hood",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "common",
+      "effects": [
+        "魔法攻击小幅提升"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_sorcerer_medallion_alt",
+      "name_zh": "术士坠饰",
+      "name_en": "Sorcerer Medallion",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "魔法+5（约为基础魔法10%+2）"
+      ],
+      "acquisition": "商店/掉落"
+    },
+    {
+      "id": "acc_feather_of_wind",
+      "name_zh": "风之羽毛",
+      "name_en": "Feather of the Wind",
+      "type": "accessory",
+      "subtype": "accessory",
+      "rarity": "rare",
+      "effects": [
+        "移动相关增益"
+      ],
+      "acquisition": "商店/掉落"
+    }
+  ]
+}

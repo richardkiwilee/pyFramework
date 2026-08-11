@@ -1,0 +1,171 @@
+[gd_scene load_steps=3 format=3 uid="uid://c_battle_screen"]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scene.gd" id="1_battle"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_result"]
+bg_color = Color(0.113725, 0.094118, 0.0784314, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.831373, 0.686275, 0.215686, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+
+[node name="BattleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1400.0
+offset_bottom = 36.0
+
+[node name="RoundLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "战斗准备..."
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 15
+
+[node name="BattleArea" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 40.0
+offset_right = 1390.0
+offset_bottom = 560.0
+theme_override_constants/separation = 30
+
+[node name="PlayerSide" type="VBoxContainer" parent="BattleArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PlayerLabel" type="Label" parent="BattleArea/PlayerSide"]
+layout_mode = 2
+text = "—— 我方部队 ——"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+
+[node name="UnitGrid" type="VBoxContainer" parent="BattleArea/PlayerSide"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="VsLabel" type="Label" parent="BattleArea"]
+layout_mode = 2
+text = "⚔️
+VS"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 22
+
+[node name="EnemySide" type="VBoxContainer" parent="BattleArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EnemyLabel" type="Label" parent="BattleArea/EnemySide"]
+layout_mode = 2
+text = "—— 敌军部队 ——"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+
+[node name="UnitGrid" type="VBoxContainer" parent="BattleArea/EnemySide"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="LogPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 564.0
+offset_right = 1390.0
+offset_bottom = 820.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="LogPanel"]
+layout_mode = 2
+
+[node name="LogList" type="VBoxContainer" parent="LogPanel/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="ReturnBtn" type="Button" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 1270.0
+offset_top = 808.0
+offset_right = 1390.0
+offset_bottom = 840.0
+text = "← 返回编队"
+
+[node name="ResultOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="ResultOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -260.0
+offset_right = 340.0
+offset_bottom = 280.0
+theme_override_styles/panel = SubResource("StyleBox_result")
+
+[node name="VBox" type="VBoxContainer" parent="ResultOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SummaryHeader" type="Label" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="PlayerStats" type="VBoxContainer" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HSep" type="HSeparator" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="EnemyStats" type="VBoxContainer" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HSep2" type="HSeparator" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+
+[node name="TotalStats" type="Label" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="ResultOverlay/Panel/VBox"]
+layout_mode = 2
+text = "返回编队界面"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+
+[node name="ActionTimer" type="Timer" parent="."]
+wait_time = 0.9
+one_shot = false
+autostart = false

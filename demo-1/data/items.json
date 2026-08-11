@@ -1,0 +1,1043 @@
+{
+  "game": "圣兽之王",
+  "game_en": "Unicorn Overlord",
+  "category": "items",
+  "notes": {
+    "sources": [
+      "game8.co/games/Unicorn-Overlord/archives/447272 (List of All Items)",
+      "gamesfuze.com/guides/unicorn-overlord-all-items-explained",
+      "unicornoverlord.fandom.com town pages (Provisioner prices)",
+      "gl.ali213.net 圣兽之王天之碎片兑换一览 / 力量之露攻略",
+      "ludo.guide/guide/unicorn-overlord/item-tables",
+      "gamemad.com/guide/314982 (聖獸之王禮物大全)",
+      "bbs.a9vg.com 圣兽之王全装备效果帖"
+    ],
+    "shop_note": "补给商（Provisioner）在各城镇出售消耗品，库存有限，建议每到一城买空治疗药水/治疗之泉/复活宝珠等贵重物资；商品价格各区一致",
+    "price_unit": "金币G；'2天之碎片'等表示在特定交换所的兑换价",
+    "gift_note": "礼物共13类39种，赠予角色提升亲密度（30/60/90；宝石类100/200/300）"
+  },
+  "items": [
+    {
+      "id": "item_001",
+      "name_zh": "治疗药水（小）",
+      "name_en": "Healing Tonic (S)",
+      "type": "consumable",
+      "effect": "根据部队规模恢复单体HP",
+      "price": 800,
+      "description": "最常见的单体回复道具，直接易用，可从任意城镇补给商购买（常见库存2-4）。"
+    },
+    {
+      "id": "item_002",
+      "name_zh": "治疗药水（大）",
+      "name_en": "Healing Tonic (L)",
+      "type": "consumable",
+      "effect": "大量恢复单体HP",
+      "price": 0,
+      "description": "治疗药水的强化版，恢复量更大，多通过探索拾取或任务奖励获得。"
+    },
+    {
+      "id": "item_003",
+      "name_zh": "治疗之泉（小）",
+      "name_en": "Healing Font (S)",
+      "type": "consumable",
+      "effect": "恢复战场上所有友方部队的HP（小版约20点）",
+      "price": 1200,
+      "description": "全体回复道具，治疗者忙不过来时非常有用。库存2。"
+    },
+    {
+      "id": "item_004",
+      "name_zh": "治疗之泉（大）",
+      "name_en": "Healing Font (L)",
+      "type": "consumable",
+      "effect": "大量恢复战场上所有友方部队的HP",
+      "price": 0,
+      "description": "治疗之泉强化版，全体大回复，多通过探索获得。"
+    },
+    {
+      "id": "item_005",
+      "name_zh": "复活宝珠（小）",
+      "name_en": "Revival Orb (S)",
+      "type": "consumable",
+      "effect": "复活一名无法战斗的单位，恢复其25%最大HP",
+      "price": 2500,
+      "description": "单体复活道具，库存2，后期解放任务前建议囤货。"
+    },
+    {
+      "id": "item_006",
+      "name_zh": "复活宝珠（大）",
+      "name_en": "Revival Orb (L)",
+      "type": "consumable",
+      "effect": "复活一名无法战斗的单位，恢复更多HP",
+      "price": 0,
+      "description": "复活宝珠强化版。"
+    },
+    {
+      "id": "item_007",
+      "name_zh": "万灵药",
+      "name_en": "Elixir",
+      "type": "consumable",
+      "effect": "以100%HP完全复活一名倒下的队友",
+      "price": 0,
+      "description": "在'阻止实验'任务中选择阻止实验可获得（代价是无法招募牧师塔蒂亚娜）。"
+    },
+    {
+      "id": "item_008",
+      "name_zh": "圣草",
+      "name_en": "Holy Herb",
+      "type": "consumable",
+      "effect": "战斗结束后友方部队回复50%HP",
+      "price": 0,
+      "description": "战后回复道具，可节省大量治疗药水。"
+    },
+    {
+      "id": "item_009",
+      "name_zh": "克尔努的圣灰",
+      "name_en": "Hallowed Corne Ash",
+      "type": "consumable",
+      "effect": "复活整个部队 或 回复2点勇气点数（Valor）",
+      "price": 0,
+      "description": "价值极高的稀有消耗品，在天之碎片交换所以2个天之碎片无限兑换；攻略建议为游戏最长的战斗囤积。"
+    },
+    {
+      "id": "item_010",
+      "name_zh": "露营套装（小）",
+      "name_en": "Camping Set (S)",
+      "type": "consumable",
+      "effect": "复活范围内所有无法战斗的友方，回复30HP和2点耐力",
+      "price": 0,
+      "description": "范围复活+回复道具。"
+    },
+    {
+      "id": "item_011",
+      "name_zh": "强化药水",
+      "name_en": "Empowering Draught",
+      "type": "consumable",
+      "effect": "使用后造成的伤害增加30%（攻击增益）",
+      "price": 1500,
+      "description": "增伤药水，补给商有售（库存1）。"
+    },
+    {
+      "id": "item_012",
+      "name_zh": "防护药水",
+      "name_en": "Defensive Draught",
+      "type": "consumable",
+      "effect": "使用后受到的伤害减少30%（防御增益）",
+      "price": 0,
+      "description": "减伤药水。"
+    },
+    {
+      "id": "item_013",
+      "name_zh": "烟熏坚果",
+      "name_en": "Smoked Nuts",
+      "type": "consumable",
+      "effect": "回复少量耐力（Stamina）",
+      "price": 600,
+      "description": "小份耐力回复，补给商有售（库存2），任务奖励也可获得。"
+    },
+    {
+      "id": "item_014",
+      "name_zh": "烤牛排",
+      "name_en": "Grilled Steak",
+      "type": "consumable",
+      "effect": "回复5点耐力（Stamina）",
+      "price": 0,
+      "description": "大份耐力回复。"
+    },
+    {
+      "id": "item_015",
+      "name_zh": "银之沙漏",
+      "name_en": "Silver Hourglass",
+      "type": "consumable",
+      "effect": "缩短部队的等待时间（回复耐力/加速行动）",
+      "price": 2000,
+      "description": "补给商有售（库存1）。"
+    },
+    {
+      "id": "item_016",
+      "name_zh": "星尘沙漏",
+      "name_en": "Stardust Hourglass",
+      "type": "consumable",
+      "effect": "更大幅度缩短部队的等待时间",
+      "price": 0,
+      "description": "银之沙漏的强化版。"
+    },
+    {
+      "id": "item_017",
+      "name_zh": "奇迹果实",
+      "name_en": "Miracle Fruit",
+      "type": "consumable",
+      "effect": "随机/综合增益效果",
+      "price": 0,
+      "description": "增益类消耗品，可通过任务奖励或探索获得。"
+    },
+    {
+      "id": "item_018",
+      "name_zh": "幸运之水",
+      "name_en": "Liquid Fortune",
+      "type": "consumable",
+      "effect": "20秒内获得经验和金币翻倍",
+      "price": 0,
+      "description": "练级/刷金利器，可在战斗前使用。"
+    },
+    {
+      "id": "item_019",
+      "name_zh": "风妖精护符",
+      "name_en": "Wind Faerie's Charm",
+      "type": "consumable",
+      "effect": "提升移动速度（机动性增益）",
+      "price": 0,
+      "description": "大地图移动增益道具。"
+    },
+    {
+      "id": "item_020",
+      "name_zh": "轻羽",
+      "name_en": "Light Feather",
+      "type": "consumable",
+      "effect": "短时间内移动速度翻倍",
+      "price": 0,
+      "description": "轻尾羽（Light Tailfeather）同类道具，范围内友方机动性翻倍30秒。"
+    },
+    {
+      "id": "item_021",
+      "name_zh": "召唤铃铛",
+      "name_en": "Beckoning Bell",
+      "type": "consumable",
+      "effect": "吸引敌人靠近使用者",
+      "price": 1000,
+      "description": "引怪道具，补给商有售。"
+    },
+    {
+      "id": "item_022",
+      "name_zh": "召唤钟",
+      "name_en": "Beckoning Chime",
+      "type": "consumable",
+      "effect": "更大范围吸引敌人靠近使用者",
+      "price": 0,
+      "description": "召唤铃铛强化版。"
+    },
+    {
+      "id": "item_023",
+      "name_zh": "传送石",
+      "name_en": "Conveyance Stone",
+      "type": "consumable",
+      "effect": "传送（回到已解放据点）",
+      "price": 0,
+      "description": "大地图传送道具。"
+    },
+    {
+      "id": "item_024",
+      "name_zh": "移动掩体套件",
+      "name_en": "Mantlet Kit",
+      "type": "consumable",
+      "effect": "架设移动掩体",
+      "price": 0,
+      "description": "战场工事道具。"
+    },
+    {
+      "id": "item_025",
+      "name_zh": "栅栏套件",
+      "name_en": "Barricade Kit",
+      "type": "consumable",
+      "effect": "架设栅栏路障",
+      "price": 0,
+      "description": "战场工事道具，可阻挡敌人行军路线。"
+    },
+    {
+      "id": "item_026",
+      "name_zh": "铁夹",
+      "name_en": "Steel Trap",
+      "type": "consumable",
+      "effect": "设置铁夹陷阱（伤害并困住敌人）",
+      "price": 1000,
+      "description": "陷阱道具，补给商有售。"
+    },
+    {
+      "id": "item_027",
+      "name_zh": "魔法地雷",
+      "name_en": "Magick Mine",
+      "type": "consumable",
+      "effect": "设置魔法地雷陷阱（范围魔法伤害）",
+      "price": 3000,
+      "description": "强力陷阱道具，补给商有售。"
+    },
+    {
+      "id": "item_028",
+      "name_zh": "隐形斗篷",
+      "name_en": "Concealing Cloak",
+      "type": "consumable",
+      "effect": "20秒内友方不会被敌人发现",
+      "price": 0,
+      "description": "隐身道具，可避开强敌绕路。"
+    },
+    {
+      "id": "item_029",
+      "name_zh": "新兵兵法书",
+      "name_en": "Novice Military Treatise",
+      "type": "consumable",
+      "effect": "+50经验值（等级≤10的角色3倍效果）",
+      "price": 0,
+      "description": "经验书，快速升级用。"
+    },
+    {
+      "id": "item_030",
+      "name_zh": "生命之露",
+      "name_en": "Dew of Life",
+      "type": "consumable",
+      "effect": "永久提升1点最大HP（每个角色最多使用5次）",
+      "price": 0,
+      "description": "永久属性提升道具，天之碎片交换所2碎片无限兑换。"
+    },
+    {
+      "id": "item_031",
+      "name_zh": "力量之露",
+      "name_en": "Dew of Strength",
+      "type": "consumable",
+      "effect": "永久提升1点物理攻击（每个角色最多使用5次）",
+      "price": 0,
+      "description": "任务奖励/天之碎片交换所2碎片/斗技场20竞技场硬币无限兑换。"
+    },
+    {
+      "id": "item_032",
+      "name_zh": "智慧之露",
+      "name_en": "Dew of Wisdom",
+      "type": "consumable",
+      "effect": "永久提升1点魔法攻击（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换。"
+    },
+    {
+      "id": "item_033",
+      "name_zh": "防御之露",
+      "name_en": "Dew of Defense",
+      "type": "consumable",
+      "effect": "永久提升1点物理防御（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换2碎片以上解锁）。"
+    },
+    {
+      "id": "item_034",
+      "name_zh": "加护之露",
+      "name_en": "Dew of Grace",
+      "type": "consumable",
+      "effect": "永久提升1点魔法防御（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换2碎片以上解锁）。"
+    },
+    {
+      "id": "item_035",
+      "name_zh": "坚守之露",
+      "name_en": "Dew of Perseverance",
+      "type": "consumable",
+      "effect": "永久提升1点格挡率（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换2碎片以上解锁）。"
+    },
+    {
+      "id": "item_036",
+      "name_zh": "技艺之露",
+      "name_en": "Dew of Skill",
+      "type": "consumable",
+      "effect": "永久提升1点命中（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换20碎片以上解锁）。"
+    },
+    {
+      "id": "item_037",
+      "name_zh": "洞察之露",
+      "name_en": "Dew of Insight",
+      "type": "consumable",
+      "effect": "永久提升1点闪避（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换20碎片以上解锁）。"
+    },
+    {
+      "id": "item_038",
+      "name_zh": "必杀之露",
+      "name_en": "Dew of Critical",
+      "type": "consumable",
+      "effect": "永久提升1点暴击率（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换20碎片以上解锁）。"
+    },
+    {
+      "id": "item_039",
+      "name_zh": "敏捷之露",
+      "name_en": "Dew of Agility",
+      "type": "consumable",
+      "effect": "永久提升1点行动速度/先攻（每个角色最多使用5次）",
+      "price": 0,
+      "description": "天之碎片交换所2碎片无限兑换（交换20碎片以上解锁）。"
+    },
+    {
+      "id": "item_040",
+      "name_zh": "幻之露",
+      "name_en": "Mirage Dew",
+      "type": "consumable",
+      "effect": "饮用后所有属性药效果各一次（HP/命中/闪避+2，其他+1）",
+      "price": 0,
+      "description": "相当于一次喝完所有属性药；与普通属性药共享每项最多5次的提升次数，先喝普通药再喝幻之露会溢出浪费。"
+    },
+    {
+      "id": "item_041",
+      "name_zh": "菲布石",
+      "name_en": "Fibstone",
+      "type": "material",
+      "effect": "用于交换/兑换的稀有材料",
+      "price": 0,
+      "description": "天之碎片交换所30碎片无限兑换（交换100碎片以上解锁；部分来源记载为20碎片，以游戏内为准）。"
+    },
+    {
+      "id": "item_042",
+      "name_zh": "科尔维亚草药",
+      "name_en": "Corvia Herb",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务，大地图发光点拾取。"
+    },
+    {
+      "id": "item_043",
+      "name_zh": "科尔尼亚沙丁鱼",
+      "name_en": "Cornian Sardine",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_044",
+      "name_zh": "细木料",
+      "name_en": "Meager Timber",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_045",
+      "name_zh": "碎铁片",
+      "name_en": "Meager Scrap Metal",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_046",
+      "name_zh": "科努特木材",
+      "name_en": "Cornut Lumber",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_047",
+      "name_zh": "科尔赛特石",
+      "name_en": "Corsite Stone",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_048",
+      "name_zh": "科尔尼亚鳟鱼",
+      "name_en": "Cornian Trout",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_049",
+      "name_zh": "铁矿石",
+      "name_en": "Iron Ore",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_050",
+      "name_zh": "蜜苹果",
+      "name_en": "Honey Apple",
+      "type": "material",
+      "effect": "交付任务材料",
+      "price": 0,
+      "description": "区域素材，用于配送任务。"
+    },
+    {
+      "id": "item_051",
+      "name_zh": "天之碎片",
+      "name_en": "Divine Shard",
+      "type": "key",
+      "effect": "特殊货币，用于天之碎片交换所兑换稀有道具与角色",
+      "price": 0,
+      "description": "通过地图拾取、采掘场挖掘、击败特定NPC（盗贼弓手芒德兰、白骑士莫妮卡）等获得；集满30枚可招募奥古丽斯（翔羽剑士）；完成'天翼骑士'任务可获生命之露x3、力量之露x3、防御之露x3。"
+    },
+    {
+      "id": "item_052",
+      "name_zh": "斗技币",
+      "name_en": "Arena Coin",
+      "type": "key",
+      "effect": "斗技场交换所货币",
+      "price": 0,
+      "description": "可通过斗技场获得，用于兑换战士勋章、红纹章盾等装备，也可兑换力量之露等。"
+    },
+    {
+      "id": "item_053",
+      "name_zh": "解放军旗",
+      "name_en": "Liberation Army Banner",
+      "type": "key",
+      "effect": "军旗（宝藏/收集品）",
+      "price": 0,
+      "description": "特定区域拾取的特殊道具，代表势力归属。"
+    },
+    {
+      "id": "item_054",
+      "name_zh": "三角帽佣兵旗",
+      "name_en": "Tricorn Mercenaries Banner",
+      "type": "key",
+      "effect": "军旗（宝藏/收集品）",
+      "price": 0,
+      "description": "特定区域拾取的特殊道具。"
+    },
+    {
+      "id": "item_055",
+      "name_zh": "科尔尼亚旗",
+      "name_en": "Cornia Banner",
+      "type": "key",
+      "effect": "军旗（宝藏/收集品）",
+      "price": 0,
+      "description": "特定区域拾取的特殊道具。"
+    },
+    {
+      "id": "item_056",
+      "name_zh": "科尔尼亚民兵旗",
+      "name_en": "Cornia Militia Banner",
+      "type": "key",
+      "effect": "军旗（宝藏/收集品）",
+      "price": 0,
+      "description": "特定区域拾取的特殊道具。"
+    },
+    {
+      "id": "item_057",
+      "name_zh": "独角兽之戒",
+      "name_en": "Ring of the Unicorn",
+      "type": "key",
+      "effect": "主线关键道具",
+      "price": 0,
+      "description": "亚连的戒指，剧情核心物品。"
+    },
+    {
+      "id": "item_058",
+      "name_zh": "石雕科尼亚",
+      "name_en": "Carved Cornia Stone",
+      "type": "key",
+      "effect": "完成任务可获得名剑科尼克斯",
+      "price": 0,
+      "description": "任务物品。"
+    },
+    {
+      "id": "item_059",
+      "name_zh": "急救箱",
+      "name_en": "First Aid Kit",
+      "type": "accessory",
+      "effect": "附带一个治疗技能，恢复队友25%生命值",
+      "price": 3000,
+      "description": "治愈类饰品，德莱鲍姆镇、港镇克拉尼希、港镇伊索维达、卡雅拉克松镇、希尔迪镇有售。"
+    },
+    {
+      "id": "item_060",
+      "name_zh": "圆磷杖",
+      "name_en": "Luminous Staff",
+      "type": "accessory",
+      "effect": "魔法攻击+2、附带治疗技能、行动速度+5",
+      "price": 10000,
+      "description": "希尔迪镇购买。"
+    },
+    {
+      "id": "item_061",
+      "name_zh": "治愈羽饰",
+      "name_en": "Healing Feather",
+      "type": "accessory",
+      "effect": "附带一个治疗技能、行动速度+5",
+      "price": 20000,
+      "description": "比斯法因大教堂购买。"
+    },
+    {
+      "id": "item_062",
+      "name_zh": "神圣徽章",
+      "name_en": "Holy Emblem",
+      "type": "accessory",
+      "effect": "物理防御+2、魔法防御+2、使用主动技能时恢复20%生命值",
+      "price": 0,
+      "description": "天之碎片交换所20碎片兑换（交换50碎片以上解锁，库存1）。"
+    },
+    {
+      "id": "item_063",
+      "name_zh": "圣骑士盾",
+      "name_en": "Paladin Shield",
+      "type": "accessory",
+      "effect": "物理防御+7、格挡率30%、附带格挡技能、格挡减伤+25%、主动技能后回复10%生命值",
+      "price": 0,
+      "description": "天之碎片交换所15碎片兑换（库存1）。"
+    },
+    {
+      "id": "item_064",
+      "name_zh": "神殿骑士大盾",
+      "name_en": "Temple Knight Greatshield",
+      "type": "accessory",
+      "effect": "物理防御+10、格挡率30%、格挡减伤+50%、生命恢复+20%",
+      "price": 0,
+      "description": "天之碎片交换所4碎片兑换（神殿骑士系列盾之一，库存5）。"
+    },
+    {
+      "id": "item_065",
+      "name_zh": "白猫耳兜帽",
+      "name_en": "White Cat-Ear Hood",
+      "type": "accessory",
+      "effect": "魔法防御+5、附带辅助技能、PP+1、行动速度+10",
+      "price": 0,
+      "description": "天之碎片交换所20碎片兑换（交换50碎片以上解锁，库存1）。"
+    },
+    {
+      "id": "item_066",
+      "name_zh": "神马缰绳",
+      "name_en": "Divine Horse Reins",
+      "type": "accessory",
+      "effect": "物理防御+3、魔法防御+3、附带辅助技能、行动速度+6、最大生命值+10",
+      "price": 0,
+      "description": "天之碎片交换所20碎片兑换（交换50碎片以上解锁，库存1）。"
+    },
+    {
+      "id": "item_067",
+      "name_zh": "神龙缰绳",
+      "name_en": "Divine Dragon Reins",
+      "type": "accessory",
+      "effect": "物理防御+3、魔法防御+3、附带辅助技能、行动速度+6、最大生命值+10",
+      "price": 0,
+      "description": "天之碎片交换所20碎片兑换（交换50碎片以上解锁，库存1）。"
+    },
+    {
+      "id": "item_068",
+      "name_zh": "天使羽饰",
+      "name_en": "Angel Feather",
+      "type": "accessory",
+      "effect": "附带辅助技能、行动速度+20",
+      "price": 0,
+      "description": "天之碎片交换所20碎片兑换（交换20碎片以上解锁，库存1）。"
+    },
+    {
+      "id": "item_069",
+      "name_zh": "千年权杖",
+      "name_en": "Thousand-Year Scepter",
+      "type": "accessory",
+      "effect": "可咏唱强力范围魔法圣三一之雨（Trinity Rain）",
+      "price": 0,
+      "description": "天之碎片交换所30碎片兑换（交换100碎片以上解锁，库存1）；术士/女巫核心装备。"
+    },
+    {
+      "id": "item_070",
+      "name_zh": "巨大重盾",
+      "name_en": "Colossal Greatshield",
+      "type": "accessory",
+      "effect": "极高物理防御的巨型盾牌",
+      "price": 0,
+      "description": "天之碎片交换所40碎片兑换（交换100碎片以上解锁，库存1）。"
+    },
+    {
+      "id": "item_071",
+      "name_zh": "苍石吊坠",
+      "name_en": "Azure Pendant",
+      "type": "accessory",
+      "effect": "饰品",
+      "price": 0,
+      "description": "天之碎片交换所10碎片兑换，库存3。"
+    },
+    {
+      "id": "item_072",
+      "name_zh": "绯石吊坠",
+      "name_en": "Crimson Pendant",
+      "type": "accessory",
+      "effect": "饰品",
+      "price": 0,
+      "description": "天之碎片交换所20碎片兑换（交换20碎片以上解锁），库存2。"
+    },
+    {
+      "id": "item_073",
+      "name_zh": "驱魔之饰",
+      "name_en": "Exorcism Charm",
+      "type": "accessory",
+      "effect": "魔法防御+3、附带格挡技能",
+      "price": 0,
+      "description": "天之碎片交换所10碎片兑换（交换2碎片以上解锁），库存1。"
+    },
+    {
+      "id": "item_074",
+      "name_zh": "圣职者守杖",
+      "name_en": "Cleric's Guard Staff",
+      "type": "accessory",
+      "effect": "圣职者用守杖",
+      "price": 0,
+      "description": "天之碎片交换所15碎片兑换，库存1。"
+    },
+    {
+      "id": "item_075",
+      "name_zh": "通俗文学书",
+      "name_en": "Popular Novel",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-书类（书类礼物：通俗文学书/帕雷比亚教典/菲布里斯史，亲密度30/60/90）。"
+    },
+    {
+      "id": "item_076",
+      "name_zh": "帕雷比亚教典",
+      "name_en": "Palevia Scripture",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-书类。"
+    },
+    {
+      "id": "item_077",
+      "name_zh": "菲布里斯史",
+      "name_en": "Fibris Chronicle",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-书类。"
+    },
+    {
+      "id": "item_078",
+      "name_zh": "赛克特利卜岩盐",
+      "name_en": "Sectelib Rock Salt",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-调味料类（岩盐/香草/胡椒）。"
+    },
+    {
+      "id": "item_079",
+      "name_zh": "维尔塔香草",
+      "name_en": "Weltha Vanilla",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-调味料类。"
+    },
+    {
+      "id": "item_080",
+      "name_zh": "旺比胡椒",
+      "name_en": "Wanby Pepper",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-调味料类。"
+    },
+    {
+      "id": "item_081",
+      "name_zh": "淡啤酒",
+      "name_en": "Pale Ale",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-酒类（淡啤酒/扎加沃纳葡萄酒/梅里埃特拉白兰地）。"
+    },
+    {
+      "id": "item_082",
+      "name_zh": "扎加沃纳葡萄酒",
+      "name_en": "Zagavona Wine",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-酒类。"
+    },
+    {
+      "id": "item_083",
+      "name_zh": "梅里埃特拉白兰地",
+      "name_en": "Melietra Brandy",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-酒类。"
+    },
+    {
+      "id": "item_084",
+      "name_zh": "格雷派饼",
+      "name_en": "Galette",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-点心类（格雷派饼/奶冻/蛋奶布丁）。"
+    },
+    {
+      "id": "item_085",
+      "name_zh": "奶冻",
+      "name_en": "Panna Cotta",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-点心类。"
+    },
+    {
+      "id": "item_086",
+      "name_zh": "蛋奶布丁",
+      "name_en": "Custard Pudding",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-点心类。"
+    },
+    {
+      "id": "item_087",
+      "name_zh": "鲜切花",
+      "name_en": "Cut Flowers",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-花类（鲜切花/压花/花束）。"
+    },
+    {
+      "id": "item_088",
+      "name_zh": "压花",
+      "name_en": "Pressed Flowers",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-花类。"
+    },
+    {
+      "id": "item_089",
+      "name_zh": "花束",
+      "name_en": "Bouquet",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-花类。"
+    },
+    {
+      "id": "item_090",
+      "name_zh": "青金石",
+      "name_en": "Lapis Lazuli",
+      "type": "consumable",
+      "effect": "礼物：亲密度+100",
+      "price": 0,
+      "description": "礼物-宝石类，特殊亲密度100/200/300。"
+    },
+    {
+      "id": "item_091",
+      "name_zh": "红宝石",
+      "name_en": "Ruby",
+      "type": "consumable",
+      "effect": "礼物：亲密度+200",
+      "price": 0,
+      "description": "礼物-宝石类。"
+    },
+    {
+      "id": "item_092",
+      "name_zh": "黑钻石",
+      "name_en": "Black Diamond",
+      "type": "consumable",
+      "effect": "礼物：亲密度+300",
+      "price": 0,
+      "description": "礼物-宝石类。"
+    },
+    {
+      "id": "item_093",
+      "name_zh": "模型刀",
+      "name_en": "Toy Sword",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-日用品类（模型刀/八音盒/奢华的壶）。"
+    },
+    {
+      "id": "item_094",
+      "name_zh": "八音盒",
+      "name_en": "Music Box",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-日用品类。"
+    },
+    {
+      "id": "item_095",
+      "name_zh": "奢华的壶",
+      "name_en": "Luxurious Pot",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-日用品类。"
+    },
+    {
+      "id": "item_096",
+      "name_zh": "香皂",
+      "name_en": "Soap",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-化妆品类（香皂/香水/散粉）。"
+    },
+    {
+      "id": "item_097",
+      "name_zh": "香水",
+      "name_en": "Perfume",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-化妆品类。"
+    },
+    {
+      "id": "item_098",
+      "name_zh": "散粉",
+      "name_en": "Face Powder",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-化妆品类。"
+    },
+    {
+      "id": "item_099",
+      "name_zh": "厨房用品套装",
+      "name_en": "Kitchen Set",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-餐具类（厨房用品套装/砧板/维京厨刀/茶具杯碟/茶壶）。"
+    },
+    {
+      "id": "item_100",
+      "name_zh": "砧板",
+      "name_en": "Cutting Board",
+      "type": "consumable",
+      "effect": "礼物：亲密度+45",
+      "price": 0,
+      "description": "礼物-餐具类。"
+    },
+    {
+      "id": "item_101",
+      "name_zh": "维京厨刀",
+      "name_en": "Viking Kitchen Knife",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-餐具类。"
+    },
+    {
+      "id": "item_102",
+      "name_zh": "茶具杯碟",
+      "name_en": "Teacup and Saucer",
+      "type": "consumable",
+      "effect": "礼物：亲密度+75",
+      "price": 0,
+      "description": "礼物-餐具类。"
+    },
+    {
+      "id": "item_103",
+      "name_zh": "茶壶",
+      "name_en": "Teapot",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-餐具类。"
+    },
+    {
+      "id": "item_104",
+      "name_zh": "游戏骰子",
+      "name_en": "Dice",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-零食/游戏类（托盘/游戏骰子/卡牌桌游）。"
+    },
+    {
+      "id": "item_105",
+      "name_zh": "卡牌桌游",
+      "name_en": "Card Game",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-游戏类。"
+    },
+    {
+      "id": "item_106",
+      "name_zh": "外袍",
+      "name_en": "Surcoat",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-服装类（外袍/长衣/修米兹长裙）。"
+    },
+    {
+      "id": "item_107",
+      "name_zh": "长衣",
+      "name_en": "Robe",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-服装类。"
+    },
+    {
+      "id": "item_108",
+      "name_zh": "修米兹长裙",
+      "name_en": "Chemise Dress",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-服装类。"
+    },
+    {
+      "id": "item_109",
+      "name_zh": "铅笔",
+      "name_en": "Pencil",
+      "type": "consumable",
+      "effect": "礼物：亲密度+30",
+      "price": 0,
+      "description": "礼物-画具类（铅笔/颜料/画架）。"
+    },
+    {
+      "id": "item_110",
+      "name_zh": "颜料",
+      "name_en": "Paint",
+      "type": "consumable",
+      "effect": "礼物：亲密度+60",
+      "price": 0,
+      "description": "礼物-画具类。"
+    },
+    {
+      "id": "item_111",
+      "name_zh": "画架",
+      "name_en": "Easel",
+      "type": "consumable",
+      "effect": "礼物：亲密度+90",
+      "price": 0,
+      "description": "礼物-画具类。"
+    }
+  ],
+  "divine_shard_exchange_rates": {
+    "consumables": [
+      {"name_zh": "克尔努的圣灰", "cost": "2碎片", "stock": "无限"},
+      {"name_zh": "生命之露/力量之露/智慧之露", "cost": "2碎片", "stock": "无限"},
+      {"name_zh": "防御之露/加护之露/坚守之露", "cost": "2碎片（交换2以上解锁）", "stock": "无限"},
+      {"name_zh": "技艺之露/洞察之露/必杀之露/敏捷之露", "cost": "2碎片（交换20以上解锁）", "stock": "无限"},
+      {"name_zh": "菲布石", "cost": "30碎片（交换100以上解锁）", "stock": "无限"}
+    ],
+    "equipment": [
+      {"name_zh": "神殿骑士系列武器/盾（剑/枪/斧/弓/杖/盾/大盾）", "cost": "4碎片", "stock": "5"},
+      {"name_zh": "苍石吊坠", "cost": "10碎片", "stock": "3"},
+      {"name_zh": "驱魔之饰", "cost": "10碎片（交换2以上解锁）", "stock": "1"},
+      {"name_zh": "圣职者守杖/圣骑士盾", "cost": "15碎片（交换2以上解锁）", "stock": "1"},
+      {"name_zh": "绯石吊坠", "cost": "20碎片（交换20以上解锁）", "stock": "2"},
+      {"name_zh": "天使羽饰", "cost": "20碎片（交换20以上解锁）", "stock": "1"},
+      {"name_zh": "神圣徽章/神马缰绳/神龙缰绳/白猫耳兜帽", "cost": "20碎片（交换50以上解锁）", "stock": "1"},
+      {"name_zh": "千年权杖", "cost": "30碎片（交换100以上解锁）", "stock": "1"},
+      {"name_zh": "巨大重盾", "cost": "40碎片（交换100以上解锁）", "stock": "1"}
+    ],
+    "character": [
+      {"name_zh": "奥古丽斯（翔羽剑士）", "cost": "30碎片", "stock": "1"}
+    ]
+  }
+}
