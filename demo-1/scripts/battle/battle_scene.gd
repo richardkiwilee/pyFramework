@@ -84,6 +84,8 @@ func _play_action(action: Dictionary) -> void:
 		"death":
 			_add_log("💀 %s 阵亡！" % action.actor_name)
 			_flash_unit(action.actor_name, Color.GRAY)
+		"skipped":
+			_add_log("⏭ %s 行动取消（已在本回合被击杀）" % action.actor_name)
 
 	_refresh_display_from_action(action)
 

@@ -161,22 +161,47 @@ func next_action() -> Dictionary:
 	if not battle_active:
 		return {}
 
-	# If we have pending actions in the queue, return the next one
-	if _pending_actions.size() > 0:
-		return _pending_actions.pop_front()
+	# Drain pending actions, skipping any whose actor died earlier this round
+	while _pending_actions.size() > 0:
+		var action = _pending_actions.pop_front()
+		if action.get("kind", "") == "death":
+			return action  # death notices always play
+		# Check if actor is still alive — skip if killed earlier this round
+		var actor = _find_unit(action.get("actor_name", ""))
+		if actor != null and actor.is_alive:
+			return action
+		# Actor dead — emit a skip notice and keep looping
+		battle_action.emit({
+			"kind": "skipped",
+			"actor_name": action.actor_name,
+			"actor_side": action.actor_side,
+			"target_name": "",
+			"target_side": "",
+			"damage": 0,
+			"skill_name": "行动取消(已阵亡)",
+			"target_hp": 0, "target_max_hp": 0, "target_alive": false,
+			"actor_hp": 0, "actor_max_hp": 0,
+			"actor_ap": 0, "actor_max_ap": 0,
+		})
 
-	# Queue empty but round still going — check battle end before next round
+	# Queue empty — round over
 	if not _round_done:
 		_round_done = true
 		_check_battle_end()
 		if not battle_active:
-			return {}  # battle ended during check
-		# Start next round
+			return {}
 		_start_next_round()
-		var act = {} if _pending_actions.is_empty() else _pending_actions.pop_front()
-		return act
+		if _pending_actions.size() > 0:
+			return _pending_actions.pop_front()
 
 	return {}
+
+
+func _find_unit(name: String):
+	for u in player_units + enemy_units:
+		if u.name_zh == name:
+			return u
+	return null
 
 
 func _compute_unit_action(unit: Dictionary) -> Dictionary:
