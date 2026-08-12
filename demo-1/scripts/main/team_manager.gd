@@ -1,31 +1,85 @@
 extends Node
-## TeamManager - manages player team formations. Attached to main screen.
-class_name TeamManager
+## =============================================================================
+## TeamManager — 管理玩家队伍编成的数据层
+## =============================================================================
+## 作用：维护所有队伍的数据（每队最多6个角色，最多8支队伍）。
+##       通过信号 team_changed 通知 UI 刷新。
+##
+## 和 BattleManager/DataManager 不同，TeamManager 不是 Autoload。
+## 它在 main_screen.gd 的 _ready() 中被手动 new 出来并 add_child，
+## 所以它的生命周期跟随主界面。切换到战斗场景后它会被销毁。
+##
+## 类名注册：`class_name TeamManager` 意味着这个脚本定义了一个新类型，
+##           其他脚本可以直接 `var tm = TeamManager.new()` 来实例化。
+##           类似 Python 中定义一个 class 然后 import 使用。
+## =============================================================================
 
+# ------------------------------------------------------------------ 信号
+## 队伍数据变更时发出。team_index 是变更的队伍索引。
+## 信号是 Godot 的观察者模式实现：一处 emit，多处 connect 监听。
+## 类比 Python：类似于 Qt 的 signal/slot 或 blinker 库的信号机制。
 signal team_changed(team_index: int)
+## 某个角色被选中时发出（预留，当前未使用）
 signal unit_selected(char_id: String, team_index: int)
 
-# ------------------------------------------------------------------ team data
-var teams: Array = []          # Array[Dictionary] - each team {name, units: Array[String]}
+# ------------------------------------------------------------------ 队伍数据
+
+## teams 是核心数据结构：
+##   Array[Dictionary] — 每个元素代表一支队伍
+##
+##   每支队伍的 Dictionary 结构：
+##   {
+##     "name": "第1队",           # 队伍名称
+##     "units": ["", "", ...]     # 长度为 6 的数组，每个元素是角色ID或空字符串
+##   }
+##
+##   units 数组的索引含义：
+##     slot 0, 1, 2 → 前排（Front Row）
+##     slot 3, 4, 5 → 后排（Back Row）
+##
+##   棋盘布局示意（从玩家视角）：
+##     前排: [slot0] [slot1] [slot2]    ← 离敌人近
+##     后排: [slot3] [slot4] [slot5]    ← 离敌人远
+##
+var teams: Array = []
+
+## 当前选中的队伍索引（在 UI 中高亮显示）
 var current_team: int = 0
-const MAX_TEAMS := 8
-const MAX_UNITS_PER_TEAM := 6
+
+## 常量定义
+const MAX_TEAMS := 8          # 最多 8 支队伍
+const MAX_UNITS_PER_TEAM := 6 # 每队最多 6 个角色（前排3+后排3）
 
 
+## ---------------------------------------------------------------------------
+## _init() — Godot 对象构造函数
+## ---------------------------------------------------------------------------
+## _init() 在对象被 new() 创建时自动调用。这是 GDScript 的构造函数。
+## 类比 Python 的 __init__(self)。
+## 注意区分 _init()（构造）和 _ready()（进入场景树）。
+##
+## 这里创建 3 支默认空队伍（所有 slot 为空字符串）。
+## 空字符串 "" 在 GDScript 中表示"无角色"。
+## ---------------------------------------------------------------------------
 func _init() -> void:
-	# Create default team
 	_create_default_teams()
 
 
 func _create_default_teams() -> void:
-	# Create 3 empty teams
 	for i in range(3):
 		teams.append({
 			"name": "第%d队" % (i + 1),
-			"units": ["", "", "", "", "", ""],  # 6 slots: front 3, back 3
+			# 6个槽位初始全为空
+			"units": ["", "", "", "", "", ""],
 		})
 
 
+## ---------------------------------------------------------------------------
+## get_team() — 获取队伍数据
+## ---------------------------------------------------------------------------
+## 参数 idx: 队伍索引，-1 表示使用 current_team（当前选中队伍）
+## 返回: 队伍 Dictionary，索引越界返回空字典 {}
+## ---------------------------------------------------------------------------
 func get_team(idx: int = -1) -> Dictionary:
 	if idx < 0:
 		idx = current_team
@@ -34,8 +88,13 @@ func get_team(idx: int = -1) -> Dictionary:
 	return {}
 
 
+## ---------------------------------------------------------------------------
+## get_all_assigned_char_ids() — 获取所有已编入队伍的角色ID
+## ---------------------------------------------------------------------------
+## 遍历所有队伍的所有槽位，收集非空角色ID（去重）。
+## 用途：在角色选择器中标记"已编入"状态，防止同一角色被重复编入多队。
+## ---------------------------------------------------------------------------
 func get_all_assigned_char_ids() -> Array:
-	"""Return all character IDs currently assigned to any team."""
 	var result: Array = []
 	for team in teams:
 		for uid in team.units:
@@ -44,6 +103,11 @@ func get_all_assigned_char_ids() -> Array:
 	return result
 
 
+## ---------------------------------------------------------------------------
+## add_team() — 新增队伍
+## ---------------------------------------------------------------------------
+## 不超过 MAX_TEAMS 限制。新增后发出 team_changed 信号。
+## ---------------------------------------------------------------------------
 func add_team() -> void:
 	if teams.size() >= MAX_TEAMS:
 		return
@@ -52,18 +116,35 @@ func add_team() -> void:
 		"name": "第%d队" % num,
 		"units": ["", "", "", "", "", ""],
 	})
+	# 通知 UI 刷新（emit 信号，所有连接了 team_changed 的地方都会收到）
 	team_changed.emit(teams.size() - 1)
 
 
+## ---------------------------------------------------------------------------
+## remove_team() — 删除队伍
+## ---------------------------------------------------------------------------
+## 至少保留 1 支队伍。删除后如果 current_team 越界则修正。
+## ---------------------------------------------------------------------------
 func remove_team(idx: int) -> void:
 	if teams.size() <= 1:
-		return
-	teams.remove_at(idx)
+		return  # 至少保留一支队伍
+	teams.remove_at(idx)  # .remove_at() 类似 Python 的 list.pop(index)
+	# 修正当前选中索引
 	if current_team >= teams.size():
 		current_team = teams.size() - 1
 	team_changed.emit(current_team)
 
 
+## ---------------------------------------------------------------------------
+## set_unit() — 将角色放置到指定队伍的指定槽位
+## ---------------------------------------------------------------------------
+## 参数：
+##   team_idx — 队伍索引
+##   slot     — 槽位索引 (0-5)
+##   char_id  — 角色ID
+##
+## 如果同一角色被放到不同槽位，会被覆盖（不检查重复）。
+## ---------------------------------------------------------------------------
 func set_unit(team_idx: int, slot: int, char_id: String) -> void:
 	if team_idx < 0 or team_idx >= teams.size():
 		return
@@ -73,10 +154,16 @@ func set_unit(team_idx: int, slot: int, char_id: String) -> void:
 	team_changed.emit(team_idx)
 
 
+## ---------------------------------------------------------------------------
+## remove_unit() — 从槽位移除角色（设为空字符串）
+## ---------------------------------------------------------------------------
 func remove_unit(team_idx: int, slot: int) -> void:
 	set_unit(team_idx, slot, "")
 
 
+## ---------------------------------------------------------------------------
+## get_unit_at() — 获取指定槽位的角色ID
+## ---------------------------------------------------------------------------
 func get_unit_at(team_idx: int, slot: int) -> String:
 	if team_idx < 0 or team_idx >= teams.size():
 		return ""
@@ -85,8 +172,12 @@ func get_unit_at(team_idx: int, slot: int) -> String:
 	return teams[team_idx].units[slot]
 
 
+## ---------------------------------------------------------------------------
+## get_team_unit_ids() — 获取队伍中所有非空角色ID
+## ---------------------------------------------------------------------------
+## 用途：开始战斗时，获取出战角色的ID列表传给 BattleManager
+## ---------------------------------------------------------------------------
 func get_team_unit_ids(team_idx: int) -> Array:
-	"""Return non-empty unit IDs in a team."""
 	var result: Array = []
 	var team = get_team(team_idx)
 	for uid in team.units:
@@ -95,6 +186,11 @@ func get_team_unit_ids(team_idx: int) -> Array:
 	return result
 
 
+## ---------------------------------------------------------------------------
+## has_any_units() — 检查是否至少有一个队伍放置了角色
+## ---------------------------------------------------------------------------
+## 用途：开始战斗前校验，防止空队伍出战
+## ---------------------------------------------------------------------------
 func has_any_units() -> bool:
 	for team in teams:
 		for uid in team.units:
@@ -103,9 +199,25 @@ func has_any_units() -> bool:
 	return false
 
 
+## ---------------------------------------------------------------------------
+## is_slot_front() — 判断槽位是否为前排
+## ---------------------------------------------------------------------------
+## slot 0,1,2 = 前排（返回 true）
+## slot 3,4,5 = 后排（返回 false）
+##
+## 前排/后排的区分在后续完整实现中很重要：
+##   - 前排角色优先成为近战攻击目标
+##   - 后排角色受到近战伤害减免
+##   当前版本暂未在战斗中实现此逻辑。
+## ---------------------------------------------------------------------------
 func is_slot_front(slot: int) -> bool:
 	return slot < 3
 
 
+## ---------------------------------------------------------------------------
+## get_slot_row() — 获取槽位所在行号
+## ---------------------------------------------------------------------------
+## 返回 0（前排）或 1（后排）
+## ---------------------------------------------------------------------------
 func get_slot_row(slot: int) -> int:
 	return 0 if slot < 3 else 1

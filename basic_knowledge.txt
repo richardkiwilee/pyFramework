@@ -1,0 +1,3 @@
+可以使用的环境
+C:\Python314\python.exe
+D:\Godot
