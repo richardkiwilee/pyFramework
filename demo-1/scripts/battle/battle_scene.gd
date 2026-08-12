@@ -344,12 +344,17 @@ func _play_action(action: Dictionary) -> void:
 			# --- 2. 每个目标一行 ---
 			var hits = action.get("hits", 1)
 			for t in action.get("targets", []):
-				if t.get("heal", 0) > 0:
+				var covered_by = t.get("covered_by", "")
+				if covered_by != "":
+					_add_log("   🛡️ %s 被 %s 掩护，未受伤" % [t.name, covered_by])
+				elif t.get("heal", 0) > 0:
 					_add_log("   ✅ %s 恢复 %d HP (HP %d/%d)" % [t.name, t.heal, t.hp, t.max_hp])
 				elif t.get("damage", 0) > 0:
 					var dmg_str := "%d" % t.damage
 					if hits > 1:
 						dmg_str += " (%d段)" % hits
+					if t.get("guarded", false):
+						dmg_str += "（格挡减伤）"
 					if t.get("alive", true):
 						_add_log("   💥 %s 受到 %s 伤害 (HP %d/%d)" % [t.name, dmg_str, t.hp, t.max_hp])
 					else:
@@ -381,9 +386,67 @@ func _play_action(action: Dictionary) -> void:
 			_add_log("⏭ %s 行动取消（已在本回合被击杀）" % action.actor_name)
 
 		"wait":
-			_add_log("⏸ %s 资源不足，本回合待机" % action.actor_name)
+			var reason = action.get("reason", "")
+			if reason == "stun":
+				_add_log("💫 %s 被眩晕，跳过行动" % action.actor_name)
+			elif reason == "freeze":
+				_add_log("❄️ %s 被冰冻，跳过行动" % action.actor_name)
+			else:
+				_add_log("⏸ %s 资源不足，本回合待机" % action.actor_name)
+
+		"cover":
+			_add_log("🛡️ %s 掩护了 %s！攻击转移" % [action.actor_name, action.target_name])
+			_flash_unit(action.actor_name, UITheme.BLUE)
+
+		"dodge":
+			_add_log("💨 %s 闪避了 %s 的攻击！" % [action.actor_name, action.target_name])
+			_flash_unit(action.actor_name, UITheme.GREEN)
+
+		"dot":
+			var dot_icon := "☠️"
+			var dot_type = action.get("dot_type", "")
+			if dot_type == "燃烧": dot_icon = "🔥"
+			_add_log("%s %s 受到 %d 点%s伤害 (HP %d/%d)" % [
+				dot_icon, action.actor_name, action.damage, dot_type,
+				action.target_hp, action.target_max_hp
+			])
+			_flash_unit(action.actor_name, UITheme.RED)
+
+		"status":
+			var status_icons := {
+				"poison": "☠️", "burn": "🔥", "stun": "💫", "freeze": "❄️",
+			}
+			var status_names := {
+				"poison": "中毒", "burn": "燃烧", "stun": "眩晕", "freeze": "冰冻",
+			}
+			_add_log("%s %s 中了%s！" % [
+				status_icons.get(action.get("status_type", ""), "✨"),
+				action.actor_name,
+				status_names.get(action.get("status_type", ""), action.get("status_type", "状态"))
+			])
+			_flash_unit(action.actor_name, UITheme.GOLD)
+
+		"heal":
+			var hs = action.get("heal_source", "")
+			if hs == "survive":
+				_add_log("🛡️ %s 挺过了致命伤害！(HP 1/%d)" % [action.actor_name, action.target_max_hp])
+				_flash_unit(action.actor_name, UITheme.GOLD_BRIGHT)
+			elif hs == "ap":
+				_add_log("🔴 %s AP+1 (击杀奖励)" % action.actor_name)
+			elif hs == "pp":
+				_add_log("🔵 %s PP+1" % action.actor_name)
+			elif hs == "regen":
+				_add_log("💚 %s 再生恢复 %d HP (HP %d/%d)" % [
+					action.actor_name, action.heal, action.target_hp, action.target_max_hp
+				])
+			else:
+				_add_log("💚 %s 吸血恢复 %d HP (HP %d/%d)" % [
+					action.actor_name, action.heal, action.target_hp, action.target_max_hp
+				])
+			_flash_unit(action.actor_name, UITheme.GREEN)
 
 	_refresh_display_from_action(action)
+	_refresh_status_icons()
 
 
 ## ---------------------------------------------------------------------------
@@ -458,18 +521,26 @@ func _animate_hit(_action: Dictionary) -> void:
 ##   所以 UI 的更新会同步反映到 BattleManager 的状态中。
 ## ---------------------------------------------------------------------------
 func _refresh_display_from_action(action: Dictionary) -> void:
-	# wait/skipped 行动没有目标字段，只更新行动者（如有AP信息）
-	if not action.has("target_name"):
+	var kind: String = action.get("kind", "")
+
+	# dot（DoT伤害）：HP变化记录在 actor 字段上
+	if kind == "dot":
+		_update_unit_bar(action.actor_name, action.target_hp, action.target_max_hp,
+			action.target_alive, action.actor_side)
+		return
+
+	# cover/dodge/status/wait/skipped/death：无HP变化
+	if kind in ["cover", "dodge", "status", "wait", "skipped", "death"]:
 		if action.has("actor_ap"):
 			_update_unit_bar(action.actor_name, action.actor_hp, action.actor_max_hp,
 				true, action.actor_side, action.actor_ap, action.actor_max_ap)
 		return
 
-	# 多目标：逐个更新（新技能系统的 targets 数组）
+	# attack/heal：多目标 targets 数组优先
 	if action.has("targets"):
 		for t in action.targets:
 			_update_unit_bar(t.name, t.hp, t.max_hp, t.alive, t.side)
-	else:
+	elif action.has("target_name"):
 		_update_unit_bar(action.target_name, action.target_hp, action.target_max_hp,
 			action.target_alive if action.has("target_alive") else true, action.target_side)
 
@@ -833,6 +904,21 @@ func _create_unit_card(unit: Dictionary, is_enemy: bool) -> Control:
 	unit["_status_lbl"] = status_lbl
 
 	return card
+
+
+## 更新单位卡片的异常状态图标（中毒/燃烧/眩晕/冰冻）
+func _refresh_status_icons() -> void:
+	var status_icons := {"poison": "☠️", "burn": "🔥", "stun": "💫", "freeze": "❄️"}
+	for entry in player_bars + enemy_bars:
+		var unit = entry.unit
+		if not unit.has("_status_lbl"):
+			continue
+		var text := "存活" if unit.is_alive else "阵亡"
+		for st in unit.statuses:
+			var stype: String = String(st.get("type", ""))
+			if status_icons.has(stype):
+				text = status_icons[stype] + " " + text
+		unit._status_lbl.text = text
 
 
 ## 创建血条填充颜色样式（小圆角的纯色块）

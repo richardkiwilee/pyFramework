@@ -256,6 +256,9 @@ var _current_turn: int = 0
 ## 当前回合是否已结束
 var _round_done: bool = true
 
+# 全体待机平局标记（延迟到队列耗尽时发出信号）
+var _pending_draw: bool = false
+
 
 # ==================================================================
 #  战斗单位创建 (Battle Unit Factory)
@@ -374,7 +377,7 @@ func create_battle_unit(char_id: String, is_enemy: bool = false) -> Dictionary:
 		"max_pp": class_data.get("base_pp", 1),
 
 		# --- 技能 ---
-		# 直接拷贝 JSON 中的技能数组（当前未在战斗中使用！）
+		# 解析为 skills.json 完整技能数据（含 effects）
 		"skills": _resolve_unit_skills(char_data),
 
 		# --- 状态标记 ---
@@ -382,7 +385,9 @@ func create_battle_unit(char_id: String, is_enemy: bool = false) -> Dictionary:
 		"is_alive": true,
 		"equipment": {},
 		"position": 0,      # 在阵型中的位置，由 start_battle() 设置
-		"statuses": [],     # 异常状态列表（预留）
+		"statuses": [],        # 异常状态 [{type, turns}]
+		"buffs": {},            # 属性修正 {"atk": 1.3, "def": 1.2, ...}
+		"survived_fatal": false,  # survive_fatal 是否已用过（一次性）
 
 		# --- 统计 ---
 		"damage_dealt": 0,
@@ -477,6 +482,7 @@ func start_battle(player_team_ids: Array) -> void:
 	_pending_actions.clear()
 	_turn_order.clear()
 	_current_turn = 0
+	_pending_draw = false
 
 	# --- 创建玩家单位 ---
 	player_units.clear()
@@ -510,6 +516,10 @@ func start_battle(player_team_ids: Array) -> void:
 ## 然后进入第一个回合。
 ## ---------------------------------------------------------------------------
 func begin_combat() -> void:
+	# 【时点：战斗开始】先制/先手类被动（一次性）
+	for u in player_units + enemy_units:
+		_dispatch_passives("battle_start", u, {})
+
 	battle_started.emit()
 	_start_next_round()
 
@@ -562,9 +572,18 @@ func _start_next_round() -> void:
 	round_num += 1
 	round_started.emit(round_num)
 
-	# --- 步骤2: 本回合开始（资源不自动恢复）---
+	# --- 步骤2: 清空上回合残余队列（必须在状态结算之前！）---
+	_pending_actions.clear()
 
-	# --- 步骤3: 构建行动顺序 ---
+	# --- 步骤3: 状态结算（DoT在回合开始时结算并插入队列）---
+	_tick_statuses()
+
+	# --- 步骤3: 回合开始被动（低HP回PP等）---
+	for u in player_units + enemy_units:
+		if u.is_alive:
+			_dispatch_passives("round_start", u, {})
+
+	# --- 步骤4: 构建行动顺序 ---
 	# 按速度(spd)降序排列：速度最快的先行动
 	_turn_order.clear()
 	var all_units = player_units + enemy_units
@@ -577,13 +596,24 @@ func _start_next_round() -> void:
 	# --- 步骤4: 预计算所有行动 ---
 	# 遍历速度顺序，为每个单位计算行动
 	# 注意：_compute_unit_action() 内部会直接修改目标单位的 hp
-	_pending_actions.clear()
 	for u in _turn_order:
 		if not u.is_alive:
 			continue
+		var pre_len := _pending_actions.size()
 		var action = _compute_unit_action(u)
 		if not action.is_empty():
 			_pending_actions.append(action)
+		# 将 u 计算期间产生的响应行动（闪避/反击/死亡/治疗）
+		# 移到 u 自己的行动之后，保证播放顺序正确
+		var tail := _pending_actions.slice(pre_len)
+		if tail.size() > 0:
+			_pending_actions.resize(pre_len)
+			if not action.is_empty():
+				# u 的行动在最前面，响应行动跟在后面
+				var u_action: Dictionary = tail.pop_back()
+				_pending_actions.append(u_action)
+			for a in tail:
+				_pending_actions.append(a)
 
 	# --- 如果本回合所有人都资源不足待机，战斗强制结束 ---
 	var all_waited := true
@@ -592,9 +622,8 @@ func _start_next_round() -> void:
 			all_waited = false
 			break
 	if all_waited:
-		battle_active = false
-		battle_ended.emit("draw")
-		return
+		# 不立即结束：让待机行动先播放，battle_ended 延迟到队列耗尽时发出
+		_pending_draw = true
 
 	# --- 步骤5: 标记回合进行中 ---
 	_round_done = false
@@ -696,6 +725,12 @@ func next_action() -> Dictionary:
 		_check_battle_end()
 		if not battle_active:
 			return {}  # 战斗结束，返回空
+
+		# 上一回合全体待机 -> 现在发出平局信号（待机日志已播放完毕）
+		if _pending_draw:
+			battle_active = false
+			battle_ended.emit("draw")
+			return {}
 
 		# 战斗未结束 -> 开始下一回合
 		_start_next_round()
@@ -803,14 +838,25 @@ func _find_unit(name: String):
 ## =========================================================================
 ## ---------------------------------------------------------------------------
 func _compute_unit_action(unit: Dictionary) -> Dictionary:
-	# --- 分离主动/被动技能 ---
+	# --- 状态检查：眩晕/冰冻跳过行动 ---
+	for st in unit.statuses:
+		var stype: String = String(st.get("type", ""))
+		if stype in ["stun", "freeze"]:
+			st.turns = st.turns - 1
+			if st.turns <= 0:
+				unit.statuses.erase(st)
+			return {
+				"kind": "wait",
+				"actor_name": unit.name_zh,
+				"actor_side": "enemy" if unit.is_enemy else "player",
+				"reason": "stun" if stype == "stun" else "freeze",
+			}
+
+	# --- 分离主动技能 ---
 	var active_skills: Array = []
-	var passive_skills: Array = []
 	for sk in unit.skills:
 		if sk.get("type", "") == "active":
 			active_skills.append(sk)
-		elif sk.get("type", "") == "passive":
-			passive_skills.append(sk)
 
 	# --- 筛选付得起的主动技能 ---
 	var affordable: Array = []
@@ -829,6 +875,9 @@ func _compute_unit_action(unit: Dictionary) -> Dictionary:
 	var skill: Dictionary = affordable[randi() % affordable.size()]
 	var ap_cost: int = max(1, skill.get("ap_cost", 1))  # 主动技能至少消耗1AP
 	unit.ap -= ap_cost
+
+	# --- 行动前被动（攻击强化类）---
+	_dispatch_passives("before_action", unit, {})
 
 	# --- 确定敌我目标池 ---
 	var foes = enemy_units if not unit.is_enemy else player_units
@@ -910,34 +959,82 @@ func _compute_unit_action(unit: Dictionary) -> Dictionary:
 			t_heal = _calc_heal(unit, power) * hits
 			_apply_heal(t, t_heal)
 			total_heal += t_heal
+			results.append({
+				"name": t.name_zh,
+				"side": "player" if not t.is_enemy else "enemy",
+				"damage": 0, "heal": t_heal,
+				"hp": t.hp, "max_hp": t.max_hp, "alive": t.is_alive,
+			})
 		elif damage_type in ["buff", "shield", "debuff", "utility", "special", "summon"]:
-			pass
+			results.append({
+				"name": t.name_zh,
+				"side": "player" if not t.is_enemy else "enemy",
+				"damage": 0, "heal": 0,
+				"hp": t.hp, "max_hp": t.max_hp, "alive": t.is_alive,
+			})
 		else:
+			# 【被攻击时点判定链】掩护/闪避/格挡在 _resolve_attack 中结算
+			var coverer = _find_coverer(t)
+			var actual_target: Dictionary = coverer if coverer != null else t
+			if coverer != null:
+				coverer.pp -= 1
+				_pending_actions.append({
+					"kind": "cover",
+					"actor_name": coverer.name_zh,
+					"actor_side": "enemy" if coverer.is_enemy else "player",
+					"target_name": t.name_zh,
+					"target_side": "enemy" if t.is_enemy else "player",
+				})
+				results.append({
+					"name": t.name_zh,
+					"side": "player" if not t.is_enemy else "enemy",
+					"damage": 0, "heal": 0,
+					"hp": t.hp, "max_hp": t.max_hp, "alive": t.is_alive,
+					"covered_by": coverer.name_zh,
+				})
+
+			var t_guarded := false
 			for _h in range(hits):
-				t_dmg += _calc_damage(unit, t, power, damage_type)
-			_apply_damage(unit, t, t_dmg)
-			total_dmg += t_dmg
-		results.append({
-			"name": t.name_zh,
-			"side": "player" if not t.is_enemy else "enemy",
-			"damage": t_dmg,
-			"heal": t_heal,
-			"hp": t.hp,
-			"max_hp": t.max_hp,
-			"alive": t.is_alive,
-		})
+				var res = _resolve_attack(unit, actual_target, power, damage_type, skill.get("name_zh", "技能"))
+				t_dmg += res.damage
+				if res.guarded:
+					t_guarded = true
+				if res.dodged:
+					continue
+				total_dmg += res.damage
+				if res.damage > 0:
+					# 【时点：攻击命中】吸血类被动
+					_dispatch_passives("on_hit", unit, {"target": res.target, "damage": res.damage})
+					# 附加技能状态（中毒/燃烧/眩晕/冰冻）
+					_try_apply_skill_statuses(skill, res.target)
+					# 【时点：被命中后】反击类被动
+					_dispatch_passives("after_hit", res.target, {"attacker": unit, "damage": res.damage})
+				if res.killed:
+					# 【时点：击杀】击杀奖励/追击类被动
+					_dispatch_passives("on_kill", unit, {"target": res.target})
+
+			results.append({
+				"name": actual_target.name_zh,
+				"side": "player" if not actual_target.is_enemy else "enemy",
+				"damage": t_dmg,
+				"heal": 0,
+				"hp": actual_target.hp,
+				"max_hp": actual_target.max_hp,
+				"alive": actual_target.is_alive,
+				"guarded": t_guarded,
+			})
+
+	# 行动结束，清除临时buff
+	unit.buffs.clear()
+
+	if results.is_empty():
+		return {
+			"kind": "wait",
+			"actor_name": unit.name_zh,
+			"actor_side": "enemy" if unit.is_enemy else "player",
+		}
 
 	var primary: Dictionary = results[0]
-
-	# --- 尝试触发被动技能 ---
-	var pp_cost := 0
-	var passive_name := ""
-	if unit.pp >= 1 and passive_skills.size() > 0 and randi() % 100 < 30:
-		var psk = passive_skills[randi() % passive_skills.size()]
-		pp_cost = psk.get("pp_cost", 1)
-		if pp_cost <= unit.pp:
-			unit.pp -= pp_cost
-			passive_name = psk.get("name_en", psk.get("name_zh", ""))
 
 	# --- 构建行动字典 ---
 	return {
@@ -947,8 +1044,8 @@ func _compute_unit_action(unit: Dictionary) -> Dictionary:
 		"skill_name": skill.get("name_zh", skill.get("name_en", "技能")),
 		"skill_name_en": skill.get("name_en", ""),
 		"ap_cost": ap_cost,
-		"pp_cost": pp_cost,
-		"passive_name": passive_name,
+		"pp_cost": 0,
+		"passive_name": "",
 		"damage_type": damage_type,
 		"hits": hits,
 		"target_name": primary.name,
@@ -1021,8 +1118,18 @@ func _calc_damage(attacker: Dictionary, defender: Dictionary, power: float,
 			atk_val = attacker.atk
 			def_val = defender.def
 
+	# 应用 buff 修正（attack_up/defense_up 等）
+	atk_val *= attacker.buffs.get("atk", 1.0)
+	def_val *= defender.buffs.get("def", 1.0)
+
 	var base = max(1.0, power / 100.0 * atk_val - def_val * 0.4)
 	base *= 0.85 + randf() * 0.3
+
+	# 暴击判定（crit_up buff 修正暴击率）
+	var crit_chance: float = float(attacker.crit) * attacker.buffs.get("crit", 1.0)
+	if randi() % 100 < int(crit_chance):
+		base *= 1.5
+
 	return max(1, int(base))
 
 
@@ -1096,27 +1203,31 @@ func _apply_damage(attacker: Dictionary, target: Dictionary, damage: int) -> voi
 
 	# --- 死亡检测 ---
 	if target.hp <= 0:
-		target.is_alive = false
+		# survive_fatal 被动：挺过一次致命伤害（一次性，保留1HP）
+		if not target.survived_fatal and _has_passive_effect(target, "survive_fatal"):
+			target.hp = 1
+			target.survived_fatal = true
+			_pending_actions.append({
+				"kind": "heal",
+				"actor_name": target.name_zh,
+				"actor_side": "enemy" if target.is_enemy else "player",
+				"target_name": target.name_zh,
+				"target_side": "enemy" if target.is_enemy else "player",
+				"heal": 0,
+				"heal_source": "survive",
+				"target_hp": target.hp,
+				"target_max_hp": target.max_hp,
+				"actor_hp": target.hp,
+				"actor_max_hp": target.max_hp,
+				"actor_ap": target.ap,
+				"actor_max_ap": target.max_ap,
+				"actor_pp": target.pp,
+				"actor_max_pp": target.max_pp,
+			})
+			return
 
-		# 构造死亡行动并插入队列队首
-		# push_front — 插入到数组开头（和 push_back 对应）
-		# 等效于 Python 的 list.insert(0, item)
-		_pending_actions.append({
-			"kind": "death",                       # 行动类型：死亡
-			"actor_name": target.name_zh,           # "actor" = 死亡的单位
-			"actor_side": "enemy" if target.is_enemy else "player",
-			"target_name": "",                      # 死亡没有"目标"
-			"target_side": "",
-			"damage": 0,
-			"skill_name": "",
-			"target_hp": 0,
-			"target_max_hp": target.max_hp,
-			"target_alive": false,
-			"actor_hp": target.hp,                  # hp 已经为 0
-			"actor_max_hp": target.max_hp,
-			"actor_ap": 0,
-			"actor_max_ap": 0,
-		})
+		target.is_alive = false
+		_queue_death_action(target)
 
 
 # ==================================================================
@@ -1157,9 +1268,16 @@ func _check_battle_end() -> void:
 	# 判定结果
 	if not player_alive:
 		battle_active = false
+		# 【时点：战斗结束】战后恢复类被动
+		for u in player_units:
+			if u.is_alive:
+				_dispatch_passives("battle_end", u, {})
 		battle_ended.emit("defeat")
 	elif not enemy_alive:
 		battle_active = false
+		for u in player_units:
+			if u.is_alive:
+				_dispatch_passives("battle_end", u, {})
 		battle_ended.emit("victory")
 
 
@@ -1268,6 +1386,448 @@ func _match_skill(embedded: Dictionary) -> Dictionary:
 	}
 
 
+# ==================================================================
+#  时点分派系统 (Timing Point Dispatch System)
+# ==================================================================
+# 被动技能按触发时点响应。效果类型到触发时点的映射：
+#   battle_start  战斗开始（先制、先手）
+#   round_start   回合开始（低HP回PP、再生）
+#   before_action 自身行动前（攻击强化类）
+#   on_hit        攻击命中时（吸血类）
+#   on_kill       击杀时（击杀奖励、追击）
+#   after_hit     被命中后（反击、不死）
+#   battle_end    战斗结束（战后恢复）
+
+const EFFECT_TRIGGERS := {
+	"initiative_up": "battle_start",
+	"first_strike": "battle_start",
+	"pp_on_low_hp": "round_start",
+	"regen": "round_start",
+	"attack_up": "before_action",
+	"power_boost": "before_action",
+	"truestrike_once": "before_action",
+	"truestrike": "before_action",
+	"accuracy_up": "before_action",
+	"crit_up": "before_action",
+	"heal_on_hit": "on_hit",
+	"lifesteal": "on_hit",
+	"pp_on_hit": "on_hit",
+	"ap_on_kill": "on_kill",
+	"pp_on_kill": "on_kill",
+	"follow_up": "on_kill",
+	"attack_up_on_kill": "on_kill",
+	"counter": "after_hit",
+	"ally_defense_up": "after_hit",
+	"end_of_battle_heal": "battle_end",
+}
+
+
+## 解析 "30%" / "50%HP" 类字符串为 0.30 浮点
+func _pct_value(val, default: float) -> float:
+	if val is String:
+		var digits := ""
+		for ch in val:
+			if ch in "0123456789.":
+				digits += ch
+		if digits != "":
+			return float(digits) / 100.0
+	if val is int or val is float:
+		return float(val) / 100.0
+	return default
+
+
+## 解析值字段为整数（兼容 "AP-1" / 50 / "2"）
+func _int_value(val, default: int) -> int:
+	if val is int or val is float:
+		return int(val)
+	if val is String:
+		var digits := ""
+		for ch in val:
+			if ch in "0123456789":
+				digits += ch
+		if digits != "":
+			return int(digits)
+	return default
+
+
+## ---------------------------------------------------------------------------
+## _dispatch_passives() — 时点分派核心
+## ---------------------------------------------------------------------------
+## 在指定时点触发 subject 单位的所有匹配被动技能。
+## context 携带事件信息：{attacker, target, damage, defender, ...}
+## 被动消耗 PP 后执行对应效果。预计算模型下效果产生的行动
+## 直接 append 到 _pending_actions 队列。
+## ---------------------------------------------------------------------------
+func _dispatch_passives(trigger: String, subject: Dictionary, context: Dictionary) -> void:
+	if not subject.is_alive:
+		return
+	for sk in subject.skills:
+		if sk.get("type", "") != "passive":
+			continue
+		var pp_cost: int = int(sk.get("pp_cost", 1))
+		if pp_cost > 0 and subject.pp < pp_cost:
+			continue
+		for ef in sk.get("effects", []):
+			var et: String = String(ef.get("effect_type", ""))
+			if EFFECT_TRIGGERS.get(et, "") == trigger:
+				if pp_cost > 0:
+					subject.pp -= pp_cost
+				_execute_passive_effect(subject, ef, context)
+				break  # 一个技能本时点只触发一个效果
+
+
+## 单个被动效果的机械实现
+func _execute_passive_effect(subject: Dictionary, ef: Dictionary, context: Dictionary) -> void:
+	var et: String = String(ef.get("effect_type", ""))
+	var value = ef.get("value", 0)
+	match et:
+		"initiative_up":
+			subject.spd += _int_value(value, 20)
+		"first_strike":
+			subject.spd += 999  # 先手：临时速度大幅提升确保先动
+		"pp_on_low_hp":
+			if subject.hp <= subject.max_hp / 2:
+				subject.pp = min(subject.max_pp, subject.pp + _int_value(value, 1))
+				_queue_heal_action(subject, subject, 0, "pp")
+		"regen":
+			var regen_amt: int = max(1, int(subject.max_hp * 0.10))
+			_apply_heal(subject, regen_amt)
+			_queue_heal_action(subject, subject, regen_amt, "regen")
+		"attack_up":
+			subject.buffs["atk"] = 1.0 + _pct_value(value, 0.3)
+		"power_boost":
+			if subject.hp == subject.max_hp:
+				subject.buffs["power"] = float(_int_value(value, 50))
+		"truestrike", "truestrike_once":
+			subject.buffs["truestrike"] = 1
+		"accuracy_up":
+			subject.buffs["acc"] = 1.0 + _pct_value(value, 0.2)
+		"crit_up":
+			subject.buffs["crit"] = 1.0 + _pct_value(value, 0.5)
+		"heal_on_hit":
+			var dmg_hit: int = int(context.get("damage", 0))
+			var heal_amt: int = max(1, int(dmg_hit * _pct_value(value, 0.25)))
+			_apply_heal(subject, heal_amt)
+			_queue_heal_action(subject, subject, heal_amt, "lifesteal")
+		"lifesteal":
+			var dmg_ls: int = int(context.get("damage", 0))
+			var ls_amt: int = max(1, int(dmg_ls * _pct_value(value, 0.5)))
+			_apply_heal(subject, ls_amt)
+			_queue_heal_action(subject, subject, ls_amt, "lifesteal")
+		"pp_on_hit":
+			subject.pp = min(subject.max_pp, subject.pp + _int_value(value, 1))
+		"ap_on_kill":
+			subject.ap = min(subject.max_ap, subject.ap + _int_value(value, 1))
+			_queue_heal_action(subject, subject, 0, "ap")
+		"pp_on_kill":
+			subject.pp = min(subject.max_pp, subject.pp + _int_value(value, 1))
+			_queue_heal_action(subject, subject, 0, "pp")
+		"attack_up_on_kill":
+			subject.buffs["atk"] = 1.0 + _pct_value(value, 0.5)
+		"follow_up":
+			# 追击：对随机敌人追加一次攻击
+			var foes = enemy_units if not subject.is_enemy else player_units
+			var alive_f: Array = []
+			for t in foes:
+				if t.is_alive: alive_f.append(t)
+			if alive_f.size() > 0:
+				var ft = alive_f[randi() % alive_f.size()]
+				var fdmg := _calc_damage(subject, ft, 100.0)
+				_apply_damage(subject, ft, fdmg)
+				_queue_attack_action(subject, ft, fdmg, "追击")
+		"counter":
+			# 反击：对攻击者回击一次
+			var atk = context.get("attacker")
+			if atk != null and atk.is_alive:
+				var cdmg := _calc_damage(subject, atk, 100.0)
+				_apply_damage(subject, atk, cdmg)
+				_queue_attack_action(subject, atk, cdmg, "反击")
+		"ally_defense_up":
+			var defender = context.get("defender")
+			if defender != null:
+				defender.buffs["def"] = 1.0 + _pct_value(value, 0.2)
+		"end_of_battle_heal":
+			var eoh: int = max(1, int(subject.max_hp * _pct_value(value, 0.25)))
+			_apply_heal(subject, eoh)
+		_:
+			pass  # 未实现的效果类型静默跳过
+
+
+# ==================================================================
+#  攻击结算链（被攻击时点的判定顺序）
+# ==================================================================
+
+## ---------------------------------------------------------------------------
+## _resolve_attack() — 单次攻击的完整结算
+## ---------------------------------------------------------------------------
+## 【被攻击时点判定链】（对应数据 passive_trigger_order 的顺序）
+##   1. 友方掩护（cover_ally 被动，目标转移到掩护者）
+##   2. 目标防御被动（evade_once 必闪 / guard_medium 中格挡，消耗PP）
+##   3. 自然闪避（acc - eva 判定）
+##   4. 自然格挡（guard 属性判定，50%减伤）
+##   5. 伤害计算（含 buff 修正）
+##
+## 返回 Dictionary：
+##   target    — 实际承伤者（掩护转移后）
+##   covered   — 是否被掩护
+##   dodged    — 是否闪避
+##   guarded   — 是否格挡（50%减伤）
+##   damage    — 实际伤害（0 表示闪避）
+##   killed    — 是否击杀
+## ---------------------------------------------------------------------------
+func _resolve_attack(attacker: Dictionary, target: Dictionary, power: float,
+		damage_type: String, skill_name: String) -> Dictionary:
+	var result := {
+		"target": target, "covered": false, "dodged": false,
+		"guarded": false, "damage": 0, "killed": false,
+	}
+
+	# --- 1. 友方掩护：转移攻击目标到掩护者 ---
+	var coverer = _find_coverer(target)
+	if coverer != null:
+		coverer.pp -= 1
+		target = coverer
+		result.target = target
+		result.covered = true
+		_pending_actions.append({
+			"kind": "cover",
+			"actor_name": coverer.name_zh,
+			"actor_side": "enemy" if coverer.is_enemy else "player",
+			"target_name": attacker.name_zh,
+			"target_side": "enemy" if attacker.is_enemy else "player",
+		})
+
+	# --- 2. 目标防御被动（evade_once / guard_medium）---
+	for sk in target.skills:
+		if sk.get("type", "") != "passive":
+			continue
+		var pp_cost: int = max(1, int(sk.get("pp_cost", 1)))
+		if target.pp < pp_cost:
+			continue
+		for ef in sk.get("effects", []):
+			var et: String = String(ef.get("effect_type", ""))
+			if et == "evade_once":
+				target.pp -= pp_cost
+				result.dodged = true
+				_pending_actions.append({
+					"kind": "dodge",
+					"actor_name": target.name_zh,
+					"actor_side": "enemy" if target.is_enemy else "player",
+					"target_name": attacker.name_zh,
+					"target_side": "enemy" if attacker.is_enemy else "player",
+				})
+				return result
+			elif et == "guard_medium":
+				target.pp -= pp_cost
+				result.guarded = true
+				break
+		if result.guarded:
+			break
+
+	# --- 3. 自然闪避判定 ---
+	var hit_chance: int = clamp(int(attacker.acc) - int(target.eva), 50, 95)
+	if attacker.buffs.get("truestrike", 0) == 1:
+		hit_chance = 100
+	if randi() % 100 >= hit_chance:
+		result.dodged = true
+		_pending_actions.append({
+			"kind": "dodge",
+			"actor_name": target.name_zh,
+			"actor_side": "enemy" if target.is_enemy else "player",
+			"target_name": attacker.name_zh,
+			"target_side": "enemy" if attacker.is_enemy else "player",
+		})
+		return result
+
+	# --- 4. 自然格挡判定 ---
+	if randi() % 100 < int(target.guard):
+		result.guarded = true
+
+	# --- 5. 伤害计算 ---
+	var eff_power: float = power + attacker.buffs.get("power", 0.0)
+	var dmg := _calc_damage(attacker, target, eff_power, damage_type)
+	if result.guarded:
+		dmg = max(1, int(dmg * 0.5))
+	_apply_damage(attacker, target, dmg)
+	result.damage = dmg
+	result.killed = not target.is_alive
+	return result
+
+
+## 检查单位是否拥有指定效果类型的被动
+func _has_passive_effect(unit: Dictionary, effect_type: String) -> bool:
+	for sk in unit.skills:
+		if sk.get("type", "") != "passive":
+			continue
+		for ef in sk.get("effects", []):
+			if String(ef.get("effect_type", "")) == effect_type:
+				return true
+	return false
+
+
+## 在目标的友方中寻找可发动 cover_ally 的掩护者
+func _find_coverer(target: Dictionary):
+	var allies = player_units if not target.is_enemy else enemy_units
+	for ally in allies:
+		if not ally.is_alive or ally == target:
+			continue
+		for sk in ally.skills:
+			if sk.get("type", "") != "passive":
+				continue
+			var pp_cost: int = max(1, int(sk.get("pp_cost", 1)))
+			if ally.pp < pp_cost:
+				continue
+			for ef in sk.get("effects", []):
+				if String(ef.get("effect_type", "")) == "cover_ally":
+					return ally
+	return null
+
+
+# ==================================================================
+#  状态效果系统 (Status Effects)
+# ==================================================================
+
+## 附加状态（已存在同类型则刷新回合数）
+func _apply_status(target: Dictionary, status_type: String, turns: int = 2) -> void:
+	for st in target.statuses:
+		if st.get("type") == status_type:
+			st.turns = max(st.turns, turns)
+			return
+	target.statuses.append({"type": status_type, "turns": turns})
+	_pending_actions.append({
+		"kind": "status",
+		"actor_name": target.name_zh,
+		"actor_side": "enemy" if target.is_enemy else "player",
+		"status_type": status_type,
+	})
+
+
+## 技能命中后尝试附加状态（30% 概率）
+func _try_apply_skill_statuses(skill: Dictionary, target: Dictionary) -> void:
+	for ef in skill.get("effects", []):
+		var et: String = String(ef.get("effect_type", ""))
+		if et in ["poison", "burn", "stun", "freeze"] and randi() % 100 < 30:
+			_apply_status(target, et)
+
+
+## 回合开始时的状态结算（DoT 伤害 + 状态回合数递减）
+func _tick_statuses() -> void:
+	for u in player_units + enemy_units:
+		if not u.is_alive:
+			continue
+		for st in u.statuses.duplicate():
+			var stype: String = String(st.get("type", ""))
+			if stype == "poison":
+				var dmg: int = max(1, int(u.max_hp * 0.10))
+				_take_dot_damage(u, dmg, "中毒")
+			elif stype == "burn":
+				var dmg: int = max(1, int(u.max_hp * 0.08))
+				_take_dot_damage(u, dmg, "燃烧")
+			st.turns = st.turns - 1
+			if st.turns <= 0:
+				u.statuses.erase(st)
+
+
+## DoT 伤害（不记录攻击者统计）
+func _take_dot_damage(target: Dictionary, amount: int, source_name: String) -> void:
+	if not target.is_alive:
+		return
+	target.hp = max(0, target.hp - amount)
+	target.damage_taken += amount
+	_pending_actions.append({
+		"kind": "dot",
+		"actor_name": target.name_zh,
+		"actor_side": "enemy" if target.is_enemy else "player",
+		"dot_type": source_name,
+		"damage": amount,
+		"target_hp": target.hp,
+		"target_max_hp": target.max_hp,
+		"target_alive": target.is_alive,
+	})
+	if target.hp <= 0:
+		target.is_alive = false
+		_queue_death_action(target)
+
+
+# ==================================================================
+#  队列辅助（把被动产生的行动插入播放队列）
+# ==================================================================
+
+## 排队一个攻击行动（用于反击/追击）
+func _queue_attack_action(attacker: Dictionary, target: Dictionary, dmg: int, label: String) -> void:
+	_pending_actions.append({
+		"kind": "attack",
+		"actor_name": attacker.name_zh,
+		"actor_side": "enemy" if attacker.is_enemy else "player",
+		"skill_name": label,
+		"skill_name_en": "",
+		"ap_cost": 0,
+		"pp_cost": 0,
+		"passive_name": "",
+		"damage_type": "physical",
+		"hits": 1,
+		"target_name": target.name_zh,
+		"target_side": "enemy" if target.is_enemy else "player",
+		"damage": dmg,
+		"heal": 0,
+		"target_hp": target.hp,
+		"target_max_hp": target.max_hp,
+		"target_alive": target.is_alive,
+		"targets": [{
+			"name": target.name_zh,
+			"side": "enemy" if target.is_enemy else "player",
+			"damage": dmg, "heal": 0,
+			"hp": target.hp, "max_hp": target.max_hp, "alive": target.is_alive,
+		}],
+		"actor_hp": attacker.hp,
+		"actor_max_hp": attacker.max_hp,
+		"actor_ap": attacker.ap,
+		"actor_max_ap": attacker.max_ap,
+	})
+
+
+## 排队一个治疗行动（用于吸血/再生等）
+func _queue_heal_action(healer: Dictionary, target: Dictionary, amount: int, source: String) -> void:
+	if amount > 0 or source == "ap" or source == "pp":
+		_pending_actions.append({
+			"kind": "heal",
+			"actor_name": healer.name_zh,
+			"actor_side": "enemy" if healer.is_enemy else "player",
+			"target_name": target.name_zh,
+			"target_side": "enemy" if target.is_enemy else "player",
+			"heal": amount,
+			"heal_source": source,
+			"target_hp": target.hp,
+			"target_max_hp": target.max_hp,
+			"actor_hp": healer.hp,
+			"actor_max_hp": healer.max_hp,
+			"actor_ap": healer.ap,
+			"actor_max_ap": healer.max_ap,
+			"actor_pp": healer.pp,
+			"actor_max_pp": healer.max_pp,
+		})
+
+
+## 排队死亡行动
+func _queue_death_action(target: Dictionary) -> void:
+	_pending_actions.append({
+		"kind": "death",
+		"actor_name": target.name_zh,
+		"actor_side": "enemy" if target.is_enemy else "player",
+		"target_name": "",
+		"target_side": "",
+		"damage": 0,
+		"skill_name": "",
+		"target_hp": 0,
+		"target_max_hp": target.max_hp,
+		"target_alive": false,
+		"actor_hp": target.hp,
+		"actor_max_hp": target.max_hp,
+		"actor_ap": 0,
+		"actor_max_ap": 0,
+	})
+
+
 func _safe_int(val, fallback: int = 10) -> int:
 	if val is int or val is float:
 		return int(val)
@@ -1300,3 +1860,4 @@ func reset() -> void:
 	_current_turn = 0
 	round_num = 0
 	_round_done = true
+	_pending_draw = false
