@@ -249,11 +249,8 @@ func _draw_hex(center: Vector2, fill: Color, border: Color) -> void:
 ##   这种"圆碰撞检测"比精确的六边形碰撞简单，且实际使用中精度足够。
 ## ---------------------------------------------------------------------------
 func _gui_input(event: InputEvent) -> void:
-	# 非活跃队伍不响应输入
-	if not is_active:
-		return
-
-	# 只处理鼠标按键按下事件（忽略释放和移动）
+	# 所有棋盘都响应点击（不在 is_active 时提前返回）
+	# 这样点击任意队伍的角色即可切换出战队伍
 	if event is InputEventMouseButton and event.pressed:
 		var mp = event.position  # 鼠标位置
 		# 遍历6个格子检测点击命中

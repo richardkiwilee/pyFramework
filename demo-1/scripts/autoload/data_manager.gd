@@ -44,6 +44,10 @@ var equipment_by_subtype: Dictionary = {} # 子类型(sword/axe/...) → [装备
 # 是否已经加载过数据（防止重复加载）
 var _loaded: bool = false
 
+# 队伍数据备份 — 战斗前保存，编队界面恢复时使用
+# 结构: Array[Dictionary]，每项为 {name, units: Array[String]}
+var saved_teams: Array = []
+
 
 ## ---------------------------------------------------------------------------
 ## _ready() — Godot 生命周期回调

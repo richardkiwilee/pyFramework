@@ -55,7 +55,7 @@ const BoardGridClass = preload("res://scripts/main/board_grid.gd")
 # ------------------------------------------------------------------ 运行时状态
 
 ## TeamManager 实例 — 队伍数据管理者（非 Autoload，手动创建）
-var team_manager  # TeamManager
+var team_manager  # TeamManager 实例
 
 ## 当前选中的队伍索引（对应左边高亮的棋盘）
 var active_board_index: int = 0
@@ -96,12 +96,16 @@ var equip_pending_char: String = ""   # 角色ID
 
 func _ready() -> void:
 	# --- 创建 TeamManager 实例 ---
-	# team_manager 不是 Autoload，而是手动 new 出来并添加为子节点
-	# 这样它的生命周期跟随 MainScreen，切换到战斗场景时会被自动清理
 	team_manager = TeamManagerClass.new()
 	add_child(team_manager)
 	# 连接信号：队伍数据变更 -> 重建棋盘
 	team_manager.team_changed.connect(_on_team_changed)
+
+	# 如果 DataManager 中有保存的队伍数据，恢复到 TeamManager
+	if DataManager.saved_teams.size() > 0:
+		team_manager.teams = DataManager.saved_teams.duplicate(true)
+		print("[MainScreen] 已恢复 %d 支队伍数据" % team_manager.teams.size())
+		DataManager.saved_teams.clear()  # 清除备份，避免重复恢复
 
 	# --- 设置顶部标题栏样式 ---
 	top_bar.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
@@ -114,7 +118,7 @@ func _ready() -> void:
 	# --- 设置底部提示栏 ---
 	hint_bar.add_theme_color_override("font_color", UITheme.INK_DIM)
 	hint_bar.add_theme_font_size_override("font_size", 11)
-	hint_bar.text = "点击棋盘空格放置单位 · 点击已放置单位查看/编辑 · 右键移除单位"
+	hint_bar.text = "点击棋盘空格放置单位 · 点击已放置单位查看/编辑 · 右键移除单位 · 点击任意队伍的角色切换出战队伍"
 
 	# --- 设置按钮样式 ---
 	# Godot 中按钮样式通过 StyleBox 实现，而不是 CSS
@@ -199,6 +203,7 @@ func _rebuild_boards() -> void:
 		select_board(active_board_index)
 
 	_update_act_lab()
+	_update_top_bar()
 
 
 ## ---------------------------------------------------------------------------
@@ -215,6 +220,7 @@ func select_board(idx: int) -> void:
 		boards[i].is_active = (i == idx)
 		boards[i].refresh(i, team_manager.teams[i].units, boards[i].is_active)
 	_update_act_lab()
+	_update_top_bar()
 
 
 ## 更新操作栏文字，显示"第X队 · N/6 单位"
@@ -227,9 +233,20 @@ func _update_act_lab() -> void:
 	act_lab.text = "第%d队 · %d/6 单位" % [active_board_index + 1, count]
 
 
+func _update_top_bar() -> void:
+	# 顶部标题栏显示当前出战队伍
+	var team = team_manager.get_team(active_board_index)
+	var count := 0
+	for uid in team.units:
+		if uid != "":
+			count += 1
+	top_bar.text = "圣兽之王 · 编队战斗  [%s · %d/6人]" % [team.name, count]
+
+
 ## 队伍数据变更回调 -> 重建所有棋盘
 func _on_team_changed(_idx: int) -> void:
 	_rebuild_boards()
+	_update_top_bar()
 
 
 # ==================================================================
@@ -561,7 +578,10 @@ func _on_start_battle() -> void:
 		_show_toast("当前队伍为空，请先放置单位！")
 		return
 
-	# 重置战斗管理器状态（清空上次战斗的残余数据）
+	# 保存队伍数据到 DataManager（切换场景后恢复编队）
+	DataManager.saved_teams = team_manager.teams.duplicate(true)
+
+	# 重置战斗管理器状态
 	BattleManager.reset()
 	# 初始化战斗：传入玩家队伍的角色ID列表，敌方自动随机生成
 	BattleManager.start_battle(active_team_ids)

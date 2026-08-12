@@ -366,14 +366,16 @@ func create_battle_unit(char_id: String, is_enemy: bool = false) -> Dictionary:
 
 		# --- 资源 ---
 		# AP/PP 从职业数据获取基准值
-		"ap": class_data.get("base_ap", 1),
-		"max_ap": class_data.get("base_ap", 1),
+		# AP（stamina）：上限固定为 3，每回合恢复 1 点，使用主动技能消耗 1 点
+		"ap": 2,
+		"max_ap": 2,
+		# PP（energy）：上限由职业决定，使用被动技能消耗 1 点
 		"pp": class_data.get("base_pp", 1),
 		"max_pp": class_data.get("base_pp", 1),
 
 		# --- 技能 ---
 		# 直接拷贝 JSON 中的技能数组（当前未在战斗中使用！）
-		"skills": char_data.get("skills", []),
+		"skills": _resolve_unit_skills(char_data),
 
 		# --- 状态标记 ---
 		"is_enemy": is_enemy,
@@ -560,12 +562,7 @@ func _start_next_round() -> void:
 	round_num += 1
 	round_started.emit(round_num)
 
-	# --- 步骤2: 资源恢复 ---
-	# 所有存活单位的 AP/PP 恢复到满值
-	for u in player_units + enemy_units:
-		if u.is_alive:
-			u.ap = u.max_ap
-			u.pp = u.max_pp
+	# --- 步骤2: 本回合开始（资源不自动恢复）---
 
 	# --- 步骤3: 构建行动顺序 ---
 	# 按速度(spd)降序排列：速度最快的先行动
@@ -583,10 +580,21 @@ func _start_next_round() -> void:
 	_pending_actions.clear()
 	for u in _turn_order:
 		if not u.is_alive:
-			continue  # 理论上不会发生（刚刚筛选了存活单位），但防御性编程
+			continue
 		var action = _compute_unit_action(u)
 		if not action.is_empty():
 			_pending_actions.append(action)
+
+	# --- 如果本回合所有人都资源不足待机，战斗强制结束 ---
+	var all_waited := true
+	for a in _pending_actions:
+		if a.get("kind", "") != "wait":
+			all_waited = false
+			break
+	if all_waited:
+		battle_active = false
+		battle_ended.emit("draw")
+		return
 
 	# --- 步骤5: 标记回合进行中 ---
 	_round_done = false
@@ -795,22 +803,7 @@ func _find_unit(name: String):
 ## =========================================================================
 ## ---------------------------------------------------------------------------
 func _compute_unit_action(unit: Dictionary) -> Dictionary:
-	# --- 步骤1: 确定候选目标池 ---
-	# 敌方单位攻击玩家，玩家单位攻击敌方
-	var targets = enemy_units if not unit.is_enemy else player_units
-
-	# --- 步骤2: 过滤存活目标 ---
-	var alive_targets: Array = []
-	for t in targets:
-		if t.is_alive:
-			alive_targets.append(t)
-
-	# 没有存活目标 -> 战斗应该已经结束了，返回空
-	if alive_targets.is_empty():
-		return {}
-
-	# --- 步骤3: 从角色技能中分离主动/被动技能 ---
-	# 角色 JSON 中 skills 数组每项包含: type("active"/"passive"), name, effect
+	# --- 分离主动/被动技能 ---
 	var active_skills: Array = []
 	var passive_skills: Array = []
 	for sk in unit.skills:
@@ -819,57 +812,153 @@ func _compute_unit_action(unit: Dictionary) -> Dictionary:
 		elif sk.get("type", "") == "passive":
 			passive_skills.append(sk)
 
-	# --- 步骤4: 尝试使用主动技能 ---
-	# 有 AP 且有可用主动技能时，随机选择一个使用
-	var used_active_skill: Dictionary = {}
-	var ap_cost := 0
-	if unit.ap >= 1 and active_skills.size() > 0:
-		used_active_skill = active_skills[randi() % active_skills.size()]
-		ap_cost = 1
-		unit.ap -= ap_cost
+	# --- 筛选付得起的主动技能 ---
+	var affordable: Array = []
+	for sk in active_skills:
+		if sk.get("ap_cost", 1) <= unit.ap:
+			affordable.append(sk)
 
-	# --- 步骤5: 计算伤害 ---
-	var skill_name: String = "普通攻击"
-	var pwr: float = 60.0
-	var target
+	if affordable.is_empty():
+		return {
+			"kind": "wait",
+			"actor_name": unit.name_zh,
+			"actor_side": "enemy" if unit.is_enemy else "player",
+		}
 
-	if ap_cost > 0:
-		# 使用主动技能：随机目标 + 技能威力（80~120）
-		skill_name = used_active_skill.get("name", "技能攻击")
-		pwr = 80 + randi() % 40
-		target = alive_targets.pick_random()
-	else:
-		# 普通攻击：固定目标 + 固定威力 60
-		target = alive_targets[0]
+	# --- 随机选一个技能 ---
+	var skill: Dictionary = affordable[randi() % affordable.size()]
+	var ap_cost: int = max(1, skill.get("ap_cost", 1))  # 主动技能至少消耗1AP
+	unit.ap -= ap_cost
 
-	var dmg = _calc_damage(unit, target, pwr)
-	_apply_damage(unit, target, dmg)
+	# --- 确定敌我目标池 ---
+	var foes = enemy_units if not unit.is_enemy else player_units
+	var allies = player_units if not unit.is_enemy else enemy_units
+	var alive_foes: Array = []
+	for t in foes:
+		if t.is_alive: alive_foes.append(t)
+	var alive_allies: Array = []
+	for t in allies:
+		if t.is_alive: alive_allies.append(t)
 
-	# --- 步骤6: 尝试触发被动技能 ---
-	# 30% 概率触发一个随机被动技能（消耗 1PP）
+	# --- 按 target_type 选取目标 ---
+	var target_type: String = skill.get("target_type", "single")
+	var targets: Array = []
+	match target_type:
+		"single", "":
+			if alive_foes.size() > 0:
+				targets = [alive_foes[randi() % alive_foes.size()]]
+		"row":
+			var row_idx := randi() % 2
+			for t in alive_foes:
+				var is_front: bool = t.position < 3
+				if (row_idx == 0 and is_front) or (row_idx == 1 and not is_front):
+					targets.append(t)
+			if targets.is_empty() and alive_foes.size() > 0:
+				targets = [alive_foes[0]]
+		"column":
+			var col_idx := randi() % 3
+			for t in alive_foes:
+				if t.position % 3 == col_idx:
+					targets.append(t)
+			if targets.is_empty() and alive_foes.size() > 0:
+				targets = [alive_foes[0]]
+		"all_enemies", "aoe":
+			targets = alive_foes.duplicate()
+		"multi":
+			var pool = alive_foes.duplicate()
+			pool.shuffle()
+			targets = pool.slice(0, min(2, pool.size()))
+		"self":
+			targets = [unit]
+		"ally", "ally_single":
+			if alive_allies.size() > 0:
+				alive_allies.sort_custom(func(a, b): return a.hp < b.hp)
+				targets = [alive_allies[0]]
+			else:
+				targets = [unit]
+		"ally_row":
+			var row_idx := randi() % 2
+			for t in alive_allies:
+				var is_front: bool = t.position < 3
+				if (row_idx == 0 and is_front) or (row_idx == 1 and not is_front):
+					targets.append(t)
+			if targets.is_empty():
+				targets = [unit]
+		_:
+			if alive_foes.size() > 0:
+				targets = [alive_foes[randi() % alive_foes.size()]]
+
+	if targets.is_empty():
+		return {
+			"kind": "wait",
+			"actor_name": unit.name_zh,
+			"actor_side": "enemy" if unit.is_enemy else "player",
+		}
+
+	# --- 计算伤害/治疗 ---
+	var damage_type: String = skill.get("damage_type", "physical")
+	var power: float = float(skill.get("power", 80))
+	var hits: int = max(1, int(skill.get("hits", 1)))
+	var total_dmg := 0
+	var total_heal := 0
+	var results: Array = []
+
+	for t in targets:
+		var t_dmg := 0
+		var t_heal := 0
+		if damage_type == "heal":
+			t_heal = _calc_heal(unit, power) * hits
+			_apply_heal(t, t_heal)
+			total_heal += t_heal
+		elif damage_type in ["buff", "shield", "debuff", "utility", "special", "summon"]:
+			pass
+		else:
+			for _h in range(hits):
+				t_dmg += _calc_damage(unit, t, power, damage_type)
+			_apply_damage(unit, t, t_dmg)
+			total_dmg += t_dmg
+		results.append({
+			"name": t.name_zh,
+			"side": "player" if not t.is_enemy else "enemy",
+			"damage": t_dmg,
+			"heal": t_heal,
+			"hp": t.hp,
+			"max_hp": t.max_hp,
+			"alive": t.is_alive,
+		})
+
+	var primary: Dictionary = results[0]
+
+	# --- 尝试触发被动技能 ---
 	var pp_cost := 0
 	var passive_name := ""
 	if unit.pp >= 1 and passive_skills.size() > 0 and randi() % 100 < 30:
-		var passive_skill = passive_skills[randi() % passive_skills.size()]
-		pp_cost = 1
-		unit.pp -= pp_cost
-		passive_name = passive_skill.get("name", "")
+		var psk = passive_skills[randi() % passive_skills.size()]
+		pp_cost = psk.get("pp_cost", 1)
+		if pp_cost <= unit.pp:
+			unit.pp -= pp_cost
+			passive_name = psk.get("name_en", psk.get("name_zh", ""))
 
-	# --- 步骤7: 构建并返回行动字典 ---
+	# --- 构建行动字典 ---
 	return {
 		"kind": "attack",
 		"actor_name": unit.name_zh,
 		"actor_side": "enemy" if unit.is_enemy else "player",
-		"target_name": target.name_zh,
-		"target_side": "player" if unit.is_enemy else "enemy",
-		"damage": dmg,
-		"skill_name": skill_name,
+		"skill_name": skill.get("name_zh", skill.get("name_en", "技能")),
+		"skill_name_en": skill.get("name_en", ""),
 		"ap_cost": ap_cost,
 		"pp_cost": pp_cost,
 		"passive_name": passive_name,
-		"target_hp": target.hp,
-		"target_max_hp": target.max_hp,
-		"target_alive": target.is_alive,
+		"damage_type": damage_type,
+		"hits": hits,
+		"target_name": primary.name,
+		"target_side": primary.side,
+		"damage": total_dmg,
+		"heal": total_heal,
+		"target_hp": primary.hp,
+		"target_max_hp": primary.max_hp,
+		"target_alive": primary.alive,
+		"targets": results,
 		"actor_hp": unit.hp,
 		"actor_max_hp": unit.max_hp,
 		"actor_ap": unit.ap,
@@ -916,19 +1005,37 @@ func _compute_unit_action(unit: Dictionary) -> Dictionary:
 ##   · 完整实现中应根据技能 damage_type 选择用 (atk,def) 还是 (mag,mdf)。
 ##   · acc/eva（命中/回避）、crit（暴击）、guard（格挡）均未实现。
 ## ---------------------------------------------------------------------------
-func _calc_damage(attacker: Dictionary, defender: Dictionary, power: float) -> int:
-	# 攻击力 vs 防御力
-	var atk_val = attacker.atk
-	var def_val = defender.def
+func _calc_damage(attacker: Dictionary, defender: Dictionary, power: float,
+		damage_type: String = "physical") -> int:
+	# 根据伤害类型选择攻防属性
+	var atk_val: float
+	var def_val: float
+	match damage_type:
+		"magical":
+			atk_val = attacker.mag
+			def_val = defender.mdf
+		"mixed":
+			atk_val = (attacker.atk + attacker.mag) / 2.0
+			def_val = (defender.def + defender.mdf) / 2.0
+		_:
+			atk_val = attacker.atk
+			def_val = defender.def
 
-	# 基础伤害公式
 	var base = max(1.0, power / 100.0 * atk_val - def_val * 0.4)
-
-	# 随机浮动：85% ~ 115%
 	base *= 0.85 + randf() * 0.3
-
-	# 向下取整，至少造成 1 点伤害
 	return max(1, int(base))
+
+
+## 治疗量 = power% × 施法者mag，浮动 85%~115%
+func _calc_heal(caster: Dictionary, power: float) -> int:
+	var base: float = power / 100.0 * caster.mag
+	base *= 0.85 + randf() * 0.3
+	return max(1, int(base))
+
+
+## 应用治疗，不超过 max_hp
+func _apply_heal(target: Dictionary, amount: int) -> void:
+	target.hp = min(target.max_hp, target.hp + amount)
 
 
 ## ---------------------------------------------------------------------------
@@ -1030,6 +1137,8 @@ func _apply_damage(attacker: Dictionary, target: Dictionary, damage: int) -> voi
 ##   · battle_active = false（停止 next_action 返回行动）
 ##   · 发出 battle_ended 信号（UI 收到后停止计时器、显示结果界面）
 ## ---------------------------------------------------------------------------
+
+
 func _check_battle_end() -> void:
 	# 检查玩家是否还有存活单位
 	var player_alive := false
@@ -1126,6 +1235,39 @@ func get_stats_summary() -> Dictionary:
 ##   for c in val:  — 遍历字符串的每个字符。和 Python 的 for c in s: 完全一样。
 ##   c in "0123456789" — GDScript 中 in 可以用于字符串，检查字符是否在字符串中。
 ## ---------------------------------------------------------------------------
+## 解析角色技能：按英文名匹配 skills.json，失败则用默认值兜底
+func _resolve_unit_skills(char_data: Dictionary) -> Array:
+	var result: Array = []
+	for embedded in char_data.get("skills", []):
+		result.append(_match_skill(embedded))
+	return result
+
+
+func _match_skill(embedded: Dictionary) -> Dictionary:
+	var name := String(embedded.get("name", ""))
+	# 在 DataManager.skills 中按 name_en 模糊匹配
+	for sk_id in DataManager.skills:
+		var sk = DataManager.skills[sk_id]
+		if String(sk.get("name_en", "")).to_lower() == name.to_lower():
+			var full: Dictionary = sk.duplicate()
+			# 类型以角色数据为准
+			full["type"] = embedded.get("type", full.get("type", "active"))
+			# 主动技能必须消耗至少1AP
+			if full["type"] == "active" and full.get("ap_cost", 0) < 1:
+				full["ap_cost"] = 1
+			return full
+	# 未匹配：构建默认技能
+	return {
+		"name_zh": embedded.get("name", "???"),
+		"name_en": embedded.get("name", ""),
+		"type": embedded.get("type", "active"),
+		"ap_cost": 1, "pp_cost": 0,
+		"power": 80, "hits": 1,
+		"target_type": "single", "damage_type": "physical",
+		"effects": [],
+	}
+
+
 func _safe_int(val, fallback: int = 10) -> int:
 	if val is int or val is float:
 		return int(val)

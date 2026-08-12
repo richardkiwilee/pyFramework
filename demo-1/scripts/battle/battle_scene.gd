@@ -328,49 +328,61 @@ func _on_action_tick() -> void:
 func _play_action(action: Dictionary) -> void:
 	match action.kind:
 		"attack":
-			# --- 构建详细日志 ---
-			# 1. 攻击行动主日志
+			# --- 1. 主日志行 ---
 			var ap_cost = action.get("ap_cost", 0)
 			var pp_cost = action.get("pp_cost", 0)
-			if ap_cost > 0:
-				_add_log("⚡ %s 消耗 %dAP 使用 [%s] -> %s" % [
-					action.actor_name, ap_cost, action.skill_name, action.target_name
-				])
-			else:
-				_add_log("⚡ %s 使用普通攻击 -> %s" % [
-					action.actor_name, action.target_name
-				])
-			# 2. 伤害行：存活显示剩余HP，阵亡显示💀
-			if action.get("target_alive", true):
-				_add_log("   造成 %d 点伤害，%s 剩余 HP: %d/%d" % [
-					action.damage, action.target_name, action.target_hp, action.target_max_hp
-				])
-			else:
-				_add_log("   造成 %d 点伤害，%s 💀 阵亡" % [
-					action.damage, action.target_name
-				])
-			# 3. 如果触发了被动技能
+			var icon := "⚡"
+			var dmg_type = action.get("damage_type", "physical")
+			if dmg_type == "heal": icon = "✨"
+			elif dmg_type in ["buff", "shield"]: icon = "🛡️"
+			elif dmg_type in ["debuff", "utility"]: icon = "🔮"
+
+			_add_log("%s %s 消耗%dAP 使用 [%s]" % [
+				icon, action.actor_name, ap_cost, action.skill_name
+			])
+
+			# --- 2. 每个目标一行 ---
+			var hits = action.get("hits", 1)
+			for t in action.get("targets", []):
+				if t.get("heal", 0) > 0:
+					_add_log("   ✅ %s 恢复 %d HP (HP %d/%d)" % [t.name, t.heal, t.hp, t.max_hp])
+				elif t.get("damage", 0) > 0:
+					var dmg_str := "%d" % t.damage
+					if hits > 1:
+						dmg_str += " (%d段)" % hits
+					if t.get("alive", true):
+						_add_log("   💥 %s 受到 %s 伤害 (HP %d/%d)" % [t.name, dmg_str, t.hp, t.max_hp])
+					else:
+						_add_log("   💀 %s 受到 %s 伤害，阵亡！" % [t.name, dmg_str])
+				else:
+					_add_log("   🔮 %s（效果暂未实现）" % t.name)
+
+			# --- 3. 被动触发 ---
 			var passive_name = action.get("passive_name", "")
 			if passive_name != "" and pp_cost > 0:
-				_add_log("🔵 %s 消耗 %dPP 触发被动 [%s]" % [
+				_add_log("🔵 %s 消耗%dPP 触发被动 [%s]" % [
 					action.actor_name, pp_cost, passive_name
 				])
-			# 播放动画效果
+
+			# --- 动画 ---
 			_animate_hit(action)
 			_flash_unit(action.actor_name, UITheme.GOLD_BRIGHT)
-			if action.get("target_alive", true):
+			if dmg_type == "heal":
+				_flash_unit(action.target_name, UITheme.GREEN)
+			elif action.get("target_alive", true):
 				_flash_unit(action.target_name, UITheme.RED)
 			else:
 				_flash_unit(action.target_name, Color.GRAY)
 
 		"death":
-			# 死亡信息已整合在攻击日志中，death 行动只做动画
 			_flash_unit(action.actor_name, Color.GRAY)
 
 		"skipped":
 			_add_log("⏭ %s 行动取消（已在本回合被击杀）" % action.actor_name)
 
-	# 刷新所有相关单位的 UI 显示（血条、HP文字、AP、存活状态）
+		"wait":
+			_add_log("⏸ %s 资源不足，本回合待机" % action.actor_name)
+
 	_refresh_display_from_action(action)
 
 
@@ -446,9 +458,20 @@ func _animate_hit(_action: Dictionary) -> void:
 ##   所以 UI 的更新会同步反映到 BattleManager 的状态中。
 ## ---------------------------------------------------------------------------
 func _refresh_display_from_action(action: Dictionary) -> void:
-	# 更新目标单位（受伤/死亡者）
-	_update_unit_bar(action.target_name, action.target_hp, action.target_max_hp,
-		action.target_alive if action.has("target_alive") else true, action.target_side)
+	# wait/skipped 行动没有目标字段，只更新行动者（如有AP信息）
+	if not action.has("target_name"):
+		if action.has("actor_ap"):
+			_update_unit_bar(action.actor_name, action.actor_hp, action.actor_max_hp,
+				true, action.actor_side, action.actor_ap, action.actor_max_ap)
+		return
+
+	# 多目标：逐个更新（新技能系统的 targets 数组）
+	if action.has("targets"):
+		for t in action.targets:
+			_update_unit_bar(t.name, t.hp, t.max_hp, t.alive, t.side)
+	else:
+		_update_unit_bar(action.target_name, action.target_hp, action.target_max_hp,
+			action.target_alive if action.has("target_alive") else true, action.target_side)
 
 	# 更新行动者单位（AP 消耗等）
 	if action.has("actor_ap"):
@@ -614,8 +637,8 @@ func _show_summary(result: String, stats: Dictionary) -> void:
 	result_overlay.visible = true
 
 	# --- 结果标题 ---
-	var result_text = "🎉 胜利！" if result == "victory" else "💔 败北..."
-	var result_color = UITheme.GOLD_BRIGHT if result == "victory" else UITheme.RED
+	var result_text = "🎉 胜利！" if result == "victory" else ("⚖️ 平局" if result == "draw" else "💔 败北...")
+	var result_color = UITheme.GOLD_BRIGHT if result == "victory" else (UITheme.INK_DIM if result == "draw" else UITheme.RED)
 	summary_header.text = result_text
 	summary_header.add_theme_color_override("font_color", result_color)
 	summary_header.add_theme_font_size_override("font_size", 24)
