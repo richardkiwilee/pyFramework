@@ -37,6 +37,7 @@ const FEATURES: Array = [
 	{"icon": "🐍", "name": "贪吃蛇", "desc": "经典小游戏吃食增长", "scene": "res://features/snake/snake.tscn"},
 	{"icon": "🎥", "name": "分屏双视角", "desc": "同世界跟随+俯视双屏", "scene": "res://features/split_screen/split_screen.tscn"},
 	{"icon": "🎨", "name": "像素画板", "desc": "点画+油漆桶泛洪填充", "scene": "res://features/pixel_painter/pixel_painter.tscn"},
+	{"icon": "🔦", "name": "激光反射", "desc": "拖镜面引导光束命中靶心", "scene": "res://features/laser/laser.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
