@@ -32,13 +32,37 @@ func _ready() -> void:
 
 
 ## 生成六面点数贴图（对侧面之和 7）
+## Godot 4 的 BoxMesh 只有 1 个 surface，无法逐面贴材质——
+## 因此手工构建 6 个独立 surface 的 ArrayMesh，每面各挂一张点数贴图。
 func _apply_pips() -> void:
+	dice_mesh.mesh = _build_cube_mesh()
 	for i in FACE_VALUES.size():
 		var tex := _make_pip_texture(FACE_VALUES[i])
 		var mat := StandardMaterial3D.new()
 		mat.albedo_texture = tex
 		mat.roughness = 0.55
 		dice_mesh.set_surface_override_material(i, mat)
+
+
+## 六个面的 ArrayMesh（法线向外，每个面一个 surface）
+func _build_cube_mesh() -> ArrayMesh:
+	var am := ArrayMesh.new()
+	for n in FACE_NORMALS:
+		# 面内两个正交方向（u × v = n，保证绕序对外）
+		var u: Vector3 = Vector3.UP if absf(n.y) < 0.9 else Vector3.RIGHT
+		var v: Vector3 = n.cross(u)
+		var verts := PackedVector3Array()
+		var uvs := PackedVector2Array()
+		for corner in [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]]:
+			verts.append(n * 0.5 + u * corner[0] + v * corner[1])
+			uvs.append(Vector2(corner[0] + 0.5, 1.0 - (corner[1] + 0.5)))
+		var arrays := []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = verts
+		arrays[Mesh.ARRAY_TEX_UV] = uvs
+		arrays[Mesh.ARRAY_INDEX] = PackedInt32Array([0, 1, 2, 0, 2, 3])
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return am
 
 
 func _make_pip_texture(count: int) -> ImageTexture:
