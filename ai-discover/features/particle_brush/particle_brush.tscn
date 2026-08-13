@@ -12,6 +12,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
 [node name="CanvasRect" type="TextureRect" parent="."]
 layout_mode = 0
 offset_left = 128.0
