@@ -65,6 +65,7 @@ const FEATURES: Array = [
 	{"icon": "🔨", "name": "打地鼠", "desc": "30秒限时敲击计分", "scene": "res://features/whack_a_mole/whack_a_mole.tscn"},
 	{"icon": "🔺", "name": "帕斯卡三角", "desc": "模N染色谢尔宾斯基图案", "scene": "res://features/pascal_triangle/pascal_triangle.tscn"},
 	{"icon": "🎨", "name": "颜色拾取器", "desc": "HSV色环+明度饱和度方形", "scene": "res://features/color_picker/color_picker.tscn"},
+	{"icon": "💥", "name": "弹幕躲避", "desc": "鼠标躲避弹幕生存30秒", "scene": "res://features/bullet_hell/bullet_hell.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
