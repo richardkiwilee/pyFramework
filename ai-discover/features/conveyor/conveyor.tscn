@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/conveyor/conveyor.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="Conveyor" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 400.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 22
+text = "🏭 传送带物流"
+
+[node name="CountLabel" type="Label" parent="CanvasLayer"]
+offset_left = 1020.0
+offset_top = 60.0
+offset_right = 1260.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 20
+text = "🧺 已收集：0"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🏭 点击任意位置投料（自动每 1.2 秒投一次）· 物品沿传送带进入收集篮"
