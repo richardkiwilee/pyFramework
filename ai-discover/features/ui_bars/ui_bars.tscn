@@ -1,0 +1,79 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/ui_bars/ui_bars.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="UIBars" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "📊 血条组件包"
+horizontal_alignment = 1
+
+[node name="BarsBox" type="VBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="HurtBtn" type="Button" parent="Center/VBox/ButtonsRow"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "💥 受到攻击"
+
+[node name="HealBtn" type="Button" parent="Center/VBox/ButtonsRow"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "💚 喝药水"
+
+[node name="CastBtn" type="Button" parent="Center/VBox/ButtonsRow"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🔮 施放法术"
+
+[node name="SprintBtn" type="Button" parent="Center/VBox/ButtonsRow"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+toggle_mode = true
+text = "⚡ 冲刺(开关)"
+
+[node name="ReviveBtn" type="Button" parent="Center/VBox/ButtonsRow"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "✨ 复活"
+
+[node name="StatusLabel" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "试试按钮：受伤看幽灵条 · 冲刺看耐力 · 施法看读条"
+horizontal_alignment = 1
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
