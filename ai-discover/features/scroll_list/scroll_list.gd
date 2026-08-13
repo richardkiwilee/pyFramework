@@ -27,6 +27,8 @@ var _box: VBoxContainer
 
 func _ready() -> void:
 	viewport_ctrl.clip_contents = true
+	# 关键：点击事件由视口自己接收（它有 STOP 过滤，事件到不了 _unhandled_input）
+	viewport_ctrl.gui_input.connect(_on_list_input)
 	_box = VBoxContainer.new()
 	viewport_ctrl.add_child(_box)
 	for i in ITEM_COUNT:
@@ -66,6 +68,9 @@ func _scroll_step(delta: float) -> void:
 
 
 func _process(delta: float) -> void:
+	# 拖动中若鼠标在列表外松开，按钮事件不会到达列表 → 用全局按键状态兜底
+	if _dragging and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_dragging = false
 	var mouse := get_viewport().get_mouse_position()
 	if _dragging:
 		# 直接跟随 + 记录拖速
@@ -79,13 +84,10 @@ func _process(delta: float) -> void:
 		_scroll_step(delta)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## 列表视口的 gui_input 回调（事件只在该视口内触发）
+func _on_list_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed and LIST_RECT.has_point(event.position):
-			_dragging = true
-			_last_y = event.position.y
-		else:
-			_dragging = false
+		_dragging = event.pressed
+		if _dragging:
+			_last_y = get_viewport().get_mouse_position().y
 		get_viewport().set_input_as_handled()
-	elif event is InputEventMouseMotion and _dragging:
-		queue_redraw()
