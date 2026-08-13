@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/pascal_triangle/pascal_triangle.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="PascalTriangle" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ModLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 300.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 20
+text = "模数 N = 2"
+
+[node name="Slider" type="HSlider" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 60.0
+offset_right = 320.0
+offset_bottom = 92.0
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🔺 帕斯卡三角模 N 染色 · 拖动滑杆换模数 · N=2 时呈现谢尔宾斯基三角形"
