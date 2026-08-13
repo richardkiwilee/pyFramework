@@ -11,6 +11,7 @@ const FEATURES: Array = [
 	# 每完成一个功能点，在此追加：
 	# {"icon": 表情, "name": 名称, "desc": 一句话描述, "scene": 场景路径}
 	{"icon": "🌊", "name": "水面倒影", "desc": "3D 波光水面与镜像倒影", "scene": "res://features/water_reflection/water_reflection.tscn"},
+	{"icon": "⬡", "name": "六边形地图", "desc": "轴向六边形网格与寻路", "scene": "res://features/hex_map/hex_map.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
