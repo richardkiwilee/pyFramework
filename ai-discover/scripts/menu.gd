@@ -68,6 +68,7 @@ const FEATURES: Array = [
 	{"icon": "💥", "name": "弹幕躲避", "desc": "鼠标躲避弹幕生存30秒", "scene": "res://features/bullet_hell/bullet_hell.tscn"},
 	{"icon": "🎵", "name": "节拍器", "desc": "BPM可调合成节拍音", "scene": "res://features/metronome/metronome.tscn"},
 	{"icon": "⚫", "name": "五子棋", "desc": "双人轮流五连取胜", "scene": "res://features/gomoku/gomoku.tscn"},
+	{"icon": "🕐", "name": "数码管时钟", "desc": "七段LED实时时间", "scene": "res://features/segment_clock/segment_clock.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
