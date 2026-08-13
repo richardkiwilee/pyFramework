@@ -40,6 +40,7 @@ const FEATURES: Array = [
 	{"icon": "🔦", "name": "激光反射", "desc": "拖镜面引导光束命中靶心", "scene": "res://features/laser/laser.tscn"},
 	{"icon": "🛤", "name": "轨道编辑器", "desc": "样条轨道布点与列车行驶", "scene": "res://features/path_editor/path_editor.tscn"},
 	{"icon": "👕", "name": "布料模拟", "desc": "Verlet物理布料与风", "scene": "res://features/cloth/cloth.tscn"},
+	{"icon": "🔦", "name": "手电筒光照", "desc": "光锥shader照亮藏宝图", "scene": "res://features/flashlight/flashlight.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
