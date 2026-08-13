@@ -1,0 +1,41 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/maze_gen/maze_gen.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="MazeGen" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 280.0
+offset_top = 12.0
+offset_right = 800.0
+offset_bottom = 48.0
+theme_override_constants/separation = 10
+
+[node name="GenBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 36)
+text = "🎲 生成新迷宫"
+
+[node name="SolveBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 36)
+text = "🔦 解法"
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 36)
+text = "…"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🎲 递归回溯生成完美迷宫 · 【解法】BFS 最短路径 · S 键也可显示解法"
