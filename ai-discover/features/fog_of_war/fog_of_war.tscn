@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/fog_of_war/fog_of_war.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="FogOfWar" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="FogRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="HintLabel" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 900.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 15
+text = "🌫 WASD 移动侦察兵探索地图 · 走过的区域变暗记忆 · 视野内完全可见"
