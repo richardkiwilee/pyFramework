@@ -1,0 +1,127 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Shader" path="res://shaders/effect.gdshader" id="2_effect"]
+[ext_resource type="Shader" path="res://shaders/gems.gdshader" id="3_gems"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_effect"]
+shader = ExtResource("2_effect")
+shader_parameter/mode = 0
+shader_parameter/level = 2
+shader_parameter/effect_color = Color(1, 0.55, 0.08, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gems"]
+shader = ExtResource("3_gems")
+shader_parameter/level = 2
+shader_parameter/effect_color = Color(1, 0.55, 0.08, 1)
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="EffectLayer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_effect")
+
+[node name="GemsLayer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -126.0
+offset_right = 210.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+material = SubResource("ShaderMaterial_gems")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="InfoPanel" type="PanelContainer" parent="CanvasLayer/HUD"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 430.0
+offset_bottom = 166.0
+
+[node name="InfoBox" type="VBoxContainer" parent="CanvasLayer/HUD/InfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/HUD/InfoPanel/InfoBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "⚡ 爆气蓄力 · 必杀技特效演示"
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer/HUD/InfoPanel/InfoBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "档位：2 / 3"
+
+[node name="EffectLabel" type="Label" parent="CanvasLayer/HUD/InfoPanel/InfoBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "特效：🔥 燃烧的烈焰"
+
+[node name="CycleLabel" type="Label" parent="CanvasLayer/HUD/InfoPanel/InfoBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "1.0 秒后切换到下一特效"
+
+[node name="PalettePanel" type="PanelContainer" parent="CanvasLayer/HUD"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 556.0
+offset_right = 372.0
+offset_bottom = 708.0
+
+[node name="PaletteBox" type="VBoxContainer" parent="CanvasLayer/HUD/PalettePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PaletteTitle" type="Label" parent="CanvasLayer/HUD/PalettePanel/PaletteBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🎨 调色盘（点击换色）"
+
+[node name="ColorBox" type="HBoxContainer" parent="CanvasLayer/HUD/PalettePanel/PaletteBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HintLabel" type="Label" parent="CanvasLayer/HUD"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -760.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 46.0
+grow_horizontal = 0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 13
+text = "↑/↓ 切换档位 · 点击调色盘换色 · 爆气特效每 1 秒循环：烈焰 → 天雷 → 龙卷"
