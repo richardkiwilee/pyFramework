@@ -17,6 +17,7 @@ const FEATURES: Array = [
 	{"icon": "📊", "name": "血条组件包", "desc": "幽灵血条/施法条/耐力条", "scene": "res://features/ui_bars/ui_bars.tscn"},
 	{"icon": "🎆", "name": "粒子烟花", "desc": "点击夜空发射彩色烟花", "scene": "res://features/fireworks/fireworks.tscn"},
 	{"icon": "🎒", "name": "背包拖拽", "desc": "物品拖拽交换位置", "scene": "res://features/inventory/inventory.tscn"},
+	{"icon": "👊", "name": "命中反馈", "desc": "震屏/白闪/飘字/连击", "scene": "res://features/hit_feedback/hit_feedback.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid

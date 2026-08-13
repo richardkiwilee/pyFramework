@@ -1,0 +1,58 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/hit_feedback/hit_feedback.gd" id="1_main"]
+[ext_resource type="Script" path="res://features/hit_feedback/dummy.gd" id="2_dummy"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="3_back"]
+
+[node name="HitFeedback" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="World" type="Node2D" parent="."]
+position = Vector2(640, 300)
+
+[node name="Dummy" type="Node2D" parent="World"]
+script = ExtResource("2_dummy")
+
+[node name="Sparks" type="CPUParticles2D" parent="World"]
+amount = 14
+lifetime = 0.45
+one_shot = true
+explosiveness = 1.0
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, 700)
+initial_velocity_min = 160.0
+initial_velocity_max = 420.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(1, 0.75, 0.25, 1)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Flash" type="ColorRect" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="ComboLabel" type="Label" parent="CanvasLayer"]
+offset_left = 540.0
+offset_top = 80.0
+offset_right = 740.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 34
+text = "连击 x1"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 900.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 15
+text = "👊 点击木桩挥拳！震屏 · 白闪 · 飘字 · 火花 · 连击"
+
+[node name="BackButton" parent="CanvasLayer" instance=ExtResource("3_back")]
