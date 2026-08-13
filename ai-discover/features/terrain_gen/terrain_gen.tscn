@@ -1,0 +1,57 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://features/terrain_gen/terrain_gen.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.3, 0.5, 0.8, 1)
+sky_horizon_color = Color(0.75, 0.8, 0.85, 1)
+ground_bottom_color = Color(0.15, 0.18, 0.25, 1)
+ground_horizon_color = Color(0.75, 0.8, 0.85, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 2
+ambient_light_color = Color(0.5, 0.55, 0.65, 1)
+
+[node name="TerrainGen" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.5, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+fov = 58.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 400.0
+offset_bottom = 56.0
+theme_override_constants/separation = 10
+
+[node name="RegenBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 40)
+theme_override_font_sizes/font_size = 16
+text = "🎲 重新生成"
+
+[node name="BackButton" parent="CanvasLayer" instance=ExtResource("2_back")]
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🏔 拖拽旋转 · 滚轮缩放 · 重新生成换种子 · 沙滩/草地/岩石/雪顶 + 湖泊"
