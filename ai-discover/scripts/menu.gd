@@ -30,6 +30,7 @@ const FEATURES: Array = [
 	{"icon": "🧲", "name": "磁力吸附", "desc": "拖拽方块自动吸附槽位", "scene": "res://features/magnet_snap/magnet_snap.tscn"},
 	{"icon": "🎶", "name": "音乐可视化", "desc": "合成和弦驱动频谱光柱", "scene": "res://features/audio_visualizer/audio_visualizer.tscn"},
 	{"icon": "🏭", "name": "传送带物流", "desc": "折线传送带与收集计数", "scene": "res://features/conveyor/conveyor.tscn"},
+	{"icon": "💣", "name": "物理塔", "desc": "炮弹轰击积木塔连锁倒塌", "scene": "res://features/physics_tower/physics_tower.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
