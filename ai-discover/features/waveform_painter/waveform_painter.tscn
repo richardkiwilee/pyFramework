@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/waveform_painter/waveform_painter.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="WaveformPainter" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasRect" type="Control" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 150.0
+offset_right = 1130.0
+offset_bottom = 470.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 150.0
+offset_top = 500.0
+offset_right = 900.0
+offset_bottom = 544.0
+theme_override_constants/separation = 10
+
+[node name="PlayBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 42)
+theme_override_font_sizes/font_size = 16
+text = "▶ 播放"
+
+[node name="RandomBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 42)
+theme_override_font_sizes/font_size = 16
+text = "🎲 随机"
+
+[node name="ClearBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 42)
+theme_override_font_sizes/font_size = 16
+text = "🧹 清空"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🎼 在画布上按住拖动绘制波形（x=时间 y=振幅）· ▶ 播放你画的波形 · 随机生成噪声音色"
