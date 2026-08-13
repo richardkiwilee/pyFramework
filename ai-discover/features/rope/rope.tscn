@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/rope/rope.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="Rope" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "⛓ 移动鼠标甩动绳索 · 重物随惯性摆荡 · 快速画圈、突然停下试试"

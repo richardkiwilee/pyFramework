@@ -45,6 +45,7 @@ const FEATURES: Array = [
 	{"icon": "🏔", "name": "程序化地形", "desc": "fbm噪声高度图彩色地形", "scene": "res://features/terrain_gen/terrain_gen.tscn"},
 	{"icon": "💎", "name": "三消游戏", "desc": "交换宝石三连消除连锁", "scene": "res://features/match3/match3.tscn"},
 	{"icon": "🎹", "name": "合成器键盘", "desc": "实时复音合成钢琴键盘", "scene": "res://features/synth_keyboard/synth_keyboard.tscn"},
+	{"icon": "⛓", "name": "弹簧绳索", "desc": "Verlet绳索惯性甩动", "scene": "res://features/rope/rope.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
