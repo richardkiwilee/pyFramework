@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/path_editor/path_editor.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="PathEditor" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 400.0
+offset_bottom = 56.0
+theme_override_constants/separation = 10
+
+[node name="RunBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+theme_override_font_sizes/font_size = 16
+text = "⏸ 暂停"
+
+[node name="ClearBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 40)
+theme_override_font_sizes/font_size = 16
+text = "🧹 清空"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🛤 左键空白处加点 · 拖动控制点调形 · 右键控制点删除 · 火车沿样条循环行驶"
