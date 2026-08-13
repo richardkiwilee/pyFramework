@@ -20,6 +20,7 @@ const FEATURES: Array = [
 	{"icon": "👊", "name": "命中反馈", "desc": "震屏/白闪/飘字/连击", "scene": "res://features/hit_feedback/hit_feedback.tscn"},
 	{"icon": "⚔️", "name": "刀光斩击", "desc": "拖拽挥出月牙刀光", "scene": "res://features/slash/slash.tscn"},
 	{"icon": "🛰", "name": "小地图雷达", "desc": "俯视小地图与雷达扫描", "scene": "res://features/radar/radar.tscn"},
+	{"icon": "🧭", "name": "A* 寻路", "desc": "启发式搜索逐步可视化", "scene": "res://features/astar/astar.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
