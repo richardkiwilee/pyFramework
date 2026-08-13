@@ -1,0 +1,71 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/dialog/dialog.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[sub_resource type="StyleBoxFlat" id="panel_sb"]
+bg_color = Color(0.10, 0.11, 0.16, 0.92)
+border_color = Color(0.45, 0.5, 0.7, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[node name="Dialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="SceneLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 480.0
+offset_top = 140.0
+offset_right = 800.0
+offset_bottom = 180.0
+theme_override_font_sizes/font_size = 26
+text = "🏕 铁匠铺前"
+horizontal_alignment = 1
+
+[node name="DialogPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 360.0
+offset_top = 330.0
+offset_right = 1160.0
+offset_bottom = 580.0
+theme_override_styles/panel = SubResource("panel_sb")
+
+[node name="Box" type="VBoxContainer" parent="DialogPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="DialogPanel/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.95, 0.8, 0.4, 1)
+text = "🔨 铁匠"
+
+[node name="TextLabel" type="Label" parent="DialogPanel/Box"]
+layout_mode = 2
+custom_minimum_size = Vector2(740, 110)
+theme_override_font_sizes/font_size = 22
+autowrap_mode = 2
+
+[node name="ChoiceBox" type="VBoxContainer" parent="DialogPanel/Box"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ContinueLabel" type="Label" parent="DialogPanel/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "▼ 点击继续"
+horizontal_alignment = 2
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
