@@ -1,0 +1,50 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/color_picker/color_picker.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="ColorPicker" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer"]
+offset_left = 700.0
+offset_top = 120.0
+offset_right = 1200.0
+offset_bottom = 170.0
+theme_override_font_sizes/font_size = 26
+text = "🎨 颜色拾取器"
+horizontal_alignment = 1
+
+[node name="Preview" type="ColorRect" parent="CanvasLayer"]
+offset_left = 700.0
+offset_top = 200.0
+offset_right = 1200.0
+offset_bottom = 420.0
+color = Color(1, 0, 0, 1)
+
+[node name="HexLabel" type="Label" parent="CanvasLayer"]
+offset_left = 700.0
+offset_top = 440.0
+offset_right = 1200.0
+offset_bottom = 490.0
+theme_override_font_sizes/font_size = 24
+text = "HEX FF0000"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🎨 外圈选色相 · 内方形选饱和度/明度 · 右侧实时预览 HEX 颜色值"
