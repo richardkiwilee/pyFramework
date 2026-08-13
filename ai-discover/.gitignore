@@ -1,0 +1,5 @@
+.godot/
+# 临时验证产物
+tmp_shot.gd
+tmp_shot.gd.uid
+tmp_*.png

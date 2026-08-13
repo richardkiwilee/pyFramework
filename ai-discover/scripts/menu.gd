@@ -1,0 +1,60 @@
+extends Control
+## =============================================================================
+## menu.gd — AI Discover 主菜单
+## =============================================================================
+## 功能发现实验室的入口：列出所有已实现的功能点卡片，
+## 点击卡片进入对应子场景；每个子场景左上角都有"返回主菜单"按钮。
+## 新增功能时，只需在 FEATURES 里追加一条记录（卡片自动生成）。
+## =============================================================================
+
+const FEATURES: Array = [
+	# 每完成一个功能点，在此追加：
+	# {"icon": 表情, "name": 名称, "desc": 一句话描述, "scene": 场景路径}
+]
+
+@onready var grid: GridContainer = $CenterBox/VBox/Grid
+@onready var count_label: Label = $CenterBox/VBox/FooterLabel
+
+
+func _ready() -> void:
+	for f in FEATURES:
+		grid.add_child(_make_card(f))
+	_refresh_footer()
+
+
+## 生成一张功能卡片按钮（深色圆角卡 + 悬停提亮）
+func _make_card(f: Dictionary) -> Button:
+	var btn := Button.new()
+	btn.text = "%s  %s\n%s" % [f["icon"], f["name"], f["desc"]]
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	btn.custom_minimum_size = Vector2(236, 96)
+	btn.add_theme_font_size_override("font_size", 15)
+
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.11, 0.13, 0.20)
+	normal.border_color = Color(0.28, 0.34, 0.50)
+	normal.set_border_width_all(2)
+	normal.set_corner_radius_all(12)
+	normal.content_margin_left = 14.0
+	normal.content_margin_right = 14.0
+	var hover := normal.duplicate()
+	hover.bg_color = Color(0.17, 0.20, 0.30)
+	hover.border_color = Color(0.55, 0.65, 1.0)
+	var pressed := hover.duplicate()
+	pressed.bg_color = Color(0.13, 0.16, 0.26)
+	for state in ["normal", "hover", "pressed", "focus"]:
+		btn.add_theme_stylebox_override(state, normal if state == "normal" else (hover if state == "hover" else pressed))
+
+	btn.pressed.connect(_open_feature.bind(f["scene"]))
+	return btn
+
+
+func _open_feature(path: String) -> void:
+	get_tree().change_scene_to_file(path)
+
+
+func _refresh_footer() -> void:
+	if FEATURES.is_empty():
+		count_label.text = "还没有功能点——正在头脑风暴中…"
+	else:
+		count_label.text = "已实现 %d 个功能点 · 持续更新中" % FEATURES.size()
