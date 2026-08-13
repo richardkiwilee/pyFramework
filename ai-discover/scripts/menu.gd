@@ -75,6 +75,7 @@ const FEATURES: Array = [
 	{"icon": "☁️", "name": "程序化云朵", "desc": "重叠圆云团视差漂移", "scene": "res://features/clouds/clouds.tscn"},
 	{"icon": "🐤", "name": "像素小鸟", "desc": "拍翼穿管道得分", "scene": "res://features/flappy/flappy.tscn"},
 	{"icon": "📺", "name": "故障风特效", "desc": "CRT扫描线RGB偏移撕裂", "scene": "res://features/glitch/glitch.tscn"},
+	{"icon": "🪐", "name": "太阳系轨道", "desc": "行星公转尾迹可加星", "scene": "res://features/orbit/orbit.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
