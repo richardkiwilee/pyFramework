@@ -61,6 +61,7 @@ const FEATURES: Array = [
 	{"icon": "📜", "name": "惯性滚动列表", "desc": "拖拽惯性滑行边界回弹", "scene": "res://features/scroll_list/scroll_list.tscn"},
 	{"icon": "🎼", "name": "波形画板", "desc": "手绘波形实时合成发声", "scene": "res://features/waveform_painter/waveform_painter.tscn"},
 	{"icon": "🌌", "name": "星空飞越", "desc": "深度投影星流鼠标转向", "scene": "res://features/starfield/starfield.tscn"},
+	{"icon": "🎲", "name": "多米诺骨牌", "desc": "连锁倾倒链式反应", "scene": "res://features/dominoes/dominoes.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
