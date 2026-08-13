@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/pixel_painter/pixel_painter.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="PixelPainter" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="HintLabel" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🎨 选色 → 画笔拖拽涂色 · 油漆桶点同色区域整块换色 · 右键/橡皮擦除 · 随机涂鸦找灵感"
