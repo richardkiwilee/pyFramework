@@ -21,6 +21,7 @@ const FEATURES: Array = [
 	{"icon": "⚔️", "name": "刀光斩击", "desc": "拖拽挥出月牙刀光", "scene": "res://features/slash/slash.tscn"},
 	{"icon": "🛰", "name": "小地图雷达", "desc": "俯视小地图与雷达扫描", "scene": "res://features/radar/radar.tscn"},
 	{"icon": "🧭", "name": "A* 寻路", "desc": "启发式搜索逐步可视化", "scene": "res://features/astar/astar.tscn"},
+	{"icon": "🌗", "name": "昼夜循环", "desc": "太阳轨道与光照渐变", "scene": "res://features/daynight/daynight.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid

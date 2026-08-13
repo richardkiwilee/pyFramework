@@ -1,0 +1,71 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://features/daynight/daynight.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.3, 0.55, 0.9, 1)
+sky_horizon_color = Color(0.78, 0.82, 0.92, 1)
+ground_bottom_color = Color(0.2, 0.24, 0.2, 1)
+ground_horizon_color = Color(0.78, 0.82, 0.92, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 2
+ambient_light_color = Color(0.52, 0.56, 0.66, 1)
+
+[node name="DayNight" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+position = Vector3(14, 10, 6)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 7.5, 12.5)
+rotation = Vector3(-0.5, 0, 0)
+fov = 58.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 400.0
+offset_top = 674.0
+offset_right = 880.0
+offset_bottom = 716.0
+theme_override_constants/separation = 12
+
+[node name="Slider" type="HSlider" parent="CanvasLayer/Bar"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.001
+value = 0.3
+
+[node name="PlayBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 36)
+text = "⏸ 暂停"
+
+[node name="TimeLabel" type="Label" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 36)
+theme_override_font_sizes/font_size = 16
+text = "🕐 07:12"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 900.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 15
+text = "🌗 拖动滑杆切换时刻 · 25 秒循环一整天 · 注意夜晚窗户亮灯"
+
+[node name="BackButton" parent="CanvasLayer" instance=ExtResource("2_back")]
