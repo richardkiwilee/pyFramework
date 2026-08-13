@@ -13,6 +13,7 @@ const FEATURES: Array = [
 	{"icon": "🌊", "name": "水面倒影", "desc": "3D 波光水面与镜像倒影", "scene": "res://features/water_reflection/water_reflection.tscn"},
 	{"icon": "⬡", "name": "六边形地图", "desc": "轴向六边形网格与寻路", "scene": "res://features/hex_map/hex_map.tscn"},
 	{"icon": "🎰", "name": "老虎机", "desc": "三轴滚动与中奖判定", "scene": "res://features/slot_machine/slot_machine.tscn"},
+	{"icon": "🌀", "name": "传送门", "desc": "漩涡能量门与空间传送", "scene": "res://features/portal/portal.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
