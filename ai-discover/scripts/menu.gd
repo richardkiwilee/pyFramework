@@ -32,6 +32,7 @@ const FEATURES: Array = [
 	{"icon": "🏭", "name": "传送带物流", "desc": "折线传送带与收集计数", "scene": "res://features/conveyor/conveyor.tscn"},
 	{"icon": "💣", "name": "物理塔", "desc": "炮弹轰击积木塔连锁倒塌", "scene": "res://features/physics_tower/physics_tower.tscn"},
 	{"icon": "💬", "name": "打字机对话", "desc": "逐字显示与分支选项", "scene": "res://features/dialog/dialog.tscn"},
+	{"icon": "🎯", "name": "弹道预测", "desc": "抛物线瞄准虚线炮击", "scene": "res://features/trajectory/trajectory.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
