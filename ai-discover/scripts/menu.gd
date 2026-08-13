@@ -47,6 +47,7 @@ const FEATURES: Array = [
 	{"icon": "🎹", "name": "合成器键盘", "desc": "实时复音合成钢琴键盘", "scene": "res://features/synth_keyboard/synth_keyboard.tscn"},
 	{"icon": "⛓", "name": "弹簧绳索", "desc": "Verlet绳索惯性甩动", "scene": "res://features/rope/rope.tscn"},
 	{"icon": "🔮", "name": "万花筒", "desc": "扇形折叠对称图案shader", "scene": "res://features/kaleidoscope/kaleidoscope.tscn"},
+	{"icon": "🔴", "name": "弹珠迷宫", "desc": "倾斜滚动惯性撞墙", "scene": "res://features/marble_maze/marble_maze.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
