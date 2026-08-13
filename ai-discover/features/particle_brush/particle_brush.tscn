@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/particle_brush/particle_brush.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="ParticleBrush" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="CanvasRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 80.0
+offset_right = 1152.0
+offset_bottom = 640.0
+
+[node name="Sparks" type="CPUParticles2D" parent="."]
+amount = 10
+lifetime = 0.5
+one_shot = true
+explosiveness = 1.0
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, 300)
+initial_velocity_min = 90.0
+initial_velocity_max = 260.0
+scale_amount_min = 2.0
+scale_amount_max = 5.0
+color = Color(1, 1, 1, 0.9)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ClearBtn" type="Button" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 116.0
+offset_bottom = 52.0
+text = "🧹 清空"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🎨 按住鼠标在画布上拖动作画 · 颜色随彩虹循环 · 粒子飞溅点缀 · 清空重来"
