@@ -11,12 +11,16 @@ extends CanvasLayer
 ## =============================================================================
 
 const MAIN_MENU := "res://scenes/menu.tscn"
+## 面板固定尺寸（按钮 140×42 + 内容边距 20×16），定位无需等待布局
+const PANEL_SIZE := Vector2(160, 58)
 
 
 func _ready() -> void:
 	layer = 100   # 置顶渲染，杜绝被场景内容遮挡
 
 	var panel := PanelContainer.new()
+	panel.custom_minimum_size = PANEL_SIZE
+	panel.position = get_viewport().get_visible_rect().size - PANEL_SIZE - Vector2(12, 12)
 
 	var btn := Button.new()
 	btn.text = "← 返回主菜单"
@@ -50,9 +54,6 @@ func _ready() -> void:
 
 	panel.add_child(btn)
 	add_child(panel)
-	# 等一帧拿到实际尺寸后贴齐视口右下角（留 12px 边距）
-	await get_tree().process_frame
-	panel.position = get_viewport().get_visible_rect().size - panel.size - Vector2(12, 12)
 
 
 func _go_back() -> void:

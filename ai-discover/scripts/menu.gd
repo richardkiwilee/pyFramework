@@ -56,6 +56,7 @@ const FEATURES: Array = [
 	{"icon": "🌳", "name": "分形树", "desc": "递归分支随机生长", "scene": "res://features/fractal_tree/fractal_tree.tscn"},
 	{"icon": "⌨️", "name": "打字练习", "desc": "下落单词击破+WPM统计", "scene": "res://features/typing_game/typing_game.tscn"},
 	{"icon": "🎨", "name": "粒子画笔", "desc": "拖拽作画+粒子飞溅", "scene": "res://features/particle_brush/particle_brush.tscn"},
+	{"icon": "🪐", "name": "重力弹射", "desc": "行星引力拖拽弹射彗星", "scene": "res://features/gravity_sling/gravity_sling.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
