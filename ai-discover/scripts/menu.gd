@@ -50,6 +50,7 @@ const FEATURES: Array = [
 	{"icon": "🔴", "name": "弹珠迷宫", "desc": "倾斜滚动惯性撞墙", "scene": "res://features/marble_maze/marble_maze.tscn"},
 	{"icon": "🎡", "name": "转盘抽奖", "desc": "扇形转盘缓动抽奖", "scene": "res://features/wheel/wheel.tscn"},
 	{"icon": "🧠", "name": "记忆翻牌", "desc": "配对记忆与翻转动画", "scene": "res://features/memory/memory.tscn"},
+	{"icon": "🎱", "name": "台球", "desc": "弹性碰撞瞄准击球", "scene": "res://features/billiards/billiards.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
