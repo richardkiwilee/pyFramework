@@ -43,6 +43,7 @@ const FEATURES: Array = [
 	{"icon": "🔦", "name": "手电筒光照", "desc": "光锥shader照亮藏宝图", "scene": "res://features/flashlight/flashlight.tscn"},
 	{"icon": "✨", "name": "粒子光环", "desc": "轨道粒子环与旋转星盘", "scene": "res://features/particle_halo/particle_halo.tscn"},
 	{"icon": "🏔", "name": "程序化地形", "desc": "fbm噪声高度图彩色地形", "scene": "res://features/terrain_gen/terrain_gen.tscn"},
+	{"icon": "💎", "name": "三消游戏", "desc": "交换宝石三连消除连锁", "scene": "res://features/match3/match3.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
