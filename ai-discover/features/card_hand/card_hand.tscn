@@ -1,0 +1,76 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/card_hand/card_hand.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[sub_resource type="StyleBoxFlat" id="board_sb"]
+bg_color = Color(0.07, 0.09, 0.10, 0.85)
+border_color = Color(0.3, 0.34, 0.42, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[node name="CardHand" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Board" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 80.0
+offset_right = 1140.0
+offset_bottom = 520.0
+theme_override_styles/panel = SubResource("board_sb")
+
+[node name="BoardLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 92.0
+offset_right = 1140.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 22
+text = "⚔ 战场（点击手牌打出）"
+horizontal_alignment = 1
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TopBar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 1264.0
+offset_bottom = 48.0
+theme_override_constants/separation = 16
+
+[node name="DeckLabel" type="Label" parent="CanvasLayer/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🂠 牌库：15"
+
+[node name="PlayLabel" type="Label" parent="CanvasLayer/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🃏 已打出：0"
+
+[node name="ResetBtn" type="Button" parent="CanvasLayer/TopBar"]
+layout_mode = 2
+text = "🔄 重置"
+
+[node name="BackButton" parent="CanvasLayer" instance=ExtResource("2_back")]
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🃏 悬停抬牌 · 点击打出到战场（自动补牌）· 牌库抽空为止"

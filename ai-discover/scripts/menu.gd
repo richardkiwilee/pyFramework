@@ -26,6 +26,7 @@ const FEATURES: Array = [
 	{"icon": "💧", "name": "点击波纹", "desc": "水面扩散涟漪shader", "scene": "res://features/ripple/ripple.tscn"},
 	{"icon": "🎲", "name": "骰子", "desc": "物理投掷与点数读数", "scene": "res://features/dice/dice.tscn"},
 	{"icon": "🌫", "name": "战争迷雾", "desc": "双层探索与视野揭示", "scene": "res://features/fog_of_war/fog_of_war.tscn"},
+	{"icon": "🃏", "name": "卡牌手牌", "desc": "扇形手牌与打出补牌", "scene": "res://features/card_hand/card_hand.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
