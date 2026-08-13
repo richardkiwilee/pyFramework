@@ -28,6 +28,7 @@ const FEATURES: Array = [
 	{"icon": "🌫", "name": "战争迷雾", "desc": "双层探索与视野揭示", "scene": "res://features/fog_of_war/fog_of_war.tscn"},
 	{"icon": "🃏", "name": "卡牌手牌", "desc": "扇形手牌与打出补牌", "scene": "res://features/card_hand/card_hand.tscn"},
 	{"icon": "🧲", "name": "磁力吸附", "desc": "拖拽方块自动吸附槽位", "scene": "res://features/magnet_snap/magnet_snap.tscn"},
+	{"icon": "🎶", "name": "音乐可视化", "desc": "合成和弦驱动频谱光柱", "scene": "res://features/audio_visualizer/audio_visualizer.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Grid
