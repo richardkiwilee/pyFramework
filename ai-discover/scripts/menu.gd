@@ -71,6 +71,7 @@ const FEATURES: Array = [
 	{"icon": "🕐", "name": "数码管时钟", "desc": "七段LED实时时间", "scene": "res://features/segment_clock/segment_clock.tscn"},
 	{"icon": "🌧", "name": "雨滴特效", "desc": "雨丝下落溅花+随机闪电", "scene": "res://features/rain/rain.tscn"},
 	{"icon": "🧩", "name": "滑动拼图", "desc": "15-puzzle数字滑块", "scene": "res://features/sliding_puzzle/sliding_puzzle.tscn"},
+	{"icon": "🔢", "name": "2048", "desc": "滑动合并合成2048", "scene": "res://features/game_2048/game_2048.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
