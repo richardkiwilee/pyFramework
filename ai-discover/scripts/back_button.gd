@@ -2,11 +2,12 @@ extends CanvasLayer
 ## =============================================================================
 ## back_button.gd — 通用"返回主菜单"组件
 ## =============================================================================
-## 每个功能子场景都挂一个：左上角常驻返回按钮。
-## 防遮挡的两个要点：
+## 每个功能子场景都挂一个：右下角常驻返回按钮。
+## 防遮挡的三个要点：
 ##   1. layer = 100：渲染在所有子场景自带 CanvasLayer（默认层号 ≤ 2）
 ##      之上，任何场景内容（HUD/特效/覆盖层）都盖不住它；
-##   2. 半透明深色底 + 描边 + 悬停提亮：在亮背景（天空/雪地）上也清晰可见。
+##   2. 半透明深色底 + 描边 + 悬停提亮：在亮背景（天空/雪地）上也清晰可见；
+##   3. 等一帧拿到实际面板尺寸后贴齐视口右下角（留 12px 边距）。
 ## =============================================================================
 
 const MAIN_MENU := "res://scenes/menu.tscn"
@@ -16,7 +17,6 @@ func _ready() -> void:
 	layer = 100   # 置顶渲染，杜绝被场景内容遮挡
 
 	var panel := PanelContainer.new()
-	panel.position = Vector2(12, 12)
 
 	var btn := Button.new()
 	btn.text = "← 返回主菜单"
@@ -50,6 +50,9 @@ func _ready() -> void:
 
 	panel.add_child(btn)
 	add_child(panel)
+	# 等一帧拿到实际尺寸后贴齐视口右下角（留 12px 边距）
+	await get_tree().process_frame
+	panel.position = get_viewport().get_visible_rect().size - panel.size - Vector2(12, 12)
 
 
 func _go_back() -> void:
