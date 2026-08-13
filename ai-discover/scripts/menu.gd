@@ -41,6 +41,7 @@ const FEATURES: Array = [
 	{"icon": "🛤", "name": "轨道编辑器", "desc": "样条轨道布点与列车行驶", "scene": "res://features/path_editor/path_editor.tscn"},
 	{"icon": "👕", "name": "布料模拟", "desc": "Verlet物理布料与风", "scene": "res://features/cloth/cloth.tscn"},
 	{"icon": "🔦", "name": "手电筒光照", "desc": "光锥shader照亮藏宝图", "scene": "res://features/flashlight/flashlight.tscn"},
+	{"icon": "✨", "name": "粒子光环", "desc": "轨道粒子环与旋转星盘", "scene": "res://features/particle_halo/particle_halo.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
