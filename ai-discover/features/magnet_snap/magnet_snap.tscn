@@ -1,0 +1,41 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/magnet_snap/magnet_snap.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="MagnetSnap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="CanvasLayer"]
+offset_left = 60.0
+offset_top = 40.0
+offset_right = 400.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 24
+text = "🧲 磁力吸附"
+
+[node name="LeftHint" type="Label" parent="CanvasLayer"]
+offset_left = 60.0
+offset_top = 560.0
+offset_right = 400.0
+offset_bottom = 650.0
+theme_override_font_sizes/font_size = 14
+text = "左侧方块：\n按住拖动 → 右侧槽位\n松手自动吸附最近空槽"
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 15
+text = "拖动方块尝试吸附 · 已入槽的方块可再次拿起"
