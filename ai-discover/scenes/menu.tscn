@@ -45,8 +45,14 @@ theme_override_colors/font_color = Color(0.62, 0.66, 0.78, 1)
 text = "地图 · 界面 · Shader · UI 组件 —— 点击卡片进入子场景"
 horizontal_alignment = 1
 
-[node name="Grid" type="GridContainer" parent="CenterBox/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="CenterBox/VBox"]
+custom_minimum_size = Vector2(1020, 470)
 layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="CenterBox/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
 columns = 4

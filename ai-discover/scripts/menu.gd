@@ -35,7 +35,7 @@ const FEATURES: Array = [
 	{"icon": "🎯", "name": "弹道预测", "desc": "抛物线瞄准虚线炮击", "scene": "res://features/trajectory/trajectory.tscn"},
 ]
 
-@onready var grid: GridContainer = $CenterBox/VBox/Grid
+@onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
 @onready var count_label: Label = $CenterBox/VBox/FooterLabel
 
 
