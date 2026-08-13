@@ -34,6 +34,7 @@ const FEATURES: Array = [
 	{"icon": "💬", "name": "打字机对话", "desc": "逐字显示与分支选项", "scene": "res://features/dialog/dialog.tscn"},
 	{"icon": "🎯", "name": "弹道预测", "desc": "抛物线瞄准虚线炮击", "scene": "res://features/trajectory/trajectory.tscn"},
 	{"icon": "🧬", "name": "生命游戏", "desc": "Conway元胞自动机演化", "scene": "res://features/game_of_life/game_of_life.tscn"},
+	{"icon": "🐍", "name": "贪吃蛇", "desc": "经典小游戏吃食增长", "scene": "res://features/snake/snake.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
