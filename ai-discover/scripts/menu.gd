@@ -33,6 +33,7 @@ const FEATURES: Array = [
 	{"icon": "💣", "name": "物理塔", "desc": "炮弹轰击积木塔连锁倒塌", "scene": "res://features/physics_tower/physics_tower.tscn"},
 	{"icon": "💬", "name": "打字机对话", "desc": "逐字显示与分支选项", "scene": "res://features/dialog/dialog.tscn"},
 	{"icon": "🎯", "name": "弹道预测", "desc": "抛物线瞄准虚线炮击", "scene": "res://features/trajectory/trajectory.tscn"},
+	{"icon": "🧬", "name": "生命游戏", "desc": "Conway元胞自动机演化", "scene": "res://features/game_of_life/game_of_life.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid

@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/game_of_life/game_of_life.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="GameOfLife" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 200.0
+offset_top = 8.0
+offset_right = 1080.0
+offset_bottom = 44.0
+theme_override_constants/separation = 10
+
+[node name="PlayBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 36)
+text = "▶ 播放"
+
+[node name="StepBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 36)
+text = "⏭ 步进"
+
+[node name="RandomBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 36)
+text = "🎲 随机"
+
+[node name="ClearBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 36)
+text = "🧹 清空"
+
+[node name="SpeedSlider" type="HSlider" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 36)
+max_value = 1.0
+value = 0.61
+
+[node name="StatsLabel" type="Label" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 36)
+theme_override_font_sizes/font_size = 14
+text = "世代 0 · 存活 0"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🧬 左键画细胞 · 右键擦除 · 播放/步进看演化 · 试试画一个滑翔机"
