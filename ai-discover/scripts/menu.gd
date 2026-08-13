@@ -52,6 +52,7 @@ const FEATURES: Array = [
 	{"icon": "🧠", "name": "记忆翻牌", "desc": "配对记忆与翻转动画", "scene": "res://features/memory/memory.tscn"},
 	{"icon": "🎱", "name": "台球", "desc": "弹性碰撞瞄准击球", "scene": "res://features/billiards/billiards.tscn"},
 	{"icon": "🌀", "name": "迷宫生成", "desc": "递归回溯完美迷宫+BFS解法", "scene": "res://features/maze_gen/maze_gen.tscn"},
+	{"icon": "🕹", "name": "打砖块", "desc": "挡板弹球消砖计分", "scene": "res://features/breakout/breakout.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
