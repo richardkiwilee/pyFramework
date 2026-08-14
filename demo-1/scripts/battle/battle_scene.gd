@@ -96,8 +96,8 @@ extends Control
 @onready var round_label: Label = $Header/RoundLabel
 
 ## 玩家/敌方单位卡片容器
-@onready var player_grid: VBoxContainer = $BattleArea/PlayerSide/UnitGrid
-@onready var enemy_grid: VBoxContainer = $BattleArea/EnemySide/UnitGrid
+@onready var player_grid: VBoxContainer = $BattleArea/PlayerSide/ScrollContainer/UnitGrid
+@onready var enemy_grid: VBoxContainer = $BattleArea/EnemySide/ScrollContainer/UnitGrid
 
 ## 战斗日志列表（滚动显示）
 @onready var battle_log: VBoxContainer = $LogPanel/ScrollContainer/LogList

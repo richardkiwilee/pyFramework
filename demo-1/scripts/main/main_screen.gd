@@ -1,93 +1,95 @@
 extends Control
 ## =============================================================================
-## MainScreen — 队伍编成主界面控制器
+## MainScreen — 队伍编成主界面控制器（滚轮棋盘版，对标网页版）
 ## =============================================================================
-## 作用：管理整个队伍编成界面的交互逻辑。
-##       包括棋盘(BoardGrid)、角色编辑器(UnitEditor)、角色选择器、
-##       装备选择器等所有 UI 组件的协调。
+## 作用：协调滚轮(ReelView)、右侧编辑器(UnitEditor)、角色选择器、
+##       装备/技能/条件选择弹窗等所有 UI 组件。
 ##
 ## 界面布局：
 ##   +----------------------------------------------+
 ##   |  TopBar — 标题栏                              |
 ##   +----------+-----------------------------------+
 ##   | ZoneLeft | ZoneRight                         |
-## |   | (队伍列表| (UnitEditor — 角色详情面板)       |
-## |   | +操作按钮|   · 装备槽位                       |
-## |   | +选择器) |   · 属性数值                       |
-##   |          |   · 技能列表                       |
+##   | (滚轮机框 | (UnitEditor — 装备卡/属性/策略)     |
+##   | +行动条) |                                    |
 ##   +----------+-----------------------------------+
-##   |  HintBar — 操作提示                           |
+##   |  HintBar — 按键提示                           |
 ##   +----------------------------------------------+
 ##
-## 数据流概述：
-##   TeamManager（数据层）↔ MainScreen（控制器）↔ BoardGrid/UnitEditor（视图）
+## 按键操作（对齐网页版）：
+##   ↑/↓ / 滚轮  滚动队伍      PgUp/PgDn 跳一页(teams.size())
+##   ←/→         切换队内单位   Enter    下一队
+##   空格         移动模式（←→↑↓遍历9格，空格/回车确认，Esc取消）
+##   A            待命池放置到首个空格
+##   Del/Back     移除选中单位（队长不可移除）
+##   E/Q          焦点→右/左    Esc     关闭弹窗/取消移动
 ##
-##   MainScreen 持有 equipment_data 字典：
-##     {char_id: {"weapon": eq_id, "shield": eq_id, ...}}
-##   装备数据不和角色数据混在一起，而是独立维护，方便跨队伍共享装备。
+## 数据流概述：
+##   TeamManager（数据层）↔ MainScreen（控制器）↔ ReelView/UnitEditor（视图）
+##
+##   MainScreen 持有两份运行时状态（不在角色 JSON 中，同网页版）：
+##     equipment_data: {char_id: {slot_key: eq_id}}     装备
+##     strategy_data:  {char_id: [{skill, cond1, cond2}]} 行动策略
 ## =============================================================================
 
 # 预加载类 — 类似于 Python 的 import
 # preload() 在脚本解析时执行（编译期），返回的是 PackedScene 或 GDScript 类引用
-# const 确保这些引用不会被意外修改
 const TeamManagerClass = preload("res://scripts/main/team_manager.gd")
-const BoardGridClass = preload("res://scripts/main/board_grid.gd")
 
 # ------------------------------------------------------------------ @onready 节点引用
-# $ 语法 — 等价于 get_node() 的简写，路径以 / 分隔
-# 例如 $MainLayout/ZoneLeft 等价于 get_node("MainLayout/ZoneLeft")
-#
-# 注意：$ 路径是相对于当前节点的。如果当前节点是场景根节点，
-# 那么 $TopBar 就是场景根下的 TopBar 子节点。
-
 @onready var top_bar: Label = $TopBar
 @onready var zone_left: PanelContainer = $MainLayout/ZoneLeft
 @onready var zone_right: PanelContainer = $MainLayout/ZoneRight
-@onready var board_container: VBoxContainer = $MainLayout/ZoneLeft/VBoxLeft/ScrollContainer/BoardContainer
+@onready var reel = $MainLayout/ZoneLeft/VBoxLeft/ReelView
 @onready var act_lab: Label = $MainLayout/ZoneLeft/VBoxLeft/ActionBar/ActLab
+@onready var btn_prev: Button = $MainLayout/ZoneLeft/VBoxLeft/ActionBar/BtnPrev
+@onready var btn_next: Button = $MainLayout/ZoneLeft/VBoxLeft/ActionBar/BtnNext
 @onready var btn_new_team: Button = $MainLayout/ZoneLeft/VBoxLeft/ActionBar/BtnNewTeam
 @onready var btn_disband: Button = $MainLayout/ZoneLeft/VBoxLeft/ActionBar/BtnDisband
 @onready var btn_battle: Button = $MainLayout/ZoneLeft/VBoxLeft/ActionBar/BtnBattle
 @onready var editor = $MainLayout/ZoneRight/UnitEditor
 @onready var hint_bar: Label = $HintBar
-@onready var char_picker = $MainLayout/ZoneLeft/Overlay/CharPicker
+@onready var overlay: Control = $MainLayout/ZoneLeft/Overlay
+@onready var char_picker: PanelContainer = $MainLayout/ZoneLeft/Overlay/CharPicker
 
 # ------------------------------------------------------------------ 运行时状态
 
 ## TeamManager 实例 — 队伍数据管理者（非 Autoload，手动创建）
-var team_manager  # TeamManager 实例
+var team_manager: TeamManager  # TeamManager 实例
 
-## 当前选中的队伍索引（对应左边高亮的棋盘）
-var active_board_index: int = 0
+## 当前选中的队伍索引（滚轮居中的队伍）
+var active_team_idx: int = 0
 
-## 所有 BoardGrid 控件实例
-var boards: Array = []  # Array[BoardGrid]
+## 选中单位ID（"" = 无选中）
+var sel_unit_id: String = ""
 
-## 角色选择器打开时的目标槽位信息
-var selecting_slot: int = -1    # 正在选择放置到哪个槽位
-var selecting_team: int = -1    # 正在选择放置到哪支队伍
+## 移动模式状态：源单位 + 目标格
+var move_src_id: String = ""
+var move_target := Vector2i(-1, -1)
 
-## ---------------------------------------------------------------------------
-## 装备数据 — 核心状态
-## ---------------------------------------------------------------------------
-## 结构：{char_id: {slot_key: eq_id}}
-##
-## 例如：
-##   {
-##     "lord_01": {"weapon": "eq_sword_legend_01", "shield": "eq_shield_03"},
-##     "mage_05": {"weapon": "eq_staff_02", "acc1": "eq_acc_07"}
-##   }
-##
-## 为什么装备数据存在 MainScreen 而不是 TeamManager 或角色的 JSON 中？
-##   1. JSON 数据是静态的"图鉴"，角色的基础属性
-##   2. 装备是玩家在游戏中获取的动态资源，需要独立存储
-##   3. 放在 MainScreen 中方便装备选择器和 UnitEditor 之间传递数据
-## ---------------------------------------------------------------------------
+## 焦点在左区（true）还是右区（false）——影响滚轮与按键路由
+var focus_left := true
+
+## 装备数据：{char_id: {slot_key: eq_id}}
 var equipment_data: Dictionary = {}
 
-## 装备选择器打开的上下文：哪个角色的哪个槽位正在等待选择装备
+## 行动策略数据：{char_id: [{skill, cond1, cond2}]}
+var strategy_data: Dictionary = {}
+
+## 角色选择器（tscn 中的 CharPicker）模式："bench"（待命池放置）/ "captain"（选队长）
+var char_picker_mode: String = ""
+var char_picker_ctx: Dictionary = {}   # bench 模式：{"r": int, "c": int}
+
+## 装备选择器上下文：哪个角色的哪个槽位正在等待选择装备
 var equip_pending_slot: String = ""   # "weapon" / "shield" / "acc1" / "acc2"
 var equip_pending_char: String = ""   # 角色ID
+
+## 当前打开的 PickerFactory 弹窗（装备/技能/条件）
+var _modal_panel: PanelContainer = null
+
+# 焦点高亮 stylebox（_ready 时捕获默认样式）
+var _zone_left_default: StyleBox
+var _zone_right_default: StyleBox
 
 
 # ==================================================================
@@ -98,51 +100,69 @@ func _ready() -> void:
 	# --- 创建 TeamManager 实例 ---
 	team_manager = TeamManagerClass.new()
 	add_child(team_manager)
-	# 连接信号：队伍数据变更 -> 重建棋盘
 	team_manager.team_changed.connect(_on_team_changed)
 
-	# 如果 DataManager 中有保存的队伍数据，恢复到 TeamManager
+	# --- 恢复队伍数据 / 预填充默认队伍 ---
 	if DataManager.saved_teams.size() > 0:
+		for t in DataManager.saved_teams:
+			team_manager.normalize_team(t)
 		team_manager.teams = DataManager.saved_teams.duplicate(true)
 		print("[MainScreen] 已恢复 %d 支队伍数据" % team_manager.teams.size())
-		DataManager.saved_teams.clear()  # 清除备份，避免重复恢复
+		DataManager.saved_teams.clear()
+	else:
+		team_manager.prefill_default_teams()  # 3队×3随机角色+队长（对齐网页版开局）
 
-	# --- 设置顶部标题栏样式 ---
+	# --- 捕获默认面板样式（焦点切换用） ---
+	_zone_left_default = zone_left.get_theme_stylebox("panel")
+	_zone_right_default = zone_right.get_theme_stylebox("panel")
+
+	# --- 顶部标题栏样式 ---
 	top_bar.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
 	top_bar.add_theme_font_size_override("font_size", 14)
 
-	# --- 设置状态栏样式 ---
+	# --- 状态栏/提示栏样式 ---
 	act_lab.add_theme_color_override("font_color", UITheme.INK_DIM)
 	act_lab.add_theme_font_size_override("font_size", 11)
-
-	# --- 设置底部提示栏 ---
 	hint_bar.add_theme_color_override("font_color", UITheme.INK_DIM)
 	hint_bar.add_theme_font_size_override("font_size", 11)
-	hint_bar.text = "点击棋盘空格放置单位 · 点击已放置单位查看/编辑 · 右键移除单位 · 点击任意队伍的角色切换出战队伍"
 
-	# --- 设置按钮样式 ---
-	# Godot 中按钮样式通过 StyleBox 实现，而不是 CSS
-	# begin_bulk_theme_override() / end_bulk_theme_override() 是一对优化：
-	#   多个主题覆盖在二者之间批量应用，引擎只在 end 后重新计算一次布局
-	_style_btn(btn_new_team, "+ 新增队伍")
+	# --- 按钮样式与信号 ---
+	_style_btn(btn_prev, "‹ 上一队")
+	_style_btn(btn_next, "下一队 ›")
+	_style_btn(btn_new_team, "＋ 新增队伍")
 	_style_btn(btn_disband, "解散队伍")
 	_style_battle_btn(btn_battle, "▶ 开始战斗")
-
-	# --- 连接按钮信号 ---
-	# pressed 信号在按钮被点击并释放时发出（不是按下时）
+	btn_prev.pressed.connect(func(): reel.feed(-1))
+	btn_next.pressed.connect(func(): reel.feed(1))
 	btn_new_team.pressed.connect(_on_new_team)
 	btn_disband.pressed.connect(_on_disband_team)
 	btn_battle.pressed.connect(_on_start_battle)
 
-	# --- 连接编辑器的装备槽点击信号 ---
+	# --- 编辑器信号 ---
 	editor.equip_slot_clicked.connect(_on_equip_slot_clicked)
+	editor.strategy_skill_clicked.connect(_on_strategy_skill_clicked)
+	editor.strategy_cond_clicked.connect(_on_strategy_cond_clicked)
+	editor.strategy_row_delete.connect(_on_strategy_row_delete)
 
-	# --- 构建初始棋盘 ---
-	_rebuild_boards()
+	# --- 滚轮信号 ---
+	reel.settled.connect(_on_reel_settled)
+	reel.unit_clicked.connect(_on_reel_unit_clicked)
+	reel.cell_clicked.connect(_on_reel_cell_clicked)
 
-	# --- 初始化选择器 ---
-	_setup_char_picker()   # 角色选择器（在 .tscn 中预定义）
-	_setup_equip_picker()  # 装备选择器（完全在代码中动态创建）
+	# --- 右侧空白点击关闭弹窗（子控件 STOP 不会冒泡到 zone_right）---
+	zone_right.gui_input.connect(_on_zone_right_input)
+
+	# --- 角色选择器 ---
+	_setup_char_picker()
+
+	# --- 初始状态 ---
+	sel_unit_id = team_manager.get_captain(0)
+	_set_zone_focus(true)
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+	_update_top_bar()
+	_update_hint()
 
 
 # ==================================================================
@@ -152,6 +172,7 @@ func _ready() -> void:
 ## 常规按钮样式 — 深色背景+浅色文字
 func _style_btn(btn: Button, text: String) -> void:
 	btn.text = text
+	btn.focus_mode = Control.FOCUS_NONE  # 关键：防止按钮抢走方向键/回车/空格
 	btn.add_theme_color_override("font_color", UITheme.INK)
 	btn.add_theme_font_size_override("font_size", 12)
 	btn.begin_bulk_theme_override()
@@ -162,6 +183,7 @@ func _style_btn(btn: Button, text: String) -> void:
 ## 战斗按钮样式 — 金色背景+深色文字（突出显示，最重要的操作按钮）
 func _style_battle_btn(btn: Button, text: String) -> void:
 	btn.text = text
+	btn.focus_mode = Control.FOCUS_NONE
 	btn.add_theme_color_override("font_color", Color("2c1c0e"))  # 深棕色文字
 	btn.add_theme_font_size_override("font_size", 13)
 	btn.begin_bulk_theme_override()
@@ -170,491 +192,849 @@ func _style_battle_btn(btn: Button, text: String) -> void:
 
 
 # ==================================================================
-#  棋盘管理 (Board Management)
+#  键盘输入 — _unhandled_input（按键表见文件头注释）
 # ==================================================================
 
-## ---------------------------------------------------------------------------
-## _rebuild_boards() — 完全重建所有棋盘控件
-## ---------------------------------------------------------------------------
-## 当队伍数量变化时调用。销毁所有旧 BoardGrid，根据 teams 数据创建新的。
-## 每个棋盘连接 slot_clicked 和 slot_right_clicked 信号以处理交互。
-## ---------------------------------------------------------------------------
-func _rebuild_boards() -> void:
-	# 先销毁旧棋盘（queue_free 在帧末安全释放）
-	for b in boards:
-		b.queue_free()
-	boards.clear()
-
-	# 为每支队伍创建一个 BoardGrid
-	for i in range(team_manager.teams.size()):
-		var board := BoardGridClass.new()
-		board.team_index = i
-		board.is_active = (i == active_board_index)
-		# refresh() 传入队伍数据，初始化图标/名称缓存
-		board.refresh(i, team_manager.teams[i].units, board.is_active)
-		# 连接信号：点击/右键格子 -> MainScreen 处理
-		board.slot_clicked.connect(_on_board_slot_clicked)
-		board.slot_right_clicked.connect(_on_board_slot_right_clicked)
-		board_container.add_child(board)
-		boards.append(board)
-
-	# 确保有队伍被选中
-	if boards.size() > 0:
-		select_board(active_board_index)
-
-	_update_act_lab()
-	_update_top_bar()
-
-
-## ---------------------------------------------------------------------------
-## select_board() — 切换当前选中的队伍
-## ---------------------------------------------------------------------------
-## 更新所有棋盘的 is_active 状态，触发重绘以更新高亮。
-## ---------------------------------------------------------------------------
-func select_board(idx: int) -> void:
-	if idx < 0 or idx >= boards.size():
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	active_board_index = idx
-	# 更新所有棋盘的活跃状态
-	for i in range(boards.size()):
-		boards[i].is_active = (i == idx)
-		boards[i].refresh(i, team_manager.teams[i].units, boards[i].is_active)
+	var k: Key = event.keycode
+
+	# --- Esc：取消移动 → 关闭角色选择器 → 关闭弹窗 ---
+	if k == KEY_ESCAPE:
+		if move_src_id != "":
+			_cancel_move()
+			get_viewport().set_input_as_handled()
+			return
+		if char_picker.visible:
+			if char_picker_mode == "captain":
+				_show_toast("新建失败：未选择队长，已取消。", true)
+			_close_char_picker()
+			get_viewport().set_input_as_handled()
+			return
+		if _modal_panel != null and is_instance_valid(_modal_panel):
+			_close_modal()
+			get_viewport().set_input_as_handled()
+			return
+
+	# --- E / Q：切换焦点（任意焦点可用）---
+	if k == KEY_E:
+		_set_zone_focus(false)
+		get_viewport().set_input_as_handled()
+		return
+	if k == KEY_Q:
+		_set_zone_focus(true)
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- 右焦点时其余按键不生效（网页版一致）---
+	if not focus_left:
+		return
+
+	# --- ↑/↓：移动模式遍历行 / 滚动队伍 ---
+	if k == KEY_UP:
+		if move_src_id != "" and move_target != Vector2i(-1, -1):
+			move_target = Vector2i(posmod(move_target.x - 1, 3), move_target.y)
+			_refresh_reel()
+		else:
+			reel.feed(-1)
+		get_viewport().set_input_as_handled()
+		return
+	if k == KEY_DOWN:
+		if move_src_id != "" and move_target != Vector2i(-1, -1):
+			move_target = Vector2i(posmod(move_target.x + 1, 3), move_target.y)
+			_refresh_reel()
+		else:
+			reel.feed(1)
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- PgUp/PgDn：整页滚动 ---
+	if k == KEY_PAGEUP:
+		reel.feed(-1, true)
+		get_viewport().set_input_as_handled()
+		return
+	if k == KEY_PAGEDOWN:
+		reel.feed(1, true)
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- A：待命池放置到第一个空格 ---
+	if k == KEY_A and move_src_id == "":
+		_close_char_picker()
+		_close_modal()
+		_open_bench_picker()
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- ←/→：移动模式遍历 9 格 / 队内切换单位 ---
+	if k == KEY_LEFT or k == KEY_RIGHT:
+		var step := 1 if k == KEY_RIGHT else -1
+		if move_src_id != "" and move_target != Vector2i(-1, -1):
+			var idx := move_target.x * 3 + move_target.y
+			idx = posmod(idx + step, 9)
+			move_target = Vector2i(idx / 3, idx % 3)
+			_refresh_reel()
+		else:
+			_cycle_units(step)
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- Enter：移动模式确认 / 下一队 ---
+	if k == KEY_ENTER:
+		if move_src_id != "":
+			_confirm_move()
+		else:
+			reel.feed(1)
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- 空格：移动模式确认 / 进入移动模式 ---
+	if k == KEY_SPACE:
+		if move_src_id != "":
+			_confirm_move()
+		elif sel_unit_id != "":
+			move_src_id = sel_unit_id
+			move_target = team_manager.find_unit_cell(active_team_idx, sel_unit_id)
+			_refresh_reel()
+			_update_act_lab()
+		get_viewport().set_input_as_handled()
+		return
+
+	# --- Del/Backspace：移除选中单位 ---
+	if k == KEY_DELETE or k == KEY_BACKSPACE:
+		if sel_unit_id != "":
+			_remove_selected_unit()
+		get_viewport().set_input_as_handled()
+
+
+## 队内循环切换选中单位（step ±1）
+func _cycle_units(step: int) -> void:
+	var ids: Array = team_manager.get_team_unit_ids(active_team_idx)
+	if ids.is_empty():
+		return
+	var pos: int = ids.find(sel_unit_id)
+	if pos == -1:
+		pos = 0
+	else:
+		pos = posmod(pos + step, ids.size())
+	sel_unit_id = ids[pos]
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+
+
+## 移除选中单位（队长保护）
+func _remove_selected_unit() -> void:
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	if sel_unit_id == team.get("captain", ""):
+		_show_toast("队长不可移除，请先在别队更换队长。", true)
+		return
+	var cell := team_manager.find_unit_cell(active_team_idx, sel_unit_id)
+	if cell == Vector2i(-1, -1):
+		return
+	team_manager.set_unit(active_team_idx, cell.x * 3 + cell.y, "")
+	sel_unit_id = team_manager.get_captain(active_team_idx)
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+
+
+# ==================================================================
+#  移动模式
+# ==================================================================
+
+## 确认移动：目标格==源格则取消；否则移动或交换
+func _confirm_move() -> void:
+	if move_src_id == "":
+		return
+	var src_cell := team_manager.find_unit_cell(active_team_idx, move_src_id)
+	if src_cell == move_target:
+		_cancel_move()  # 目标格就是源单位 → 取消移动
+		return
+	var occ: String = team_manager.get_unit_at_rc(active_team_idx, move_target.x, move_target.y)
+	if occ != "":
+		team_manager.swap_units(active_team_idx, src_cell.x * 3 + src_cell.y, move_target.x * 3 + move_target.y)
+	else:
+		team_manager.move_unit(active_team_idx, src_cell.x * 3 + src_cell.y, move_target.x * 3 + move_target.y)
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+
+
+func _cancel_move() -> void:
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	_refresh_reel()
+	_update_act_lab()
+
+
+# ==================================================================
+#  滚轮信号处理
+# ==================================================================
+
+## 滚轮停稳且中心队伍变化 → 切换活跃队伍
+func _on_reel_settled(idx: int) -> void:
+	if idx == active_team_idx:
+		_update_act_lab()
+		return
+	active_team_idx = idx
+	# 切换队伍时关闭可能残留的弹窗（避免显示旧队伍的过期数据）
+	_close_char_picker()
+	_close_modal()
+	# 选中单位若不在该队 → 回退到队长（若无则 null）
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	var in_team := false
+	for uid in team.units:
+		if uid == sel_unit_id:
+			in_team = true
+			break
+	if not in_team:
+		var cap: String = team.get("captain", "")
+		if cap != "":
+			sel_unit_id = cap
+		else:
+			sel_unit_id = ""
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	_refresh_reel()
+	_show_editor_unit()
 	_update_act_lab()
 	_update_top_bar()
 
 
-## 更新操作栏文字，显示"第X队 · N/6 单位"
+## 点击棋子
+func _on_reel_unit_clicked(team_idx: int, r: int, c: int) -> void:
+	if not reel.is_settled() or team_idx != active_team_idx:
+		reel.scroll_to(team_idx)
+		return
+	var uid: String = team_manager.get_unit_at_rc(team_idx, r, c)
+	if uid == "":
+		return
+	if move_src_id != "":
+		if uid == move_src_id:
+			_cancel_move()  # 点自己 → 取消移动
+			return
+		# 交换两个单位
+		var a_cell := team_manager.find_unit_cell(team_idx, move_src_id)
+		var b_cell := team_manager.find_unit_cell(team_idx, uid)
+		if a_cell != Vector2i(-1, -1) and b_cell != Vector2i(-1, -1):
+			team_manager.swap_units(team_idx, a_cell.x * 3 + a_cell.y, b_cell.x * 3 + b_cell.y)
+		move_src_id = ""
+		move_target = Vector2i(-1, -1)
+	sel_unit_id = uid
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+
+
+## 点击空格子
+func _on_reel_cell_clicked(team_idx: int, r: int, c: int) -> void:
+	if not reel.is_settled() or team_idx != active_team_idx:
+		reel.scroll_to(team_idx)
+		return
+	var occ: String = team_manager.get_unit_at_rc(team_idx, r, c)
+	if move_src_id != "":
+		if occ == move_src_id:
+			_cancel_move()
+			return
+		var src_cell := team_manager.find_unit_cell(team_idx, move_src_id)
+		if src_cell != Vector2i(-1, -1):
+			if occ != "":
+				team_manager.swap_units(team_idx, src_cell.x * 3 + src_cell.y, r * 3 + c)
+			else:
+				team_manager.move_unit(team_idx, src_cell.x * 3 + src_cell.y, r * 3 + c)
+		move_src_id = ""
+		move_target = Vector2i(-1, -1)
+		sel_unit_id = team_manager.get_unit_at_rc(team_idx, r, c)
+		_refresh_reel()
+		_show_editor_unit()
+		_update_act_lab()
+		return
+	if occ != "":
+		# 点击已放置单位所在格 → 选中
+		sel_unit_id = occ
+		_refresh_reel()
+		_show_editor_unit()
+		_update_act_lab()
+		return
+	# 空格子 → 放置弹窗（待命池）
+	_open_char_picker("bench", {"r": r, "c": c})
+
+
+## 队伍数据变更 → 刷新滚轮与状态栏
+func _on_team_changed(_idx: int) -> void:
+	_refresh_reel()
+	_update_act_lab()
+	_update_top_bar()
+
+
+## 将 MainScreen 状态打包注入滚轮视图
+func _refresh_reel() -> void:
+	reel.refresh({
+		"teams": team_manager.teams,
+		"active_idx": active_team_idx,
+		"sel_id": sel_unit_id,
+		"move_src": move_src_id,
+		"move_target": move_target,
+		"focus_left": focus_left,
+	})
+
+
+# ==================================================================
+#  焦点切换（E/Q）
+# ==================================================================
+
+func _set_zone_focus(left: bool) -> void:
+	focus_left = left
+	_refresh_reel()
+	# 焦点边框：活跃区金亮描边（网页版 .focused）
+	var focused := UITheme.panel_style(8)
+	focused.border_width_left = 2
+	focused.border_width_right = 2
+	focused.border_width_top = 2
+	focused.border_width_bottom = 2
+	focused.border_color = UITheme.GOLD_BRIGHT
+	if left:
+		zone_left.add_theme_stylebox_override("panel", focused)
+		zone_right.add_theme_stylebox_override("panel", _zone_right_default)
+	else:
+		zone_left.add_theme_stylebox_override("panel", _zone_left_default)
+		zone_right.add_theme_stylebox_override("panel", focused)
+	_update_hint()
+
+
+func _on_zone_right_input(event: InputEvent) -> void:
+	# 点击右侧空白 → 关闭弹窗（子控件 STOP，点击它们不会到达这里）
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_modal()
+
+
+# ==================================================================
+#  状态栏 / 标题栏 / 提示栏
+# ==================================================================
+
 func _update_act_lab() -> void:
-	var team = team_manager.get_team(active_board_index)
-	var count := 0
-	for uid in team.units:
-		if uid != "":
-			count += 1
-	act_lab.text = "第%d队 · %d/6 单位" % [active_board_index + 1, count]
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	if move_src_id != "":
+		var src_name: String = DataManager.get_character(move_src_id).get("name_zh", "")
+		var tgt := ""
+		if move_target != Vector2i(-1, -1):
+			tgt = " · 目标格 (%d,%d)" % [move_target.x + 1, move_target.y + 1]
+		act_lab.text = "移动中：%s%s · ←→↑↓ 遍历格子 · 空格/回车 确认 · Esc 取消" % [src_name, tgt]
+	elif sel_unit_id != "":
+		var ch := DataManager.get_character(sel_unit_id)
+		var cap_tag := " · 队长" if sel_unit_id == team.get("captain", "") else ""
+		act_lab.text = "%s · %s%s（%s）" % [team.get("name", "?"), ch.get("name_zh", "???"), cap_tag, sel_unit_id]
+	else:
+		var count := team_manager.get_team_unit_ids(active_team_idx).size()
+		act_lab.text = "%s · %d/9 人 · 点击空格放置单位" % [team.get("name", "?"), count]
 
 
 func _update_top_bar() -> void:
-	# 顶部标题栏显示当前出战队伍
-	var team = team_manager.get_team(active_board_index)
-	var count := 0
-	for uid in team.units:
-		if uid != "":
-			count += 1
-	top_bar.text = "圣兽之王 · 编队战斗  [%s · %d/6人]" % [team.name, count]
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	var count := team_manager.get_team_unit_ids(active_team_idx).size()
+	top_bar.text = "圣兽之王 · 编队战斗  [%s · %d/9人]" % [team.get("name", "?"), count]
 
 
-## 队伍数据变更回调 -> 重建所有棋盘
-func _on_team_changed(_idx: int) -> void:
-	_rebuild_boards()
-	_update_top_bar()
-
-
-# ==================================================================
-#  棋盘交互处理
-# ==================================================================
-
-## ---------------------------------------------------------------------------
-## _on_board_slot_clicked() — 左键点击棋盘格子
-## ---------------------------------------------------------------------------
-## 两种情况：
-##   1. 空格子（uid==""）-> 打开角色选择器，让玩家选择一个角色放置
-##   2. 已放置角色 -> 在右侧 UnitEditor 中显示该角色的详情
-##
-## selecting_slot / selecting_team 记录角色选择器的目标位置，
-## 当玩家在角色选择器中点击"选择"按钮后，team_manager.set_unit() 完成放置。
-## ---------------------------------------------------------------------------
-func _on_board_slot_clicked(slot: int, board) -> void:
-	var uid = team_manager.get_unit_at(board.team_index, slot)
-
-	if uid == "":
-		# 空格子 — 打开角色选择器
-		selecting_slot = slot
-		selecting_team = board.team_index
-		_open_char_picker()
+## 按键提示（对齐网页版 hint-bar 文案）
+func _update_hint() -> void:
+	if move_src_id != "":
+		hint_bar.text = "焦点：左 · 移动模式 · ←→↑↓ 遍历棋盘格 · 空格/回车 确认 · Esc 取消"
+	elif focus_left:
+		hint_bar.text = "焦点：左 · ↑↓/滚轮 滚动队伍 · ←→ 切换单位 · 空格 移动模式 · A 上场单位 · Del 移除 · E 焦点→右 · Esc 关闭弹窗"
 	else:
-		# 已放置 — 在编辑器中显示角色详情（含装备）
-		var eq = equipment_data.get(uid, {})
-		editor.show_unit(uid, board.team_index, slot, eq)
-		active_board_index = board.team_index
-		_rebuild_boards()
-
-
-## ---------------------------------------------------------------------------
-## _on_board_slot_right_clicked() — 右键点击棋盘格子 -> 移除角色
-## ---------------------------------------------------------------------------
-func _on_board_slot_right_clicked(slot: int, board) -> void:
-	var uid = team_manager.get_unit_at(board.team_index, slot)
-	if uid != "":
-		team_manager.remove_unit(board.team_index, slot)
-		# 同时清理装备数据
-		equipment_data.erase(uid)
-		editor.clear()
-
-
-# ==================================================================
-#  装备系统 (Equipment System)
-# ==================================================================
-
-## ---------------------------------------------------------------------------
-## _on_equip_slot_clicked() — 玩家点击了 UnitEditor 中的装备槽
-## ---------------------------------------------------------------------------
-## 记录上下文信息，然后打开装备选择器弹窗。
-## ---------------------------------------------------------------------------
-func _on_equip_slot_clicked(char_id: String, slot_key: String) -> void:
-	equip_pending_char = char_id
-	equip_pending_slot = slot_key
-	_open_equip_picker()
-
-
-## ---------------------------------------------------------------------------
-## _setup_equip_picker() — 动态创建装备选择器弹窗
-## ---------------------------------------------------------------------------
-## 这个弹窗完全由代码创建（不像角色选择器在 .tscn 场景文件中定义）。
-## 创建流程：PanelContainer -> VBox -> [标题栏, 筛选行, 装备列表]
-##
-## Godot 的 UI 创建方式有两种：
-##   1. 在 .tscn 场景文件中可视化编辑（所见即所得）
-##   2. 纯代码动态创建（如本方法）
-##
-## 纯代码创建更灵活，但代码量大。适合动态内容（如列表项数量不固定的场景）。
-##
-## 控件树结构：
-##   PanelContainer (EquipPicker)
-##   +-- VBoxContainer (VBox)
-##       +-- HBoxContainer (Header)
-##       |   +-- Label "选择装备"
-##       |   +-- Button "✕" (关闭)
-## |       +-- HBoxContainer (FilterRow)
-##       |   +-- Label "类型:"
-##       |   +-- OptionButton (筛选下拉：全部/剑/斧/枪/弓/杖/盾)
-##       |   +-- Button "卸下装备"
-##       +-- ScrollContainer
-##           +-- VBoxContainer (EqList) — 装备行动态填充
-## ---------------------------------------------------------------------------
-func _setup_equip_picker() -> void:
-	var equip_picker := PanelContainer.new()
-	equip_picker.name = "EquipPicker"
-	equip_picker.visible = false  # 初始隐藏，需要时才显示
-
-	# --- 设置弹窗位置和大小 ---
-	# set_anchors_preset(PRESET_CENTER) — 将控件锚定到父容器的中心
-	# offset_left/right/top/bottom 定义控件相对于锚点的偏移
-	# 这里：居中显示，尺寸约 560x500 像素
-	equip_picker.set_anchors_preset(Control.PRESET_CENTER)
-	equip_picker.offset_left = -280
-	equip_picker.offset_top = -250
-	equip_picker.offset_right = 280
-	equip_picker.offset_bottom = 250
-
-	# --- 设置面板背景样式 ---
-	# 半透明深色背景 + 金色边框，营造中世纪对话框风格
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.114, 0.094, 0.078, 0.95)  # RGBA，0.95 不透明度
-	sb.border_width_left = 2; sb.border_width_right = 2
-	sb.border_width_top = 2; sb.border_width_bottom = 2
-	sb.border_color = UITheme.GOLD
-	sb.corner_radius_top_left = 10; sb.corner_radius_top_right = 10
-	sb.corner_radius_bottom_left = 10; sb.corner_radius_bottom_right = 10
-	equip_picker.add_theme_stylebox_override("panel", sb)
-
-	# --- 创建内部布局 ---
-	var vbox := VBoxContainer.new()
-	vbox.name = "VBox"
-	equip_picker.add_child(vbox)
-
-	# --- 标题栏 ---
-	var header := HBoxContainer.new()
-	var title := Label.new()
-	title.text = "选择装备"
-	title.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
-	title.add_theme_font_size_override("font_size", 14)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL  # 占满水平空间
-	header.add_child(title)
-
-	var close_btn := Button.new()
-	close_btn.text = "✕"
-	# 点击关闭按钮 -> 隐藏弹窗
-	# func(): 是 GDScript 的匿名函数(lambda)语法
-	close_btn.pressed.connect(func(): equip_picker.visible = false)
-	header.add_child(close_btn)
-	vbox.add_child(header)
-
-	# --- 筛选行 ---
-	var filter_row := HBoxContainer.new()
-	filter_row.name = "FilterRow"
-	filter_row.add_theme_constant_override("separation", 8)
-
-	var filter_label := Label.new()
-	filter_label.text = "类型:"
-	filter_label.add_theme_color_override("font_color", UITheme.INK_DIM)
-	filter_label.add_theme_font_size_override("font_size", 11)
-	filter_row.add_child(filter_label)
-
-	# OptionButton — Godot 的下拉选择框
-	var filter_opt := OptionButton.new()
-	filter_opt.name = "FilterOpt"
-	filter_opt.add_item("全部", 0)
-	filter_opt.add_item("剑 sword", 1); filter_opt.add_item("斧 axe", 2)
-	filter_opt.add_item("枪 spear", 3); filter_opt.add_item("弓 bow", 4)
-	filter_opt.add_item("杖 staff", 5); filter_opt.add_item("盾 shield", 6)
-	# .item_selected.connect(func(idx): ...) — 选择变更时刷新列表
-	filter_opt.item_selected.connect(func(idx): _refresh_equip_list(equip_picker))
-	filter_row.add_child(filter_opt)
-
-	# --- 卸下装备按钮 ---
-	var unequip_btn := Button.new()
-	unequip_btn.text = "卸下装备"
-	unequip_btn.add_theme_color_override("font_color", UITheme.RED)
-	unequip_btn.add_theme_font_size_override("font_size", 11)
-	unequip_btn.pressed.connect(func():
-		if equip_pending_char != "":
-			if not equipment_data.has(equip_pending_char):
-				equipment_data[equip_pending_char] = {}
-			# .erase() 删除字典中的指定键
-			equipment_data[equip_pending_char].erase(equip_pending_slot)
-			# 通知编辑器更新显示
-			editor.equip_item(equip_pending_slot, "")
-			equip_picker.visible = false
-	)
-	filter_row.add_child(unequip_btn)
-	vbox.add_child(filter_row)
-
-	# --- 可滚动装备列表 ---
-	var scroll := ScrollContainer.new()
-	scroll.name = "ScrollContainer"
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL  # 垂直方向填满剩余空间
-	var list := VBoxContainer.new()
-	list.name = "EqList"
-	list.add_theme_constant_override("separation", 3)
-	scroll.add_child(list)
-	vbox.add_child(scroll)
-
-	# 将装备选择器添加到 Overlay 层（覆盖在棋盘上方）
-	var overlay = $MainLayout/ZoneLeft/Overlay
-	overlay.add_child(equip_picker)
-
-
-## 打开装备选择器并刷新列表
-func _open_equip_picker() -> void:
-	var equip_picker = $MainLayout/ZoneLeft/Overlay/EquipPicker
-	equip_picker.visible = true
-	_refresh_equip_list(equip_picker)
-
-
-## ---------------------------------------------------------------------------
-## _refresh_equip_list() — 刷新装备选择器中的装备列表
-## ---------------------------------------------------------------------------
-## 根据筛选下拉框的选中值过滤装备，按稀有度和攻击力排序显示。
-##
-## 排序逻辑：
-##   1. 稀有度优先（传说 > 史诗 > 稀有 > 罕见 > 普通）
-##   2. 同等稀有度下按攻击力/魔力从高到低
-##
-## .sort_custom(func(a, b): ...) — 自定义排序
-##   回调函数返回 true 表示 a 应该排在 b 前面。
-##   类似于 Python 的 list.sort(key=...) 但用的是比较函数而非 key 函数。
-## ---------------------------------------------------------------------------
-func _refresh_equip_list(equip_picker: PanelContainer) -> void:
-	# 清空旧列表
-	var list = equip_picker.get_node("VBox/ScrollContainer/EqList")
-	for child in list.get_children():
-		child.queue_free()
-
-	# 读取筛选条件
-	var filter_opt: OptionButton = equip_picker.get_node("VBox/FilterRow/FilterOpt")
-	var filter_idx = filter_opt.selected
-	var subtype_names := ["", "sword", "axe", "spear", "bow", "staff", "shield"]
-	var filter_subtype = subtype_names[filter_idx] if filter_idx < subtype_names.size() else ""
-
-	# 筛选装备
-	var all_eq = DataManager.get_all_equipment_ids()
-	var filtered: Array = []
-	for eq_id in all_eq:
-		var eq = DataManager.get_equipment(eq_id)
-		var st = eq.get("subtype", "")
-		if filter_subtype == "" or st == filter_subtype:
-			filtered.append(eq_id)
-
-	# 排序：稀有度优先 -> 攻击力优先
-	filtered.sort_custom(func(a, b):
-		var ea = DataManager.get_equipment(a); var eb = DataManager.get_equipment(b)
-		var ra = ea.get("rarity", "common"); var rb = eb.get("rarity", "common")
-		var rarity_order = {"legendary":0, "epic":1, "rare":2, "uncommon":3, "common":4}
-		# 比较稀有度（数字越小的越靠前）
-		var ro = rarity_order.get(ra, 5) - rarity_order.get(rb, 5)
-		if ro != 0:
-			return ro < 0  # 返回 true 表示 a 排在 b 前面
-		# 同等稀有度，比较攻击力
-		var sa = ea.get("stats", {}); var sb = eb.get("stats", {})
-		return sa.get("atk", sa.get("mag", 0)) > sb.get("atk", sb.get("mag", 0))
-	)
-
-	# 构建列表项（最多 80 条，防止性能问题）
-	var count := 0
-	for eq_id in filtered:
-		if count >= 80:
-			break
-		var eq = DataManager.get_equipment(eq_id)
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-
-		var eq_name = eq.get("name_zh", eq.get("name_en", "???"))
-		var rarity = eq.get("rarity", "common")
-		var stats = eq.get("stats", {})
-
-		# 装备信息标签：名称 + 稀有度 + 属性
-		var info := Label.new()
-		var stat_str := ""
-		for k in stats:
-			stat_str += "%s+%d " % [k, stats[k]]
-		info.text = "%s  [%s]  %s" % [eq_name, rarity, stat_str]
-		# 文字颜色 = 稀有度对应颜色
-		info.add_theme_color_override("font_color", UITheme.rarity_color(rarity))
-		info.add_theme_font_size_override("font_size", 12)
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(info)
-
-		# "装备"按钮 — 点击即装备
-		var sel_btn := Button.new()
-		sel_btn.text = "装备"
-		sel_btn.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
-		sel_btn.add_theme_font_size_override("font_size", 11)
-		# 注意：必须把 eq_id 复制到局部变量，因为 GDScript 的闭包
-		# 捕获的是变量引用而非值。如果直接用 eq_id，所有按钮都会
-		# 使用循环结束后的最后一个 eq_id（经典的闭包陷阱，和 Python 一样！）
-		var eq_id_copy = eq_id
-		sel_btn.pressed.connect(func():
-			if equip_pending_char != "":
-				if not equipment_data.has(equip_pending_char):
-					equipment_data[equip_pending_char] = {}
-				equipment_data[equip_pending_char][equip_pending_slot] = eq_id_copy
-				# 通知编辑器更新显示
-				editor.equip_item(equip_pending_slot, eq_id_copy)
-				equip_picker.visible = false
-		)
-		row.add_child(sel_btn)
-		list.add_child(row)
-		count += 1
+		hint_bar.text = "焦点：右 · 点击装备槽 / 策略格 弹出选择窗 · Q 焦点→左 · Esc 关闭弹窗"
 
 
 # ==================================================================
 #  按钮回调
 # ==================================================================
 
+## 新增队伍 → 队长选择器（对齐网页版：必须选队长）
 func _on_new_team() -> void:
-	team_manager.add_team()
-	# 新队伍自动设为活跃队伍
-	active_board_index = team_manager.teams.size() - 1
+	if team_manager.teams.size() >= TeamManagerClass.MAX_TEAMS:
+		_show_toast("已达队伍上限（8支）。", true)
+		return
+	_open_char_picker("captain", {})
 
 
+## 解散队伍 → 释放单位，保持至少 1 队
 func _on_disband_team() -> void:
-	# 至少保留1支队伍
-	if team_manager.teams.size() > 1:
-		team_manager.remove_team(active_board_index)
+	if team_manager.teams.size() <= 1:
+		_show_toast("没有队伍可解散。", true)
+		return
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	var name: String = team.get("name", "?")
+	var freed := team_manager.get_team_unit_ids(active_team_idx).size()
+	team_manager.remove_team(active_team_idx)
+	active_team_idx = mini(active_team_idx, team_manager.teams.size() - 1)
+	sel_unit_id = ""
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	reel.scroll_to(active_team_idx)
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+	_show_toast("已解散队伍「%s」，%d 名单位已回到待命池。" % [name, freed])
 
 
-## ---------------------------------------------------------------------------
-## _on_start_battle() — "开始战斗"按钮回调
-## ---------------------------------------------------------------------------
-## 流程：
-##   1. 校验：确保当前活跃队伍有至少一个角色
-##   2. 重置 BattleManager（清空上次战斗数据）
-##   3. 调用 start_battle() 初始化战斗状态
-##   4. 切换到战斗场景（change_scene_to_file）
-##
-## GDScript 场景切换说明：
-##   get_tree().change_scene_to_file("res://scenes/battle.tscn")
-##   这会卸载当前场景（main.tscn），加载并显示战斗场景。
-##   当前场景的所有节点（包括 MainScreen 和 TeamManager）都会被销毁。
-##   只有 Autoload 节点（BattleManager、DataManager、UITheme）会保留。
-## ---------------------------------------------------------------------------
+## 开始战斗（流程不变）
 func _on_start_battle() -> void:
 	if not team_manager.has_any_units():
 		_show_toast("请先在队伍中放置至少一个单位！")
 		return
-
-	var active_team_ids = team_manager.get_team_unit_ids(active_board_index)
+	var active_team_ids: Array = team_manager.get_team_unit_ids(active_team_idx)
 	if active_team_ids.is_empty():
 		_show_toast("当前队伍为空，请先放置单位！")
 		return
-
 	# 保存队伍数据到 DataManager（切换场景后恢复编队）
 	DataManager.saved_teams = team_manager.teams.duplicate(true)
-
-	# 重置战斗管理器状态
 	BattleManager.reset()
-	# 初始化战斗：传入玩家队伍的角色ID列表，敌方自动随机生成
 	BattleManager.start_battle(active_team_ids)
-	# 切换场景到战斗画面
 	get_tree().change_scene_to_file("res://scenes/battle.tscn")
 
 
 # ==================================================================
-#  角色选择器 (Character Picker)
+#  编辑器集成
 # ==================================================================
 
-## ---------------------------------------------------------------------------
-## _setup_char_picker() — 初始化角色选择器
-## ---------------------------------------------------------------------------
-## 角色选择器在 main.tscn 场景文件中预定义（CharPicker 节点），
-## 这里只做信号连接。关闭按钮点击时隐藏弹窗。
-## ---------------------------------------------------------------------------
+## 右侧编辑器显示选中单位（含装备与策略数据）
+func _show_editor_unit() -> void:
+	if sel_unit_id == "":
+		editor.clear()
+		return
+	var cell := team_manager.find_unit_cell(active_team_idx, sel_unit_id)
+	if cell == Vector2i(-1, -1):
+		editor.clear()
+		return
+	editor.show_unit(sel_unit_id, active_team_idx, cell.x * 3 + cell.y,
+		equipment_data.get(sel_unit_id, {}), strategy_data.get(sel_unit_id, []))
+
+
+# ==================================================================
+#  行动策略编辑（弹窗在左侧覆盖层）
+# ==================================================================
+
+func _on_strategy_skill_clicked(char_id: String, row_idx: int, is_new: bool) -> void:
+	if not strategy_data.has(char_id):
+		strategy_data[char_id] = []
+	_open_skill_picker(char_id, row_idx, is_new)
+
+
+func _on_strategy_cond_clicked(char_id: String, row_idx: int, field: String) -> void:
+	if row_idx < 0 or row_idx >= strategy_data.get(char_id, []).size():
+		return
+	_open_cond_picker(char_id, row_idx, field)
+
+
+func _on_strategy_row_delete(char_id: String, row_idx: int) -> void:
+	var rows: Array = strategy_data.get(char_id, [])
+	if row_idx < 0 or row_idx >= rows.size():
+		return
+	rows.remove_at(row_idx)
+	_close_modal()
+	_show_editor_unit()
+
+
+## 技能选择弹窗
+func _open_skill_picker(char_id: String, row_idx: int, is_new: bool) -> void:
+	var rows: Array = strategy_data.get(char_id, [])
+	var cur: String = ""
+	if not is_new and row_idx < rows.size():
+		cur = rows[row_idx].get("skill", "")
+	var foot := "选择一个技能新增为策略；Esc 取消。" if is_new else "点击技能进行更换；点击「卸下技能」清除该格。"
+	var m := PickerFactory.build_modal(overlay, "选择技能 · %s" % DataManager.get_character(char_id).get("name_zh", ""), foot)
+	_modal_panel = m.panel
+	var body: VBoxContainer = m.body
+
+	# 卸下技能行
+	if not is_new and cur != "":
+		var clr := Button.new()
+		clr.text = "🗑️ 卸下技能（%s）" % DataManager.get_skill(cur).get("name_zh", "")
+		clr.focus_mode = Control.FOCUS_NONE
+		clr.add_theme_color_override("font_color", UITheme.RED)
+		clr.add_theme_font_size_override("font_size", 12)
+		clr.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		clr.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		clr.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+		clr.pressed.connect(func():
+			rows[row_idx]["skill"] = ""
+			_close_modal()
+			_show_editor_unit()
+		)
+		body.add_child(clr)
+
+	# 技能列表
+	for sk_id in DataManager.get_all_skill_ids():
+		var sk := DataManager.get_skill(sk_id)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+
+		var type_icon := "🔴" if sk.get("type", "") == "active" else "🔵"
+		var ico := Label.new()
+		ico.text = type_icon
+		ico.add_theme_font_size_override("font_size", 20)
+		row.add_child(ico)
+
+		var mid := VBoxContainer.new()
+		mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var name_lbl := Label.new()
+		name_lbl.text = "%s  AP:%d PP:%d" % [sk.get("name_zh", "???"), sk.get("ap_cost", 0), sk.get("pp_cost", 0)]
+		name_lbl.add_theme_color_override("font_color", UITheme.INK)
+		name_lbl.add_theme_font_size_override("font_size", 13)
+		mid.add_child(name_lbl)
+		var desc_lbl := Label.new()
+		desc_lbl.text = sk.get("description_zh", "")
+		desc_lbl.add_theme_color_override("font_color", UITheme.INK_DIM)
+		desc_lbl.add_theme_font_size_override("font_size", 10)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mid.add_child(desc_lbl)
+		row.add_child(mid)
+
+		var mark := Label.new()
+		mark.text = "✓ 已选" if cur == sk_id else ""
+		mark.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
+		mark.add_theme_font_size_override("font_size", 11)
+		row.add_child(mark)
+
+		var sk_copy = sk_id  # 闭包陷阱！必须复制到局部变量
+		row.gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				if is_new:
+					if rows.size() >= 8:
+						_show_toast("已达上限 8 条策略。", true)
+						return
+					rows.append({"skill": sk_copy, "cond1": "", "cond2": ""})
+					_close_modal()
+					_show_editor_unit()
+				else:
+					rows[row_idx]["skill"] = sk_copy
+					_close_modal()
+					_show_editor_unit()
+		)
+		body.add_child(row)
+	_modal_panel.visible = true
+
+
+## 条件选择弹窗
+func _open_cond_picker(char_id: String, row_idx: int, field: String) -> void:
+	var rows: Array = strategy_data.get(char_id, [])
+	var cur: String = rows[row_idx].get(field, "")
+	var other_field := "cond2" if field == "cond1" else "cond1"
+	var other: String = rows[row_idx].get(other_field, "")
+	var field_zh := "条件 1" if field == "cond1" else "条件 2"
+	var m := PickerFactory.build_modal(overlay, "选择%s · %s" % [field_zh, DataManager.get_character(char_id).get("name_zh", "")],
+		"点击条件进行设置；点击「卸下条件」清除该格。")
+	_modal_panel = m.panel
+	var body: VBoxContainer = m.body
+
+	# 卸下条件行
+	if cur != "":
+		var clr := Button.new()
+		clr.text = "🗑️ 卸下条件（%s）" % DataManager.get_condition(cur).get("name_zh", "")
+		clr.focus_mode = Control.FOCUS_NONE
+		clr.add_theme_color_override("font_color", UITheme.RED)
+		clr.add_theme_font_size_override("font_size", 12)
+		clr.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		clr.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		clr.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+		clr.pressed.connect(func():
+			rows[row_idx][field] = ""
+			_close_modal()
+			_show_editor_unit()
+		)
+		body.add_child(clr)
+
+	# 条件列表
+	for cd_id in DataManager.get_all_condition_ids():
+		var cd := DataManager.get_condition(cd_id)
+		var dup: bool = (cd_id == other)  # 已用于另一条件 → 禁用
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		row.modulate.a = 0.45 if dup else 1.0
+
+		var ico := Label.new()
+		ico.text = "◈"
+		ico.add_theme_font_size_override("font_size", 16)
+		ico.add_theme_color_override("font_color", UITheme.GOLD if not dup else UITheme.INK_DIM)
+		row.add_child(ico)
+
+		var mid := VBoxContainer.new()
+		mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var name_lbl := Label.new()
+		name_lbl.text = cd.get("name_zh", "???") + (" （已用于另一条件）" if dup else "")
+		name_lbl.add_theme_color_override("font_color", UITheme.INK2 if not dup else UITheme.INK_DIM)
+		name_lbl.add_theme_font_size_override("font_size", 13)
+		mid.add_child(name_lbl)
+		var desc_lbl := Label.new()
+		desc_lbl.text = cd.get("description_zh", "")
+		desc_lbl.add_theme_color_override("font_color", UITheme.INK_DIM)
+		desc_lbl.add_theme_font_size_override("font_size", 10)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mid.add_child(desc_lbl)
+		row.add_child(mid)
+
+		var mark := Label.new()
+		mark.text = "✓" if cur == cd_id else ""
+		mark.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
+		mark.add_theme_font_size_override("font_size", 11)
+		row.add_child(mark)
+
+		var cd_copy = cd_id  # 闭包陷阱
+		if not dup:
+			row.gui_input.connect(func(ev: InputEvent):
+				if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+					rows[row_idx][field] = cd_copy
+					_close_modal()
+					_show_editor_unit()
+			)
+		body.add_child(row)
+	_modal_panel.visible = true
+
+
+# ==================================================================
+#  装备选择弹窗
+# ==================================================================
+
+## 装备槽点击 → 打开仓库弹窗
+func _on_equip_slot_clicked(char_id: String, slot_key: String) -> void:
+	equip_pending_char = char_id
+	equip_pending_slot = slot_key
+	_open_equip_picker()
+
+
+## 各槽位允许的装备子类型（数据驱动，替代旧版筛选下拉框）
+func _slot_subtypes(slot_key: String) -> Array:
+	match slot_key:
+		"weapon":
+			return ["sword", "axe", "spear", "bow", "staff"]
+		"shield":
+			return ["shield", "greatshield"]
+		_:
+			return []  # 饰品槽：全部装备
+
+
+func _open_equip_picker() -> void:
+	var slot_zh := {"weapon": "武器", "shield": "盾牌", "acc1": "饰品1", "acc2": "饰品2"}
+	var ch_name: String = DataManager.get_character(equip_pending_char).get("name_zh", "")
+	var m := PickerFactory.build_modal(overlay,
+		"仓库 · %s槽位 · %s" % [slot_zh.get(equip_pending_slot, "?"), ch_name],
+		"点击装备进行装备 / 卸下。已装备者标 E。")
+	_modal_panel = m.panel
+	var body: VBoxContainer = m.body
+
+	# --- 卸下装备行 ---
+	if equipment_data.get(equip_pending_char, {}).has(equip_pending_slot):
+		var unequip := Button.new()
+		unequip.text = "🗑️ 卸下装备"
+		unequip.focus_mode = Control.FOCUS_NONE
+		unequip.add_theme_color_override("font_color", UITheme.RED)
+		unequip.add_theme_font_size_override("font_size", 12)
+		unequip.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		unequip.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		unequip.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+		unequip.pressed.connect(func():
+			equipment_data[equip_pending_char].erase(equip_pending_slot)
+			editor.equip_item(equip_pending_slot, "")
+			_close_modal()
+		)
+		body.add_child(unequip)
+
+	# --- 筛选 + 排序 ---
+	var subtypes: Array = _slot_subtypes(equip_pending_slot)
+	var all_eq: Array = DataManager.get_all_equipment_ids()
+	var filtered: Array = []
+	for eq_id in all_eq:
+		var eq := DataManager.get_equipment(eq_id)
+		if subtypes.is_empty() or eq.get("subtype", "") in subtypes:
+			filtered.append(eq_id)
+	# 排序：稀有度优先 → 攻击力优先（沿用旧版比较器）
+	filtered.sort_custom(func(a, b):
+		var ea = DataManager.get_equipment(a)
+		var eb = DataManager.get_equipment(b)
+		var rarity_order := {"legendary": 0, "epic": 1, "rare": 2, "uncommon": 3, "common": 4}
+		var ro: int = rarity_order.get(ea.get("rarity", "common"), 5) - rarity_order.get(eb.get("rarity", "common"), 5)
+		if ro != 0:
+			return ro < 0
+		var sa: Dictionary = ea.get("stats", {})
+		var sb2: Dictionary = eb.get("stats", {})
+		return sa.get("atk", sa.get("mag", 0)) > sb2.get("atk", sb2.get("mag", 0))
+	)
+
+	# --- 装备行 ---
+	var my_eq: Dictionary = equipment_data.get(equip_pending_char, {})
+	var count := 0
+	for eq_id in filtered:
+		if count >= 80:
+			break
+		var eq := DataManager.get_equipment(eq_id)
+		var rarity: String = eq.get("rarity", "common")
+		var stats: Dictionary = eq.get("stats", {})
+		var stat_zh := {"atk": "物攻", "mag": "魔攻", "def": "物防", "mdf": "魔防", "spd": "先制", "hp": "HP"}
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+
+		var ico := Label.new()
+		ico.text = editor.eq_icon(eq)
+		ico.add_theme_font_size_override("font_size", 22)
+		row.add_child(ico)
+
+		var mid := VBoxContainer.new()
+		mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var name_lbl := Label.new()
+		var e_tag := "E " if my_eq.values().has(eq_id) else ""
+		name_lbl.text = "%s%s · 品阶 %s" % [e_tag, eq.get("name_zh", "???"), rarity]
+		name_lbl.add_theme_color_override("font_color", UITheme.rarity_color(rarity))
+		name_lbl.add_theme_font_size_override("font_size", 13)
+		mid.add_child(name_lbl)
+		var stat_str := ""
+		for k in stats:
+			stat_str += "%s %+d  " % [stat_zh.get(k, k), stats[k]]
+		var stat_lbl := Label.new()
+		stat_lbl.text = stat_str
+		stat_lbl.add_theme_color_override("font_color", UITheme.INK_DIM)
+		stat_lbl.add_theme_font_size_override("font_size", 11)
+		mid.add_child(stat_lbl)
+		row.add_child(mid)
+
+		# 状态按钮：卸下 / 已装备于其他槽 / 装备
+		var in_this_slot: bool = my_eq.get(equip_pending_slot, "") == eq_id
+		var in_other_slot := ""
+		for k in my_eq:
+			if my_eq[k] == eq_id and k != equip_pending_slot:
+				in_other_slot = k
+				break
+		if in_this_slot or in_other_slot != "":
+			var act := Button.new()
+			act.focus_mode = Control.FOCUS_NONE
+			act.add_theme_font_size_override("font_size", 11)
+			if in_this_slot:
+				act.text = "卸下"
+				act.add_theme_color_override("font_color", UITheme.INK)
+				var eq_copy = eq_id
+				act.pressed.connect(func():
+					equipment_data[equip_pending_char].erase(equip_pending_slot)
+					editor.equip_item(equip_pending_slot, "")
+					_close_modal()
+				)
+			else:
+				act.text = "已装备于%s" % slot_zh.get(in_other_slot, "?")
+				act.disabled = true
+				act.add_theme_color_override("font_color", UITheme.INK_DIM)
+			row.add_child(act)
+		else:
+			var act := Button.new()
+			act.text = "装备"
+			act.focus_mode = Control.FOCUS_NONE
+			act.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
+			act.add_theme_font_size_override("font_size", 11)
+			act.begin_bulk_theme_override()
+			act.add_theme_stylebox_override("normal", UITheme.gold_button_style())
+			act.end_bulk_theme_override()
+			var eq_copy = eq_id  # 闭包陷阱
+			act.pressed.connect(func():
+				if not equipment_data.has(equip_pending_char):
+					equipment_data[equip_pending_char] = {}
+				# 同一装备先从该角色其他槽卸下（对齐网页版 equip()）
+				for k in equipment_data[equip_pending_char].keys():
+					if equipment_data[equip_pending_char][k] == eq_copy:
+						equipment_data[equip_pending_char].erase(k)
+				equipment_data[equip_pending_char][equip_pending_slot] = eq_copy
+				editor.equip_item(equip_pending_slot, eq_copy)
+				_close_modal()
+			)
+			row.add_child(act)
+
+		body.add_child(row)
+		count += 1
+	_modal_panel.visible = true
+
+
+## 关闭 PickerFactory 弹窗
+func _close_modal() -> void:
+	if _modal_panel != null and is_instance_valid(_modal_panel):
+		_modal_panel.visible = false
+		_modal_panel.queue_free()
+	_modal_panel = null
+
+
+# ==================================================================
+#  角色选择器（tscn CharPicker，两种模式：待命池 / 选队长）
+# ==================================================================
+
 func _setup_char_picker() -> void:
 	char_picker.visible = false
 	var close_btn = char_picker.get_node_or_null("Panel/Header/CloseBtn")
 	if close_btn:
-		close_btn.pressed.connect(func(): char_picker.visible = false)
+		close_btn.focus_mode = Control.FOCUS_NONE
+		close_btn.pressed.connect(func(): _close_char_picker())
 
 
-## ---------------------------------------------------------------------------
-## _open_char_picker() — 打开角色选择器并填充角色列表
-## ---------------------------------------------------------------------------
-## 流程：
-##   1. 显示弹窗
-##   2. 清空旧列表项
-##   3. 获取所有已编入队伍的角色ID（assigned）
-##   4. 遍历所有角色，为每个角色创建一行
-##      - 已编入其他队伍的角色显示"已编入"标记（不可选）
-##      - 当前槽位原有的角色可以重新选择（cid in assigned 但是是当前槽位的角色）
-##      - 未编入的角色显示"选择"按钮
-## ---------------------------------------------------------------------------
-func _open_char_picker() -> void:
+func _close_char_picker() -> void:
+	char_picker.visible = false
+	char_picker_mode = ""
+
+
+## 打开角色选择器
+##   mode "bench"    — 待命池（不属于任何队伍的角色），放置到 ctx 的 {r, c}
+##   mode "captain"  — 全部角色，选择后创建新队伍
+func _open_char_picker(mode: String, ctx: Dictionary = {}) -> void:
+	char_picker_mode = mode
+	char_picker_ctx = ctx
 	char_picker.visible = true
+
+	var title = char_picker.get_node_or_null("Panel/Header/Title")
+	if mode == "bench":
+		var team: Dictionary = team_manager.get_team(active_team_idx)
+		title.text = "待命池 · 放置到 (%d,%d) · %s" % [ctx.r + 1, ctx.c + 1, team.get("name", "?")]
+	else:
+		title.text = "新增队伍 · 选择队长"
+
 	var list = char_picker.get_node_or_null("Panel/ScrollContainer/CharList")
 	if not list:
 		return
-
-	# 清空旧内容
 	for child in list.get_children():
 		child.queue_free()
 
-	# 获取所有已编入队伍的角色ID（用于标记"已编入"）
-	var assigned = team_manager.get_all_assigned_char_ids()
-	var all_ids = DataManager.get_all_character_ids()
+	var assigned: Array = team_manager.get_all_assigned_char_ids()
+	var all_ids: Array = DataManager.get_all_character_ids()
+
+	# 待命池 = 所有角色 - 已编入角色
+	if mode == "bench":
+		all_ids = all_ids.filter(func(cid): return cid not in assigned)
+		if all_ids.is_empty():
+			var hint := Label.new()
+			hint.text = "所有单位已在本队中，待命池为空。"
+			hint.add_theme_color_override("font_color", UITheme.INK_DIM)
+			hint.add_theme_font_size_override("font_size", 11)
+			list.add_child(hint)
+			return
 
 	for cid in all_ids:
-		var ch = DataManager.get_character(cid)
-		# 判断该角色是否已被编入（但允许同一角色在当前槽位被重新选择）
-		var in_use = cid in assigned and cid != team_manager.get_unit_at(selecting_team, selecting_slot)
-
-		# --- 创建一行：图标 + 信息 + 操作按钮 ---
+		var ch := DataManager.get_character(cid)
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 
-		# 角色图标（emoji）
 		var icon := Label.new()
-		icon.text = _char_icon(ch)
+		icon.text = editor.char_icon(ch)
 		icon.add_theme_font_size_override("font_size", 20)
 		row.add_child(icon)
 
-		# 角色信息：名称 + 职业 / 地区 + 稀有度
 		var info := VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var name_lbl := Label.new()
 		name_lbl.text = "%s  [%s]" % [ch.get("name_zh", "???"), ch.get("class_zh", "")]
-		name_lbl.add_theme_color_override("font_color", UITheme.INK if not in_use else UITheme.INK_DIM)
+		name_lbl.add_theme_color_override("font_color", UITheme.INK)
 		name_lbl.add_theme_font_size_override("font_size", 13)
 		info.add_child(name_lbl)
-
 		var sub_lbl := Label.new()
 		sub_lbl.text = ch.get("region", "") + " · " + ch.get("rarity", "")
 		sub_lbl.add_theme_color_override("font_color", UITheme.INK_DIM)
@@ -662,88 +1042,103 @@ func _open_char_picker() -> void:
 		info.add_child(sub_lbl)
 		row.add_child(info)
 
-		# 弹性间距（把按钮推到右边）
-		var spacer := Control.new()
-		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(spacer)
-
-		# 状态/操作
-		if in_use:
-			# 已被其他队伍使用 -> 显示"已编入"标记
-			var used := Label.new()
-			used.text = "已编入"
-			used.add_theme_color_override("font_color", UITheme.RED)
-			used.add_theme_font_size_override("font_size", 11)
-			row.add_child(used)
+		var cid_copy = cid  # 闭包陷阱
+		if mode == "captain":
+			var btn := Button.new()
+			btn.text = "👑 队长"
+			btn.focus_mode = Control.FOCUS_NONE
+			btn.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
+			btn.add_theme_font_size_override("font_size", 11)
+			btn.pressed.connect(func(): _create_team_with_captain(cid_copy))
+			row.add_child(btn)
 		else:
-			# 空闲角色 -> 显示"选择"按钮
-			var sel_btn := Button.new()
-			sel_btn.text = "选择"
-			sel_btn.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
-			sel_btn.add_theme_font_size_override("font_size", 11)
-			var cid_copy = cid  # 闭包陷阱！必须复制到局部变量
-			sel_btn.pressed.connect(func():
-				# 将选中的角色放置到目标槽位
-				team_manager.set_unit(selecting_team, selecting_slot, cid_copy)
-				char_picker.visible = false
-				# 在编辑器中显示新增的角色
-				editor.show_unit(cid_copy, selecting_team, selecting_slot)
-			)
-			row.add_child(sel_btn)
+			var btn := Button.new()
+			btn.text = "＋ 放置"
+			btn.focus_mode = Control.FOCUS_NONE
+			btn.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
+			btn.add_theme_font_size_override("font_size", 11)
+			btn.pressed.connect(func(): _place_bench_char(cid_copy))
+			row.add_child(btn)
 
 		list.add_child(row)
 
 
-## 角色职业->emoji图标映射
-func _char_icon(ch: Dictionary) -> String:
-	var cls = ch.get("class_zh", "")
-	var cls_icons := {
-		"领主": "👑", "君主": "👑", "女祭司": "🙏", "斗士": "🛡️", "先锋": "🛡️",
-		"兵士": "🔱", "剑士": "⚔️", "剑豪": "⚔️", "佣兵": "⚔️", "重装步兵": "🛡️",
-		"角斗士": "💪", "狂战士": "💪", "战士": "🔨", "扫荡者": "🔨",
-		"猎人": "🏹", "神猎手": "🏹", "射手": "🏹", "盗贼": "🗡️",
-		"骑士": "🐴", "重骑士": "🐴", "白骑士": "🐴", "黑骑士": "🐴",
-		"牧师": "✨", "主教": "✨", "法师": "🔥", "术士": "🔥",
-		"魔女": "❄️", "女巫": "❄️", "萨满": "🌿", "德鲁伊": "🌿",
-		"狮鹫骑士": "🦅", "飞龙骑士": "🐉", "精灵剑士": "⚔️",
-	}
-	return cls_icons.get(cls, "👤")
+## 键盘 A 键：自动找第一个空格并打开待命池
+func _open_bench_picker() -> void:
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	if team.is_empty():
+		_show_toast("没有队伍，请先新建。", true)
+		return
+	var count := team_manager.get_team_unit_ids(active_team_idx).size()
+	if count >= 9:
+		_show_toast("棋盘已满（9/9），无法再放置单位。", true)
+		return
+	var empty_cell := Vector2i(-1, -1)
+	for slot in range(9):
+		if team.units[slot] == "":
+			empty_cell = Vector2i(slot / 3, slot % 3)
+			break
+	if empty_cell == Vector2i(-1, -1):
+		_show_toast("棋盘已满（9/9），无法再放置单位。", true)
+		return
+	_open_char_picker("bench", {"r": empty_cell.x, "c": empty_cell.y})
+
+
+## 待命池放置：二次校验 → 从其他队移除 → 放置
+func _place_bench_char(cid: String) -> void:
+	var r: int = char_picker_ctx.get("r", -1)
+	var c: int = char_picker_ctx.get("c", -1)
+	if r < 0 or c < 0:
+		_close_char_picker()
+		return
+	var team: Dictionary = team_manager.get_team(active_team_idx)
+	if team_manager.get_team_unit_ids(active_team_idx).size() >= 9 or team.units[r * 3 + c] != "":
+		_show_toast("放置失败：棋盘已满或该格已被占用。", true)
+		_close_char_picker()
+		return
+	team_manager.remove_char_from_all_teams(cid)  # 确保单位唯一归属
+	team_manager.set_unit(active_team_idx, r * 3 + c, cid)
+	sel_unit_id = cid
+	move_src_id = ""
+	move_target = Vector2i(-1, -1)
+	_close_char_picker()
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+
+
+## 选队长创建新队伍 → 滚动到新队
+func _create_team_with_captain(cid: String) -> void:
+	team_manager.remove_char_from_all_teams(cid)
+	var idx := team_manager.add_team_with_captain(cid)
+	if idx < 0:
+		_show_toast("已达队伍上限（8支）。", true)
+		_close_char_picker()
+		return
+	var cap_name: String = DataManager.get_character(cid).get("name_zh", "")
+	active_team_idx = idx
+	sel_unit_id = cid
+	_close_char_picker()
+	reel.scroll_to(idx)
+	_refresh_reel()
+	_show_editor_unit()
+	_update_act_lab()
+	_show_toast("已新建队伍「%s」，队长：%s" % [team_manager.get_team(idx).get("name", "?"), cap_name])
 
 
 # ==================================================================
 #  Toast 提示
 # ==================================================================
 
-## ---------------------------------------------------------------------------
-## _show_toast() — 显示临时提示消息
-## ---------------------------------------------------------------------------
-## 创建一个 Label，显示在屏幕底部，1.5秒后开始淡出，淡出结束后自动销毁。
-##
-## Tween（补间动画）说明：
-##   Tween 是 Godot 的动画系统，可以对任何属性做平滑过渡。
-##   create_tween() 创建 Tween 实例。
-##   tween_property(obj, "property", final_value, duration) — 在 duration 秒内
-##     将 obj.property 平滑过渡到 final_value。
-##   .set_delay(n) — 延迟 n 秒后开始这个动画。
-##   tween_callback(fn) — 动画序列中插入回调函数调用。
-##
-##   这里：显示 1.5 秒 -> 透明度在 2 秒内从 1 渐变到 0 -> 销毁节点
-##
-## modulate:a 说明：
-##   modulate 是 CanvasItem 的颜色调制属性。
-##   modulate:a 访问其 alpha（透明度）通道。
-##   类似于 CSS 的 opacity，但可以分别访问 RGBA 四个通道。
-## ---------------------------------------------------------------------------
-func _show_toast(msg: String) -> void:
+## 显示临时提示消息：显示 1.5 秒 → 2 秒淡出 → 销毁节点
+func _show_toast(msg: String, is_err: bool = false) -> void:
 	var toast := Label.new()
 	toast.text = msg
 	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	toast.add_theme_color_override("font_color", UITheme.INK)
+	toast.add_theme_color_override("font_color", UITheme.RED if is_err else UITheme.INK)
 	toast.add_theme_font_size_override("font_size", 13)
 
 	# 定位在屏幕底部居中
-	# anchor_left/right = 0.5 表示锚点在父容器水平中心
-	# anchor_bottom = 1.0 表示锚点在父容器底部
 	toast.anchor_left = 0.5
 	toast.anchor_right = 0.5
 	toast.anchor_bottom = 1.0
@@ -752,9 +1147,6 @@ func _show_toast(msg: String) -> void:
 	toast.offset_bottom = -50
 	add_child(toast)
 
-	# 创建淡出动画
 	var tween := create_tween()
-	# 1.5秒后开始，2秒内透明度从当前值渐变到0
 	tween.tween_property(toast, "modulate:a", 0.0, 2.0).set_delay(1.5)
-	# 动画结束后销毁节点
 	tween.tween_callback(toast.queue_free)

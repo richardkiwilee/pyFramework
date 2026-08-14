@@ -57,7 +57,11 @@ text = "—— 我方部队 ——"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 14
 
-[node name="UnitGrid" type="VBoxContainer" parent="BattleArea/PlayerSide"]
+[node name="ScrollContainer" type="ScrollContainer" parent="BattleArea/PlayerSide"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="UnitGrid" type="VBoxContainer" parent="BattleArea/PlayerSide/ScrollContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
@@ -81,7 +85,11 @@ text = "—— 敌军部队 ——"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 14
 
-[node name="UnitGrid" type="VBoxContainer" parent="BattleArea/EnemySide"]
+[node name="ScrollContainer" type="ScrollContainer" parent="BattleArea/EnemySide"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="UnitGrid" type="VBoxContainer" parent="BattleArea/EnemySide/ScrollContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6

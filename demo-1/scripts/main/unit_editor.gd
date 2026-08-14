@@ -1,22 +1,22 @@
 extends Control
 ## =============================================================================
-## UnitEditor — 右侧角色详情面板
+## UnitEditor — 右侧单位详情面板（对齐网页版布局）
 ## =============================================================================
-## 作用：显示选中角色的装备槽位、能力数值和技能列表。
-##       玩家可以点击装备槽位来更换装备。
+## 作用：显示选中角色的装备槽位卡片、属性数值和行动策略。
+##       玩家可以点击装备槽/策略格，弹出覆盖在左侧的选择弹窗。
 ##
-## 布局结构（从上到下）：
-##   Header    — 角色头像图标、名称、职业/地区
-##   EquipPanel — 4个装备槽位（武器、盾牌、饰品1、饰品2）
-##   StatsPanel — 8项能力数值（HP、物攻、物防、魔攻、魔防、先制、命中、回避）
-##   SkillPanel — 技能列表（最多显示8个）
+## 布局结构（从上到下，对标网页版右半区）：
+##   Header      — 角色头像图标、名称、职业/地区
+##   TopRow      — 装备面板(4槽卡片) | 属性面板(8项2列)
+##   StratPanel  — 行动策略面板：[技能 | 条件1 | 条件2] 行，最多 8 行
 ##
-## 装备数据流：
-##   UnitEditor 发出 equip_slot_clicked 信号
-##   → main_screen 收到后弹出装备选择器(EquipPicker)
-##   → 玩家选择装备后 main_screen 调用 equip_item() 更新
-##   → _refresh_equipment() 重新渲染装备槽
-##   → _refresh_stats() 重新计算并显示加成后的数值
+## 数据流：
+##   UnitEditor 发出信号（equip_slot_clicked / strategy_*_clicked / row_delete）
+##   → main_screen 弹出对应选择器
+##   → 玩家选择后 main_screen 更新数据并整体重渲（show_unit）
+##
+## 装备/策略数据由 main_screen 维护（equipment_data / strategy_data），
+## UnitEditor 只保存副本用于显示，是纯视图。
 ## =============================================================================
 
 class_name UnitEditor
@@ -26,73 +26,68 @@ var current_char_id: String = ""   # 角色ID
 var current_team_idx: int = -1     # 所在队伍索引
 var current_slot: int = -1         # 所在槽位索引
 
-# ------------------------------------------------------------------ 装备状态
-## 当前角色的装备映射：{"weapon": "eq_sword_01", "shield": "eq_shield_03", ...}
-## 注意：这个数据由 main_screen 维护（equipment_data），
-## UnitEditor 只保存一份副本用于显示。
-var equipped: Dictionary = {}
+# ------------------------------------------------------------------ 显示状态（main_screen 传入的副本）
+var equipped: Dictionary = {}   # {"weapon": eq_id, "shield": eq_id, ...}
+var strat: Array = []           # [{skill: "", cond1: "", cond2: ""}, ...]
 
 # ------------------------------------------------------------------ @onready 节点引用
-## @onready 是 GDScript 的延迟初始化语法。
-## 等价于在 _ready() 中写：ed_head_icon = $Header/Icon
-## $ 是 get_node() 的语法糖，$Header/Icon 等价于 get_node("Header/Icon")
-## 类似于 CSS 选择器路径，但以 / 分隔。
-
 @onready var ed_head_icon: Label = $Header/Icon       # 角色图标（emoji）
 @onready var ed_head_name: Label = $Header/VBox/Name  # 角色名
 @onready var ed_head_sub: Label = $Header/VBox/Sub    # 职业/地区
 
-@onready var weapon_slot: Button = $EquipPanel/WeaponSlot  # 武器槽按钮
-@onready var shield_slot: Button = $EquipPanel/ShieldSlot  # 盾牌槽按钮
-@onready var acc1_slot: Button = $EquipPanel/Acc1Slot      # 饰品1槽按钮
-@onready var acc2_slot: Button = $EquipPanel/Acc2Slot      # 饰品2槽按钮
+# 槽位定义缓存（_ready 时构建一次；kind/icon/name/rank 子 Label 引用挂在同一批字典上）
+var _slots: Array = []
 
-@onready var stat_grid: GridContainer = $StatsPanel/StatGrid        # 数值网格
-@onready var skill_list: VBoxContainer = $SkillPanel/ScrollContainer/SkillList  # 技能列表
+@onready var equip_panel: VBoxContainer = $TopRow/EquipPanel
+@onready var weapon_slot: Button = $TopRow/EquipPanel/WeaponSlot
+@onready var shield_slot: Button = $TopRow/EquipPanel/ShieldSlot
+@onready var acc1_slot: Button = $TopRow/EquipPanel/Acc1Slot
+@onready var acc2_slot: Button = $TopRow/EquipPanel/Acc2Slot
+
+@onready var stat_grid: GridContainer = $TopRow/StatsPanel/StatGrid
+@onready var strat_list: VBoxContainer = $StratPanel/ScrollContainer/StratList
 
 # ------------------------------------------------------------------ 信号
-## 玩家点击装备槽时发出，由 main_screen 接收并弹出装备选择器
-## 参数：char_id（角色ID）、slot_key（装备槽名称："weapon"/"shield"/"acc1"/"acc2"）
+## 玩家点击装备槽时发出（main_screen 弹出装备选择器）
 signal equip_slot_clicked(char_id: String, slot_key: String)
+## 点击策略行的技能格：row_idx=-1 + is_new=true 表示"新增一行"
+signal strategy_skill_clicked(char_id: String, row_idx: int, is_new: bool)
+## 点击策略行的条件格（field = "cond1"/"cond2"）
+signal strategy_cond_clicked(char_id: String, row_idx: int, field: String)
+## 点击策略行的删除按钮
+signal strategy_row_delete(char_id: String, row_idx: int)
 
 
 func _ready() -> void:
-	# 连接4个装备槽按钮的 pressed 信号
-	# func(): 创建匿名函数（lambda），捕获当前的 slot_key 值
-	# GDScript 的匿名函数可以捕获外部变量（闭包），和 Python lambda 类似
-	weapon_slot.pressed.connect(func(): _on_slot_pressed("weapon"))
-	shield_slot.pressed.connect(func(): _on_slot_pressed("shield"))
-	acc1_slot.pressed.connect(func(): _on_slot_pressed("acc1"))
-	acc2_slot.pressed.connect(func(): _on_slot_pressed("acc2"))
-
-
-func _on_slot_pressed(slot_key: String) -> void:
-	if current_char_id != "":
-		equip_slot_clicked.emit(current_char_id, slot_key)
+	# 槽位定义只构建一次（_slot_defs() 返回该缓存，供 _build/_refresh/clear 共用）
+	_slots = [
+		{"key": "weapon", "btn": weapon_slot, "kind_label": "⚔️ 武器"},
+		{"key": "shield", "btn": shield_slot, "kind_label": "🛡️ 盾牌"},
+		{"key": "acc1",   "btn": acc1_slot,   "kind_label": "💍 饰品1"},
+		{"key": "acc2",   "btn": acc2_slot,   "kind_label": "💍 饰品2"},
+	]
+	_build_equip_slots()
+	# 策略面板表头行（只建一次）
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 4)
+	head.add_child(_strat_head_cell("技能名", 2.2))
+	head.add_child(_strat_head_cell("条件 1", 1.4))
+	head.add_child(_strat_head_cell("条件 2", 1.4))
+	head.add_child(_fixed_spacer(24))
+	strat_list.add_child(head)
 
 
 ## ---------------------------------------------------------------------------
-## show_unit() — 显示角色详情
+## show_unit() — 显示角色详情（main_screen 调用）
 ## ---------------------------------------------------------------------------
-## 由 main_screen 调用，当玩家点击棋盘上的角色时触发。
-##
-## 参数：
-##   char_id    — 角色ID（用于查询 DataManager）
-##   team_idx   — 所在队伍索引
-##   slot       — 所在槽位索引
-##   equip_data — 该角色的装备数据（从 main_screen.equipment_data 传入）
-##
-## 流程：
-##   1. 保存参数到成员变量
-##   2. 复制装备数据（.duplicate() 做浅拷贝，避免外部修改影响内部状态）
-##   3. 从 DataManager 查询角色数据
-##   4. 刷新三个区域：装备、数值、技能
-## ---------------------------------------------------------------------------
-func show_unit(char_id: String, team_idx: int, slot: int, equip_data: Dictionary = {}) -> void:
+func show_unit(char_id: String, team_idx: int, slot: int, equip_data: Dictionary = {}, strat_data: Array = []) -> void:
 	current_char_id = char_id
 	current_team_idx = team_idx
 	current_slot = slot
-	equipped = equip_data.duplicate()  # .duplicate() = 浅拷贝，类似 Python 的 dict.copy()
+	equipped = equip_data.duplicate()  # 浅拷贝，类似 Python 的 dict.copy()
+	strat.clear()
+	for row in strat_data:
+		strat.append(row.duplicate())
 
 	var ch = DataManager.get_character(char_id)
 	if ch.is_empty():
@@ -100,32 +95,39 @@ func show_unit(char_id: String, team_idx: int, slot: int, equip_data: Dictionary
 		return
 
 	# 更新头部信息
-	ed_head_icon.text = _char_icon(ch)
+	ed_head_icon.text = char_icon(ch)
 	ed_head_name.text = ch.get("name_zh", "???")
 	ed_head_sub.text = ch.get("class_zh", "") + " · " + ch.get("region", "")
 
-	_refresh_equipment()  # 刷新装备槽位显示
+	_refresh_equipment()  # 刷新装备槽卡片
 	_refresh_stats(ch)    # 刷新属性数值（含装备加成）
-	_refresh_skills(ch)   # 刷新技能列表
+	_refresh_strategy()   # 刷新行动策略行
 
 
 ## 清空面板显示（无角色选中时）
 func clear() -> void:
 	current_char_id = ""
 	equipped.clear()
+	strat.clear()
 	ed_head_icon.text = "—"
 	ed_head_name.text = "尚未选择单位"
 	ed_head_sub.text = "—"
-	for btn in [weapon_slot, shield_slot, acc1_slot, acc2_slot]:
-		btn.text = "—"
-		btn.tooltip_text = ""  # tooltip 是鼠标悬停时显示的提示文本
+	for sd in _slot_defs():
+		sd.kind.text = sd.kind_label
+		sd.icon.text = "+"
+		sd.icon.add_theme_color_override("font_color", Color("5a4a30"))
+		sd.name.text = "空 槽 位"
+		sd.name.add_theme_color_override("font_color", UITheme.INK_DIM)
+		sd.rank.text = ""
+		sd.btn.tooltip_text = ""
+		sd.btn.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		sd.btn.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		sd.btn.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+	_refresh_strategy()
 
 
 ## ---------------------------------------------------------------------------
-## equip_item() — 更新装备（由 main_screen 在玩家选择装备后调用）
-## ---------------------------------------------------------------------------
-## slot_key — "weapon" / "shield" / "acc1" / "acc2"
-## eq_id    — 装备ID，"" 表示卸下装备
+## equip_item() — 更新装备（main_screen 在玩家选择装备后调用）
 ## ---------------------------------------------------------------------------
 func equip_item(slot_key: String, eq_id: String) -> void:
 	if eq_id == "":
@@ -133,138 +135,160 @@ func equip_item(slot_key: String, eq_id: String) -> void:
 	else:
 		equipped[slot_key] = eq_id
 	_refresh_equipment()
-	# 装备变更后需要重新计算属性加成
 	var ch = DataManager.get_character(current_char_id)
 	if not ch.is_empty():
 		_refresh_stats(ch)
 
 
-## 角色职业→emoji图标映射（与 BoardGrid 中的逻辑相同，但映射表更精简）
-func _char_icon(ch: Dictionary) -> String:
-	var cls = ch.get("class_zh", "")
-	var cls_icons := {
-		"领主": "👑", "君主": "👑", "女祭司": "🙏", "斗士": "🛡️",
-		"法师": "🔥", "术士": "🔥", "魔女": "❄️", "猎人": "🏹",
-		"骑士": "🐴", "重骑士": "🐴", "牧师": "✨", "盗贼": "🗡️",
-	}
-	return cls_icons.get(cls, "👤")
-
-
 # ==================================================================
-#  装备显示 (Equipment Display)
+#  装备槽卡片
 # ==================================================================
 
-## ---------------------------------------------------------------------------
-## _refresh_equipment() — 刷新装备槽位按钮的文本和颜色
-## ---------------------------------------------------------------------------
-## 4个槽位的定义：
-##   weapon — 武器槽（影响物攻/魔攻等）
-##   shield — 盾牌槽（影响物防/魔防等）
-##   acc1   — 饰品槽1（各种属性加成）
-##   acc2   — 饰品槽2
-##
-## 已装备：显示装备名，文字颜色=稀有度颜色
-## 未装备：显示"— 点击装备"，文字为暗色
-## ---------------------------------------------------------------------------
+## 槽位定义缓存（_ready 构建）：key、按钮、显示标签、卡片内的子 Label 引用
+func _slot_defs() -> Array:
+	return _slots
+
+
+## 为 4 个槽按钮填充卡片子控件（VBox：种类行 + 图标 + 名称 + 品阶）
+func _build_equip_slots() -> void:
+	for sd in _slot_defs():
+		var btn: Button = sd.btn
+		btn.text = ""
+		btn.focus_mode = Control.FOCUS_NONE  # 防止按键被按钮吃掉
+		btn.custom_minimum_size = Vector2(0, 64)
+		btn.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		btn.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		btn.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+
+		var vbox := VBoxContainer.new()
+		vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_theme_constant_override("separation", 0)
+		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(vbox)
+
+		var kind := Label.new()
+		kind.text = sd.kind_label
+		kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		kind.add_theme_color_override("font_color", UITheme.INK_DIM)
+		kind.add_theme_font_size_override("font_size", 10)
+		vbox.add_child(kind)
+
+		var icon := Label.new()
+		icon.text = "+"
+		icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		icon.add_theme_color_override("font_color", Color("5a4a30"))
+		icon.add_theme_font_size_override("font_size", 26)
+		vbox.add_child(icon)
+
+		var nm := Label.new()
+		nm.text = "空 槽 位"
+		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nm.add_theme_color_override("font_color", UITheme.INK_DIM)
+		nm.add_theme_font_size_override("font_size", 11)
+		vbox.add_child(nm)
+
+		var rank := Label.new()
+		rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		rank.add_theme_color_override("font_color", UITheme.GOLD)
+		rank.add_theme_font_size_override("font_size", 9)
+		vbox.add_child(rank)
+
+		sd.kind = kind
+		sd.icon = icon
+		sd.name = nm
+		sd.rank = rank
+		var key: String = sd.key
+		btn.pressed.connect(func(): _on_slot_pressed(key))
+
+
+func _on_slot_pressed(slot_key: String) -> void:
+	if current_char_id != "":
+		equip_slot_clicked.emit(current_char_id, slot_key)
+
+
+## 刷新 4 张装备槽卡片
 func _refresh_equipment() -> void:
-	# 槽位定义数组：每个元素包含 key、对应按钮、显示标签
-	var slot_defs := [
-		{"key": "weapon", "btn": weapon_slot, "label": "⚔️ 武器槽", "default_subtype": "sword"},
-		{"key": "shield", "btn": shield_slot, "label": "🛡️ 盾牌槽", "default_subtype": "shield"},
-		{"key": "acc1",  "btn": acc1_slot,  "label": "💍 饰品1",  "default_subtype": ""},
-		{"key": "acc2",  "btn": acc2_slot,  "label": "💍 饰品2",  "default_subtype": ""},
-	]
-
-	for sd in slot_defs:
+	for sd in _slot_defs():
 		if equipped.has(sd.key):
-			# 已装备：查询装备数据并显示
 			var eq = DataManager.get_equipment(equipped[sd.key])
-			var eq_name = eq.get("name_zh", "???")
 			var rarity = eq.get("rarity", "common")
-			var color = UITheme.rarity_color(rarity)
-			sd.btn.text = "%s\n%s" % [sd.label, eq_name]  # \n 换行显示标签和装备名
-			sd.btn.add_theme_color_override("font_color", color)
-			# tooltip 显示装备描述
+			sd.kind.text = sd.kind_label
+			sd.icon.text = eq_icon(eq)
+			sd.icon.add_theme_color_override("font_color", Color.WHITE)
+			sd.name.text = eq.get("name_zh", "???")
+			sd.name.add_theme_color_override("font_color", UITheme.rarity_color(rarity))
+			sd.rank.text = "品阶 %s" % rarity
 			sd.btn.tooltip_text = eq.get("description", eq.get("acquisition", ""))
+			sd.btn.add_theme_stylebox_override("normal", UITheme.slot_filled_style())
+			sd.btn.add_theme_stylebox_override("hover", UITheme.slot_filled_style())
+			sd.btn.add_theme_stylebox_override("pressed", UITheme.slot_filled_style())
 		else:
-			# 未装备：显示占位文字
-			sd.btn.text = "%s\n— 点击装备" % sd.label
-			sd.btn.add_theme_color_override("font_color", UITheme.INK_DIM)
+			sd.kind.text = sd.kind_label
+			sd.icon.text = "+"
+			sd.icon.add_theme_color_override("font_color", Color("5a4a30"))
+			sd.name.text = "空 槽 位"
+			sd.name.add_theme_color_override("font_color", UITheme.INK_DIM)
+			sd.rank.text = ""
 			sd.btn.tooltip_text = ""
+			sd.btn.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+			sd.btn.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+			sd.btn.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+
+
+## 装备图标：按 subtype 映射 emoji（装备数据无图标字段）
+func eq_icon(eq: Dictionary) -> String:
+	var st = eq.get("subtype", "")
+	var icons := {
+		"sword": "⚔️", "axe": "🪓", "spear": "🔱", "bow": "🏹", "staff": "🪄",
+		"shield": "🛡️", "greatshield": "🛡️", "accessory": "💍",
+	}
+	return icons.get(st, "💍")
 
 
 # ==================================================================
-#  属性显示 (Stats Display)
+#  属性显示（8 项，含装备加成绿/红标注）
 # ==================================================================
 
-## ---------------------------------------------------------------------------
-## _get_equipment_stat_bonuses() — 计算所有装备的属性加成总和
-## ---------------------------------------------------------------------------
-## 遍历已装备的所有装备，累加它们的 stats 字段。
-## 例如：武器 atk+10 + 饰品 atk+3 = atk 总加成 13
-##
-## 返回：{"atk": 13, "def": 5, "hp": 20, ...}
-## ---------------------------------------------------------------------------
 func _get_equipment_stat_bonuses() -> Dictionary:
 	var bonuses := {}
 	for eq_id in equipped.values():
 		var eq = DataManager.get_equipment(eq_id)
 		var st = eq.get("stats", {})
 		for k in st:
-			# bonuses.get(k, 0) — 取已有值，没有则默认为 0
 			bonuses[k] = bonuses.get(k, 0) + st[k]
 	return bonuses
 
 
-## ---------------------------------------------------------------------------
-## _refresh_stats() — 刷新属性显示
-## ---------------------------------------------------------------------------
-## 显示8项属性，每项包括：属性名、基础值、装备加成（如果有）。
-## 属性数据来源优先级：level_50_stats > base_stats
-## （先取 level_50_stats，取不到就回退到 base_stats）
-##
-## 属性映射说明：
-##   显示名       JSON字段(level_50)    JSON字段(base)   装备加成key
-##   ❤️ HP       HP                   hp              hp
-##   ⚔️ 物攻     Physical Attack      atk             atk
-##   🛡️ 物防     Physical Defense     def             def
-##   🔮 魔攻     Magic Attack         mag             mag
-##   ✨ 魔防     Magic Defense        mdf             mdf
-##   ⚡ 先制     Initiative           spd             spd
-##   🎯 命中     Accuracy             acc             acc
-##   💨 回避     Evasion              eva             eva
-##
-## GridContainer 说明：
-##   GridContainer 是 Godot 的自动网格布局容器。
-##   子节点按顺序排列，自动换行。这里用它来做属性表的对齐。
-## ---------------------------------------------------------------------------
 func _refresh_stats(ch: Dictionary) -> void:
-	# 清空旧的属性行
 	for child in stat_grid.get_children():
-		child.queue_free()  # queue_free() 将节点加入销毁队列，在帧末安全删除
+		child.queue_free()
 
 	var lv50 = ch.get("level_50_stats", {})
 	var base = ch.get("base_stats", {})
+	if lv50 == null:
+		lv50 = {}  # 防御：JSON 中字段值为 null 时 .get() 返回 null 而非默认值
+	if base == null:
+		base = {}
 	var bonuses = _get_equipment_stat_bonuses()
 
-	# 属性定义列表：每项包含显示名和对应的 JSON 字段名
 	var stat_defs := [
-		{"name": "❤️ HP",    "base_key": "HP",              "eq_key": "hp"},
-		{"name": "⚔️ 物攻",  "base_key": "Physical Attack", "eq_key": "atk"},
-		{"name": "🛡️ 物防",  "base_key": "Physical Defense", "eq_key": "def"},
-		{"name": "🔮 魔攻",  "base_key": "Magic Attack",    "eq_key": "mag"},
-		{"name": "✨ 魔防",  "base_key": "Magic Defense",   "eq_key": "mdf"},
-		{"name": "⚡ 先制",  "base_key": "Initiative",      "eq_key": "spd"},
-		{"name": "🎯 命中",  "base_key": "Accuracy",        "eq_key": "acc"},
-		{"name": "💨 回避",  "base_key": "Evasion",         "eq_key": "eva"},
+		{"name": "❤️ HP",   "base_key": "HP",              "eq_key": "hp"},
+		{"name": "⚔️ 物攻", "base_key": "Physical Attack", "eq_key": "atk"},
+		{"name": "🛡️ 物防", "base_key": "Physical Defense", "eq_key": "def"},
+		{"name": "🔮 魔攻", "base_key": "Magic Attack",    "eq_key": "mag"},
+		{"name": "✨ 魔防", "base_key": "Magic Defense",   "eq_key": "mdf"},
+		{"name": "⚡ 先制", "base_key": "Initiative",      "eq_key": "spd"},
+		{"name": "🎯 命中", "base_key": "Accuracy",        "eq_key": "acc"},
+		{"name": "💨 回避", "base_key": "Evasion",         "eq_key": "eva"},
 	]
 
 	for sd in stat_defs:
-		# 取基础值：优先 level_50_stats，回退 base_stats，再回退 0
 		var base_val = lv50.get(sd.base_key, base.get(sd.eq_key, 0))
+		if base_val == null:
+			base_val = 0  # 防御：某些角色缺少该项属性数据
 		var bonus = bonuses.get(sd.eq_key, 0)
 
-		# 创建一行 HBox（水平排列：名称 + 弹性间距 + 基础值 + 加成）
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
 		name_label.text = sd.name
@@ -274,17 +298,15 @@ func _refresh_stats(ch: Dictionary) -> void:
 
 		row.add_child(_spacer())
 
-		# 基础数值（金色显示）
 		var val_label := Label.new()
-		val_label.text = str(base_val)  # str() 类似 Python 的 str()
+		val_label.text = str(base_val + bonus)  # 总值（对齐网页版 attrTotals）
 		val_label.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
 		val_label.add_theme_font_size_override("font_size", 13)
 		row.add_child(val_label)
 
-		# 装备加成（如果有）：绿色正数，红色负数
 		if bonus != 0:
 			var bonus_label := Label.new()
-			bonus_label.text = " %+d" % bonus  # %+d 强制显示正负号，如 "+5", "-3"
+			bonus_label.text = " %+d" % bonus
 			bonus_label.add_theme_color_override("font_color", UITheme.GREEN if bonus > 0 else UITheme.RED)
 			bonus_label.add_theme_font_size_override("font_size", 10)
 			row.add_child(bonus_label)
@@ -293,76 +315,146 @@ func _refresh_stats(ch: Dictionary) -> void:
 
 
 # ==================================================================
-#  技能显示 (Skills Display)
+#  行动策略面板
 # ==================================================================
 
-## ---------------------------------------------------------------------------
-## _refresh_skills() — 刷新技能列表
-## ---------------------------------------------------------------------------
-## 从角色数据的 skills 数组读取技能信息，最多显示 8 个。
-##
-## 技能类型：
-##   🔴 active  — 主动技能（需要消耗 AP/PP 使用）
-##   🔵 passive — 被动技能（满足条件时自动触发）
-##
-## 消耗显示：
-##   AP（Action Point，行动点）：每回合恢复，用于使用主动技能
-##   PP（Passive Point，被动点）：每回合恢复，用于触发被动技能
-##
-## 当前版本的说明：
-##   技能数据在 JSON 中已经非常丰富（包含 target_type、damage_type、
-##   power、hits、effects 等字段），但战斗中尚未实现真正的技能系统。
-##   UnitEditor 目前只展示技能名称、类型和消耗。
-## ---------------------------------------------------------------------------
-func _refresh_skills(ch: Dictionary) -> void:
-	# 清空旧列表
-	for child in skill_list.get_children():
-		child.queue_free()
+## 表头单元格（Label + 拉伸比例）
+func _strat_head_cell(text: String, ratio: float) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_color_override("font_color", UITheme.INK_DIM)
+	l.add_theme_font_size_override("font_size", 10)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.size_flags_stretch_ratio = ratio
+	return l
 
-	var skills_arr = ch.get("skills", [])
-	if skills_arr.is_empty():
-		var noop := Label.new()
-		noop.text = "该角色暂无技能数据"
-		noop.add_theme_color_override("font_color", UITheme.INK_DIM)
-		noop.add_theme_font_size_override("font_size", 11)
-		skill_list.add_child(noop)
-		return
 
-	# 最多显示 8 个技能
-	for i in range(min(skills_arr.size(), 8)):
-		var sk = skills_arr[i]
-		var sk_name = sk.get("name", sk.get("name_zh", "???"))
-		var sk_type = sk.get("type", "")  # "active" 或 "passive"
+func _fixed_spacer(w: int) -> Control:
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(w, 0)
+	return c
 
+
+## 重建策略行（每次 show_unit 调用，整体重建——数据量小，代价可忽略）
+func _refresh_strategy() -> void:
+	# 清空除表头外的所有行（表头是第一个子节点）
+	var children := strat_list.get_children()
+	for i in range(1, children.size()):
+		children[i].queue_free()
+
+	for i in range(strat.size()):
+		var row_data: Dictionary = strat[i]
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)  # 子控件间距
+		row.add_theme_constant_override("separation", 4)
+		row.add_child(_build_skill_cell(row_data, i))
+		row.add_child(_build_cond_cell(row_data, i, "cond1"))
+		row.add_child(_build_cond_cell(row_data, i, "cond2"))
 
-		# 构建消耗文字
-		var cost_text := ""
-		var ap_cost = sk.get("ap_cost", 0)
-		var pp_cost = sk.get("pp_cost", 0)
-		if ap_cost > 0:
-			cost_text += "AP:%d " % ap_cost
-		if pp_cost > 0:
-			cost_text += "PP:%d" % pp_cost
+		var del := Button.new()
+		del.text = "×"
+		del.focus_mode = Control.FOCUS_NONE
+		del.custom_minimum_size = Vector2(24, 0)
+		del.add_theme_color_override("font_color", UITheme.RED)
+		del.add_theme_font_size_override("font_size", 10)
+		var idx_copy = i  # 闭包陷阱！必须复制到局部变量
+		del.pressed.connect(func(): strategy_row_delete.emit(current_char_id, idx_copy))
+		row.add_child(del)
+		strat_list.add_child(row)
 
-		# 🔴=主动技能, 🔵=被动技能
-		var type_icon := "🔴" if sk_type == "active" else "🔵"
-		var label := Label.new()
-		label.text = "%s %s  %s" % [type_icon, sk_name, cost_text]
-		label.add_theme_color_override("font_color", UITheme.INK)
-		label.add_theme_font_size_override("font_size", 12)
-		row.add_child(label)
+	# 底部：新增行按钮 / 已满提示
+	if strat.size() < 8:
+		var add := Button.new()
+		add.text = "＋ 新增技能（%d/8）" % strat.size()
+		add.focus_mode = Control.FOCUS_NONE
+		add.add_theme_color_override("font_color", UITheme.INK_DIM)
+		add.add_theme_font_size_override("font_size", 11)
+		add.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		add.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		add.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+		add.pressed.connect(func(): strategy_skill_clicked.emit(current_char_id, -1, true))
+		strat_list.add_child(add)
+	else:
+		var full := Label.new()
+		full.text = "已达上限 8 条策略。"
+		full.add_theme_color_override("font_color", UITheme.INK_DIM)
+		full.add_theme_font_size_override("font_size", 11)
+		strat_list.add_child(full)
 
-		skill_list.add_child(row)
+
+## 技能格按钮：满/空两种样式
+func _build_skill_cell(row_data: Dictionary, idx: int) -> Button:
+	var sk_id: String = row_data.get("skill", "")
+	var cell := Button.new()
+	cell.focus_mode = Control.FOCUS_NONE
+	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cell.size_flags_stretch_ratio = 2.2
+	cell.custom_minimum_size = Vector2(0, 44)
+	if sk_id != "":
+		var sk = DataManager.get_skill(sk_id)
+		var type_icon := "🔴" if sk.get("type", "") == "active" else "🔵"
+		cell.text = "%s %s\n%s" % [type_icon, sk.get("name_zh", "???"), sk.get("description_zh", "")]
+		cell.add_theme_color_override("font_color", UITheme.INK)
+		cell.add_theme_font_size_override("font_size", 12)
+		cell.add_theme_stylebox_override("normal", UITheme.slot_filled_style())
+		cell.add_theme_stylebox_override("hover", UITheme.slot_filled_style())
+		cell.add_theme_stylebox_override("pressed", UITheme.slot_filled_style())
+	else:
+		cell.text = "＋ 选择技能"
+		cell.add_theme_color_override("font_color", UITheme.INK_DIM)
+		cell.add_theme_font_size_override("font_size", 12)
+		cell.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		cell.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		cell.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+	var idx_copy = idx
+	cell.pressed.connect(func(): strategy_skill_clicked.emit(current_char_id, idx_copy, false))
+	return cell
 
 
-## ---------------------------------------------------------------------------
-## _spacer() — 创建弹性间距控件
-## ---------------------------------------------------------------------------
-## 返回一个设置了 SIZE_EXPAND_FILL 的 Control，用于在 HBox 中填充空白。
-## 类似 HTML/CSS 中的 flex-grow: 1 的 spacer 元素。
-## ---------------------------------------------------------------------------
+## 条件格按钮
+func _build_cond_cell(row_data: Dictionary, idx: int, field: String) -> Button:
+	var cd_id: String = row_data.get(field, "")
+	var cell := Button.new()
+	cell.focus_mode = Control.FOCUS_NONE
+	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cell.size_flags_stretch_ratio = 1.4
+	cell.custom_minimum_size = Vector2(0, 44)
+	if cd_id != "":
+		var cd = DataManager.get_condition(cd_id)
+		cell.text = cd.get("name_zh", "???")
+		cell.add_theme_color_override("font_color", UITheme.INK2)
+		cell.add_theme_font_size_override("font_size", 12)
+		cell.add_theme_stylebox_override("normal", UITheme.slot_filled_style())
+		cell.add_theme_stylebox_override("hover", UITheme.slot_filled_style())
+		cell.add_theme_stylebox_override("pressed", UITheme.slot_filled_style())
+	else:
+		cell.text = "＋ 条件"
+		cell.add_theme_color_override("font_color", Color("5a4a30"))
+		cell.add_theme_font_size_override("font_size", 12)
+		cell.add_theme_stylebox_override("normal", UITheme.slot_dashed_style())
+		cell.add_theme_stylebox_override("hover", UITheme.slot_dashed_style())
+		cell.add_theme_stylebox_override("pressed", UITheme.slot_dashed_style())
+	var idx_copy = idx
+	var field_copy = field
+	cell.pressed.connect(func(): strategy_cond_clicked.emit(current_char_id, idx_copy, field_copy))
+	return cell
+
+
+# ==================================================================
+#  工具
+# ==================================================================
+
+## 角色职业→emoji图标映射
+func char_icon(ch: Dictionary) -> String:
+	var cls = ch.get("class_zh", "")
+	var cls_icons := {
+		"领主": "👑", "君主": "👑", "女祭司": "🙏", "斗士": "🛡️",
+		"法师": "🔥", "术士": "🔥", "魔女": "❄️", "猎人": "🏹",
+		"骑士": "🐴", "重骑士": "🐴", "牧师": "✨", "盗贼": "🗡️",
+	}
+	return cls_icons.get(cls, "👤")
+
+
+## 弹性间距控件（类似 CSS flex-grow: 1 的 spacer）
 func _spacer() -> Control:
 	var c := Control.new()
 	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL

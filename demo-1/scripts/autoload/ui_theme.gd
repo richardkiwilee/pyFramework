@@ -54,6 +54,10 @@ const RED: Color = Color("c2553a")       # 红色（敌方/危险/阵亡）
 const GREEN: Color = Color("7ab85a")     # 绿色（友方/存活/加成）
 const BLUE: Color = Color("4a90c2")      # 蓝色（魔法/信息）
 
+# 棋盘格瓦片色 — 滚轮棋盘 3×3 菱形格的明暗交替色（同网页版 --tile-light/--tile-dark）
+const TILE_LIGHT: Color = Color("c9b48f")  # 亮格（浅沙色）
+const TILE_DARK: Color = Color("6b5a42")   # 暗格（深棕）
+
 # ==================================================================
 #  稀有度颜色 (Rarity Colors)
 # ==================================================================
