@@ -105,6 +105,7 @@ const FEATURES: Array = [
 	{"icon": "🎚", "name": "音量表", "desc": "VU电平峰值保持", "scene": "res://features/vu_meter/vu_meter.tscn"},
 	{"icon": "🎯", "name": "打靶射击", "desc": "移动靶准星射击", "scene": "res://features/target_range/target_range.tscn"},
 	{"icon": "🧊", "name": "旋转立方体", "desc": "纯代码3D线框投影", "scene": "res://features/wire_cube/wire_cube.tscn"},
+	{"icon": "🚪", "name": "蒙提霍尔", "desc": "三门问题概率模拟", "scene": "res://features/monty_hall/monty_hall.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
