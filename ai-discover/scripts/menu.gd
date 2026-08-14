@@ -86,6 +86,7 @@ const FEATURES: Array = [
 	{"icon": "🔍", "name": "放大镜", "desc": "圆形透镜放大屏幕内容", "scene": "res://features/magnifier/magnifier.tscn"},
 	{"icon": "⏱", "name": "秒表", "desc": "计时暂停计次重置", "scene": "res://features/stopwatch/stopwatch.tscn"},
 	{"icon": "🎧", "name": "3D环绕音效", "desc": "音源绕头旋转立体声", "scene": "res://features/spatial_audio/spatial_audio.tscn"},
+	{"icon": "📋", "name": "拖拽排序列表", "desc": "拖动行重排待办清单", "scene": "res://features/reorder_list/reorder_list.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
