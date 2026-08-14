@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/signature_pad/signature_pad.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="SignaturePad" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 190.0
+offset_top = 120.0
+offset_right = 1090.0
+offset_bottom = 520.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer"]
+offset_left = 390.0
+offset_top = 30.0
+offset_right = 890.0
+offset_bottom = 76.0
+theme_override_font_sizes/font_size = 26
+text = "✍ 签名板"
+horizontal_alignment = 1
+
+[node name="Bar" type="HBoxContainer" parent="CanvasLayer"]
+offset_left = 190.0
+offset_top = 540.0
+offset_right = 900.0
+offset_bottom = 584.0
+theme_override_constants/separation = 12
+
+[node name="BrushSlider" type="HSlider" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 36)
+
+[node name="SaveBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 42)
+text = "💾 保存"
+
+[node name="ClearBtn" type="Button" parent="CanvasLayer/Bar"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 42)
+text = "🧹 清空"
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer"]
+offset_left = 190.0
+offset_top = 596.0
+offset_right = 1090.0
+offset_bottom = 630.0
+theme_override_font_sizes/font_size = 15
+text = "按住鼠标书写 · 滑杆调笔粗"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "✍ 按住鼠标写签名 · 滑杆调笔粗 · 保存为 PNG(user://signature.png) · 清空重写"
