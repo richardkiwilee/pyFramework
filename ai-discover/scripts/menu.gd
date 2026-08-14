@@ -92,6 +92,7 @@ const FEATURES: Array = [
 	{"icon": "❌", "name": "井字棋", "desc": "对战Minimax不败AI", "scene": "res://features/tic_tac_toe/tic_tac_toe.tscn"},
 	{"icon": "🔐", "name": "密码强度计", "desc": "六项规则实时评估", "scene": "res://features/password_meter/password_meter.tscn"},
 	{"icon": "⚙️", "name": "齿轮传动", "desc": "啮合齿轮齿比联动", "scene": "res://features/gears/gears.tscn"},
+	{"icon": "📈", "name": "折线图", "desc": "坐标轴网格折线悬停", "scene": "res://features/line_chart/line_chart.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
