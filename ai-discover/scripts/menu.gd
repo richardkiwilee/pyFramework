@@ -99,6 +99,7 @@ const FEATURES: Array = [
 	{"icon": "⚫", "name": "黑白棋", "desc": "夹子翻转经典棋局", "scene": "res://features/reversi/reversi.tscn"},
 	{"icon": "🎳", "name": "保龄球", "desc": "拖拽抛球击倒球瓶", "scene": "res://features/bowling/bowling.tscn"},
 	{"icon": "🕳", "name": "粒子黑洞", "desc": "引力奇点粒子螺旋坠入", "scene": "res://features/black_hole/black_hole.tscn"},
+	{"icon": "🎡", "name": "摩天轮", "desc": "3D转轮吊舱保持竖直", "scene": "res://features/ferris_wheel/ferris_wheel.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
