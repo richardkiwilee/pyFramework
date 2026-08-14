@@ -1,0 +1,40 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/sticky_notes/sticky_notes.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="StickyNotes" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="CountLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 300.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 18
+text = "📝 便签：0 张"
+
+[node name="ClearBtn" type="Button" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 60.0
+offset_right = 140.0
+offset_bottom = 100.0
+text = "🧹 清空"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1100.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "📝 点击空白处创建便签 · 拖顶部条移动 · 右键顶部条删除 · 文本框可直接编辑"
