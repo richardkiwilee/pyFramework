@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/wire_cube/wire_cube.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="WireCube" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="HintLabel" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 900.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🧊 纯代码 3D 线框立方体 · 顶点旋转+透视投影 · 近亮远暗 · 滚轮缩放"
