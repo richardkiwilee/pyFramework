@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="ai-discover — 功能发现实验室"
+run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
-run/main_scene="res://scenes/menu.tscn"
 
 [display]
 
@@ -27,5 +27,4 @@ window/size/viewport_height=720
 [rendering]
 
 rendering_device/driver.windows="d3d12"
-renderer/rendering_method="forward_plus"
 environment/defaults/default_clear_color=Color(0.08, 0.09, 0.13, 1)
