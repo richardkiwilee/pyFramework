@@ -108,6 +108,7 @@ const FEATURES: Array = [
 	{"icon": "🚪", "name": "蒙提霍尔", "desc": "三门问题概率模拟", "scene": "res://features/monty_hall/monty_hall.tscn"},
 	{"icon": "⚡", "name": "反应测试", "desc": "绿灯点击测反应时", "scene": "res://features/reaction/reaction.tscn"},
 	{"icon": "🖱", "name": "环形菜单", "desc": "右键呼出饼图菜单", "scene": "res://features/radial_menu/radial_menu.tscn"},
+	{"icon": "🌧", "name": "接雨水", "desc": "经典算法积水可视化", "scene": "res://features/rain_trap/rain_trap.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
