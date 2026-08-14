@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/gears/gears.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="Gears" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 18
+text = "⚙ 齿数 22 : 14 : 9"
+
+[node name="RerollBtn" type="Button" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 60.0
+offset_right = 150.0
+offset_bottom = 100.0
+text = "🎲 换布局"
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "⚙ 啮合齿轮按齿比联动 · 小轮转得最快 · 金色标记可观察转向与转速"
