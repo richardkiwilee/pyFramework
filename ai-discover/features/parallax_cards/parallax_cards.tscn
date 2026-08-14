@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/parallax_cards/parallax_cards.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/back_button.tscn" id="2_back"]
+
+[node name="ParallaxCards" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="BackButton" parent="." instance=ExtResource("2_back")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer"]
+offset_left = 390.0
+offset_top = 30.0
+offset_right = 890.0
+offset_bottom = 76.0
+theme_override_font_sizes/font_size = 26
+text = "🎴 视差卡片"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 690.0
+offset_right = 1000.0
+offset_bottom = 716.0
+theme_override_font_sizes/font_size = 14
+text = "🎴 移动鼠标：卡片向光标伪3D倾斜 · 悬停放大 · 内容反向视差增强立体感"

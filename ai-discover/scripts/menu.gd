@@ -88,6 +88,7 @@ const FEATURES: Array = [
 	{"icon": "🎧", "name": "3D环绕音效", "desc": "音源绕头旋转立体声", "scene": "res://features/spatial_audio/spatial_audio.tscn"},
 	{"icon": "📋", "name": "拖拽排序列表", "desc": "拖动行重排待办清单", "scene": "res://features/reorder_list/reorder_list.tscn"},
 	{"icon": "🎵", "name": "木琴", "desc": "点击音条发声回弹", "scene": "res://features/xylophone/xylophone.tscn"},
+	{"icon": "🎴", "name": "视差卡片", "desc": "卡片随鼠标伪3D倾斜", "scene": "res://features/parallax_cards/parallax_cards.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
