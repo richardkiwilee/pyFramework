@@ -82,6 +82,7 @@ const FEATURES: Array = [
 	{"icon": "🟦", "name": "俄罗斯方块", "desc": "七种方块旋转消行", "scene": "res://features/tetris/tetris.tscn"},
 	{"icon": "🎯", "name": "弹簧床", "desc": "重力弹跳形变最高点", "scene": "res://features/trampoline/trampoline.tscn"},
 	{"icon": "✍️", "name": "签名板", "desc": "手写签名导出PNG", "scene": "res://features/signature_pad/signature_pad.tscn"},
+	{"icon": "💗", "name": "心形粒子", "desc": "点击喷发爱心粒子", "scene": "res://features/heart_burst/heart_burst.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
