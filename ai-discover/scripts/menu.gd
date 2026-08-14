@@ -95,6 +95,7 @@ const FEATURES: Array = [
 	{"icon": "📈", "name": "折线图", "desc": "坐标轴网格折线悬停", "scene": "res://features/line_chart/line_chart.tscn"},
 	{"icon": "🌀", "name": "傅里叶绘图", "desc": "旋转矢量臂描画心形", "scene": "res://features/fourier/fourier.tscn"},
 	{"icon": "💧", "name": "摇晃水杯", "desc": "粒子水倾斜摇晃模拟", "scene": "res://features/slosh/slosh.tscn"},
+	{"icon": "🫧", "name": "泡泡龙", "desc": "瞄准射击同色消除", "scene": "res://features/bubble_shooter/bubble_shooter.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
