@@ -98,6 +98,7 @@ const FEATURES: Array = [
 	{"icon": "🫧", "name": "泡泡龙", "desc": "瞄准射击同色消除", "scene": "res://features/bubble_shooter/bubble_shooter.tscn"},
 	{"icon": "⚫", "name": "黑白棋", "desc": "夹子翻转经典棋局", "scene": "res://features/reversi/reversi.tscn"},
 	{"icon": "🎳", "name": "保龄球", "desc": "拖拽抛球击倒球瓶", "scene": "res://features/bowling/bowling.tscn"},
+	{"icon": "🕳", "name": "粒子黑洞", "desc": "引力奇点粒子螺旋坠入", "scene": "res://features/black_hole/black_hole.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
