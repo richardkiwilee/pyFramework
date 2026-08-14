@@ -101,6 +101,7 @@ const FEATURES: Array = [
 	{"icon": "🕳", "name": "粒子黑洞", "desc": "引力奇点粒子螺旋坠入", "scene": "res://features/black_hole/black_hole.tscn"},
 	{"icon": "🎡", "name": "摩天轮", "desc": "3D转轮吊舱保持竖直", "scene": "res://features/ferris_wheel/ferris_wheel.tscn"},
 	{"icon": "🎵", "name": "音游节拍", "desc": "四轨音符判定连击", "scene": "res://features/rhythm/rhythm.tscn"},
+	{"icon": "💣", "name": "扫雷", "desc": "布雷计数零区展开", "scene": "res://features/minesweeper/minesweeper.tscn"},
 ]
 
 @onready var grid: GridContainer = $CenterBox/VBox/Scroll/Grid
