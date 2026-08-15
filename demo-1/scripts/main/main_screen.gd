@@ -131,7 +131,7 @@ func _ready() -> void:
 	_style_btn(btn_next, "下一队 ›")
 	_style_btn(btn_new_team, "＋ 新增队伍")
 	_style_btn(btn_disband, "解散队伍")
-	_style_battle_btn(btn_battle, "▶ 开始战斗")
+	_style_battle_btn(btn_battle, "开始战斗")
 	btn_prev.pressed.connect(func(): reel.feed(-1))
 	btn_next.pressed.connect(func(): reel.feed(1))
 	btn_new_team.pressed.connect(_on_new_team)
@@ -657,7 +657,7 @@ func _open_skill_picker(char_id: String, row_idx: int, is_new: bool) -> void:
 	# 卸下技能行
 	if not is_new and cur != "":
 		var clr := Button.new()
-		clr.text = "🗑️ 卸下技能（%s）" % DataManager.get_skill(cur).get("name_zh", "")
+		clr.text = "卸下技能（%s）" % DataManager.get_skill(cur).get("name_zh", "")
 		clr.focus_mode = Control.FOCUS_NONE
 		clr.add_theme_color_override("font_color", UITheme.RED)
 		clr.add_theme_font_size_override("font_size", 12)
@@ -680,6 +680,7 @@ func _open_skill_picker(char_id: String, row_idx: int, is_new: bool) -> void:
 		var type_icon := "🔴" if sk.get("type", "") == "active" else "🔵"
 		var ico := Label.new()
 		ico.text = type_icon
+		ico.add_theme_font_override("font", UITheme.emoji_font)
 		ico.add_theme_font_size_override("font_size", 20)
 		row.add_child(ico)
 
@@ -738,7 +739,7 @@ func _open_cond_picker(char_id: String, row_idx: int, field: String) -> void:
 	# 卸下条件行
 	if cur != "":
 		var clr := Button.new()
-		clr.text = "🗑️ 卸下条件（%s）" % DataManager.get_condition(cur).get("name_zh", "")
+		clr.text = "卸下条件（%s）" % DataManager.get_condition(cur).get("name_zh", "")
 		clr.focus_mode = Control.FOCUS_NONE
 		clr.add_theme_color_override("font_color", UITheme.RED)
 		clr.add_theme_font_size_override("font_size", 12)
@@ -761,7 +762,7 @@ func _open_cond_picker(char_id: String, row_idx: int, field: String) -> void:
 		row.modulate.a = 0.45 if dup else 1.0
 
 		var ico := Label.new()
-		ico.text = "◈"
+		ico.text = "·"
 		ico.add_theme_font_size_override("font_size", 16)
 		ico.add_theme_color_override("font_color", UITheme.GOLD if not dup else UITheme.INK_DIM)
 		row.add_child(ico)
@@ -833,7 +834,7 @@ func _open_equip_picker() -> void:
 	# --- 卸下装备行 ---
 	if equipment_data.get(equip_pending_char, {}).has(equip_pending_slot):
 		var unequip := Button.new()
-		unequip.text = "🗑️ 卸下装备"
+		unequip.text = "卸下装备"
 		unequip.focus_mode = Control.FOCUS_NONE
 		unequip.add_theme_color_override("font_color", UITheme.RED)
 		unequip.add_theme_font_size_override("font_size", 12)
@@ -884,6 +885,7 @@ func _open_equip_picker() -> void:
 
 		var ico := Label.new()
 		ico.text = editor.eq_icon(eq)
+		ico.add_theme_font_override("font", UITheme.emoji_font)
 		ico.add_theme_font_size_override("font_size", 22)
 		row.add_child(ico)
 
@@ -1025,6 +1027,7 @@ func _open_char_picker(mode: String, ctx: Dictionary = {}) -> void:
 
 		var icon := Label.new()
 		icon.text = editor.char_icon(ch)
+		icon.add_theme_font_override("font", UITheme.emoji_font)
 		icon.add_theme_font_size_override("font_size", 20)
 		row.add_child(icon)
 
@@ -1045,7 +1048,7 @@ func _open_char_picker(mode: String, ctx: Dictionary = {}) -> void:
 		var cid_copy = cid  # 闭包陷阱
 		if mode == "captain":
 			var btn := Button.new()
-			btn.text = "👑 队长"
+			btn.text = "设为队长"
 			btn.focus_mode = Control.FOCUS_NONE
 			btn.add_theme_color_override("font_color", UITheme.GOLD_BRIGHT)
 			btn.add_theme_font_size_override("font_size", 11)

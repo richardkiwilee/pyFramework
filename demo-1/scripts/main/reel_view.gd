@@ -72,6 +72,9 @@ var _reel_h := 100.0
 var _reel_w := 100.0
 var _item_h := 100.0
 
+# 数据版本号：每次 refresh() 自增，通知 item 队伍数据已变（即使索引未变也要重建缓存）
+var _data_version := 0
+
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -140,6 +143,7 @@ func refresh(state: Dictionary) -> void:
 	_move_src = state.get("move_src", "")
 	_move_target = state.get("move_target", Vector2i(-1, -1))
 	_focus_left = state.get("focus_left", true)
+	_data_version += 1
 
 
 ## ---------------------------------------------------------------------------
@@ -258,7 +262,7 @@ func _update_items() -> void:
 		var d := float(i) - _current
 		var ad := absf(d)
 		var item: ReelItem = _items[k]
-		item.set_team(team_idx, _teams)  # 索引不变时内部不重建缓存
+		item.set_team(team_idx, _teams, _data_version)  # 索引或数据版本变化时重建缓存
 		item.size = Vector2(_reel_w, _item_h)
 		item.pivot_offset = Vector2(_reel_w / 2.0, _item_h / 2.0)
 		item.position = Vector2((size.x - _reel_w) / 2.0, size.y / 2.0 - _item_h / 2.0 + d * _item_h)

@@ -81,6 +81,9 @@ const RARITY_COLORS := {
 # ==================================================================
 
 var app_theme: Theme
+## emoji 专用字体：主题字体（微软雅黑）不含 emoji 字形，SystemFont 只取列表
+## 第一个可用字体、不做逐字回退，因此 emoji 必须单独用本字体绘制。
+var emoji_font: SystemFont
 
 
 func _ready() -> void:
@@ -99,6 +102,15 @@ func _ready() -> void:
 	])
 	app_theme.default_font = default_font
 	app_theme.default_font_size = 13
+
+	# emoji 字体（Windows 的彩色 emoji 字体，兜底 Symbol）
+	emoji_font = SystemFont.new()
+	emoji_font.font_names = PackedStringArray([
+		"Segoe UI Emoji",
+		"Segoe UI Symbol",
+		"Apple Color Emoji",
+		"Noto Color Emoji",
+	])
 
 
 ## 根据稀有度字符串返回对应颜色。找不到则返回暗淡文字色。

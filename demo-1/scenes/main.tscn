@@ -141,7 +141,7 @@ text = "选择角色"
 
 [node name="CloseBtn" type="Button" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel/Header"]
 layout_mode = 2
-text = "✕"
+text = "×"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/ZoneLeft/Overlay/CharPicker/Panel"]
 layout_mode = 2

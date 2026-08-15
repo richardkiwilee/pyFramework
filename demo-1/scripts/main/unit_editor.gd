@@ -59,6 +59,8 @@ signal strategy_row_delete(char_id: String, row_idx: int)
 
 
 func _ready() -> void:
+	# 头部图标是 emoji，主题字体不含 emoji 字形，需要专用字体
+	ed_head_icon.add_theme_font_override("font", UITheme.emoji_font)
 	# 槽位定义只构建一次（_slot_defs() 返回该缓存，供 _build/_refresh/clear 共用）
 	_slots = [
 		{"key": "weapon", "btn": weapon_slot, "kind_label": "⚔️ 武器"},
@@ -113,7 +115,7 @@ func clear() -> void:
 	ed_head_name.text = "尚未选择单位"
 	ed_head_sub.text = "—"
 	for sd in _slot_defs():
-		sd.kind.text = sd.kind_label
+		sd.kind.text = sd.kind_label.split(" ")[1]
 		sd.icon.text = "+"
 		sd.icon.add_theme_color_override("font_color", Color("5a4a30"))
 		sd.name.text = "空 槽 位"
@@ -167,12 +169,21 @@ func _build_equip_slots() -> void:
 		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		btn.add_child(vbox)
 
+		# 种类行拆成 emoji + 文字两个 Label（混排无法用单一字体渲染）
+		var kind_row := HBoxContainer.new()
+		kind_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		kind_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var kind_icon := Label.new()
+		kind_icon.text = sd.kind_label.split(" ")[0]
+		kind_icon.add_theme_font_override("font", UITheme.emoji_font)
+		kind_icon.add_theme_font_size_override("font_size", 10)
+		kind_row.add_child(kind_icon)
 		var kind := Label.new()
-		kind.text = sd.kind_label
-		kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		kind.text = sd.kind_label.split(" ")[1]
 		kind.add_theme_color_override("font_color", UITheme.INK_DIM)
 		kind.add_theme_font_size_override("font_size", 10)
-		vbox.add_child(kind)
+		kind_row.add_child(kind)
+		vbox.add_child(kind_row)
 
 		var icon := Label.new()
 		icon.text = "+"

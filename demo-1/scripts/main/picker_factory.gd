@@ -65,7 +65,7 @@ static func build_modal(parent: Node, title: String, foot: String = "") -> Dicti
 	header.add_child(title_label)
 
 	var close_btn := Button.new()
-	close_btn.text = "✕"
+	close_btn.text = "×"  # U+2715 ✕ 主题字体无字形，用 ×(U+00D7)
 	close_btn.focus_mode = Control.FOCUS_NONE
 	# 点击关闭 → 隐藏并释放弹窗
 	close_btn.pressed.connect(func():

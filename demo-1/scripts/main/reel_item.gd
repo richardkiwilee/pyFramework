@@ -55,6 +55,9 @@ var slots: Array = []           # 9 × {char_id, icon, name, color, captain}
 # 重绘脏标记：状态变化才重绘（apply_state 每帧调用）
 var _dirty := true
 
+# 数据版本号：队伍索引不变但数据变化（放置/移除/换位）时也必须重建缓存
+var _data_version := -1
+
 
 func _ready() -> void:
 	# MOUSE_FILTER_STOP — 拦截点击；是否可点由 ReelView 每帧开关
@@ -63,12 +66,13 @@ func _ready() -> void:
 
 
 ## ---------------------------------------------------------------------------
-## set_team() — 设置此槽位展示哪支队伍（索引变化才重建缓存）
+## set_team() — 设置此槽位展示哪支队伍（索引或数据版本变化才重建缓存）
 ## ---------------------------------------------------------------------------
-func set_team(team_idx: int, teams: Array) -> void:
-	if team_idx == team_idx_disp:
+func set_team(team_idx: int, teams: Array, version: int = -1) -> void:
+	if team_idx == team_idx_disp and version == _data_version:
 		return
 	team_idx_disp = team_idx
+	_data_version = version
 	slots.clear()
 	if teams.is_empty() or team_idx < 0 or team_idx >= teams.size():
 		label_text = ""
@@ -88,15 +92,17 @@ func set_team(team_idx: int, teams: Array) -> void:
 	for i in range(items.size()):
 		var uid = items[i]
 		if uid == "":
-			slots.append({"char_id": "", "icon": "", "name": "", "color": Color.WHITE, "captain": false})
+			slots.append({"char_id": "", "icon": "", "icon_w": 0.0, "name": "", "color": Color.WHITE, "captain": false})
 			continue
 		var ch = DataManager.get_character(uid)
 		var is_cap: bool = (uid == captain)
 		if is_cap:
 			cap_name = ch.get("name_zh", "???")
+		var icon_str := _char_icon(ch)
 		slots.append({
 			"char_id": uid,
-			"icon": _char_icon(ch),
+			"icon": icon_str,
+			"icon_w": UITheme.emoji_font.get_string_size(icon_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x,
 			"name": ch.get("name_zh", "???"),
 			"color": PIECE_COLORS[posmod(uid.hash(), PIECE_COLORS.size())],
 			"captain": is_cap,
@@ -208,17 +214,21 @@ func _draw() -> void:
 			if dim_board and not is_sel:
 				icon_color = icon_color.darkened(0.5)
 			var icon_pos := cc + Vector2(0, -6)
+			# 注意：draw_string 的 width 必须为 -1——实测有限 width 下彩色 emoji
+			# 不渲染或退化为暗色轮廓（Godot 4.6 渲染行为），因此手动居中。
 			if is_sel:
-				# 选中：金色光晕 + 放大 1.2
+				# 选中：金色光晕 + 放大（用大字号替代 transform，规避上述问题）
 				draw_circle(icon_pos, 16, Color(1.0, 0.85, 0.42, 0.30))
-				draw_set_transform(icon_pos, 0.0, Vector2(1.2, 1.2))
-				draw_string(ThemeDB.fallback_font, Vector2(-11, 8), s.icon, HORIZONTAL_ALIGNMENT_CENTER, 22, 22, icon_color)
-				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				var w26: float = s.icon_w * 26.0 / 22.0
+				draw_string(UITheme.emoji_font, icon_pos + Vector2(-w26 / 2.0, -13), s.icon,
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 26, icon_color)
 			else:
-				draw_string(ThemeDB.fallback_font, icon_pos + Vector2(-11, -11), s.icon, HORIZONTAL_ALIGNMENT_CENTER, 22, 22, icon_color)
+				draw_string(UITheme.emoji_font, icon_pos + Vector2(-s.icon_w / 2.0, -11), s.icon,
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 22, icon_color)
 			if s.captain:
 				# 队长皇冠（图标上方）
-				draw_string(ThemeDB.fallback_font, icon_pos + Vector2(-6, -22), "👑", HORIZONTAL_ALIGNMENT_CENTER, 12, 12, UITheme.GOLD_BRIGHT)
+				draw_string(UITheme.emoji_font, icon_pos + Vector2(-6, -22), "👑",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 12, UITheme.GOLD_BRIGHT)
 			# 名字小字（图标下方）
 			draw_string(font, cc + Vector2(-20, 14), s.name, HORIZONTAL_ALIGNMENT_CENTER, 40, 8, UITheme.INK if is_active else UITheme.INK.darkened(0.4))
 			if is_src:
