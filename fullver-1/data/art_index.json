@@ -1,0 +1,30 @@
+{
+  "_comment": "美术资源索引：逻辑 id → {texture(可选，assets 下路径), emoji(回退), color(回退)}。texture 缺文件时逐级回退到 emoji/颜色占位。",
+  "icons": {
+    "city":            { "texture": "", "emoji": "🏰", "color": "#c4b596" },
+    "city_capital":    { "texture": "", "emoji": "👑", "color": "#d4af37" },
+    "city_port":       { "texture": "", "emoji": "⚓", "color": "#4a90c2" },
+    "city_holy":       { "texture": "", "emoji": "⛪", "color": "#f0d264" },
+    "army":            { "texture": "", "emoji": "⚔️", "color": "#c2553a" },
+    "unit":            { "texture": "", "emoji": "👤", "color": "#7ab85a" },
+    "res_gold":        { "texture": "", "emoji": "💰", "color": "#d4af37" },
+    "res_food":        { "texture": "", "emoji": "🌾", "color": "#7ab85a" },
+    "res_wood":        { "texture": "", "emoji": "🌲", "color": "#8a6a3a" },
+    "res_horse":       { "texture": "", "emoji": "🐎", "color": "#9a7a5a" },
+    "btn_diplomacy":   { "texture": "", "emoji": "⚖️", "color": "#4a90c2" },
+    "btn_settings":    { "texture": "", "emoji": "⚙️", "color": "#8a8a8a" },
+    "btn_city":        { "texture": "", "emoji": "🏛️", "color": "#c4b596" },
+    "btn_units":       { "texture": "", "emoji": "🛡️", "color": "#7ab85a" },
+    "btn_end_turn":    { "texture": "", "emoji": "⏳", "color": "#d4af37" },
+    "btn_menu":        { "texture": "", "emoji": "📜", "color": "#8a7a5c" },
+    "btn_save":        { "texture": "", "emoji": "💾", "color": "#8a7a5c" },
+    "log":             { "texture": "", "emoji": "📜", "color": "#8a7a5c" },
+    "skill":           { "texture": "", "emoji": "✨", "color": "#9b59b6" },
+    "buff":            { "texture": "", "emoji": "💠", "color": "#4a90c2" },
+    "equipment":       { "texture": "", "emoji": "🎒", "color": "#9a9a9a" },
+    "war":             { "texture": "", "emoji": "⚔️", "color": "#c2553a" },
+    "peace":           { "texture": "", "emoji": "🕊️", "color": "#7ab85a" },
+    "alliance":        { "texture": "", "emoji": "🤝", "color": "#f0d264" },
+    "placeholder":     { "texture": "", "emoji": "", "color": "#6a6a6a" }
+  }
+}

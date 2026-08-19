@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://zfoo/gdtest/UnitTest.gd" id="1_ut"]
+
+[node name="TestWorld" type="Node"]
+script = ExtResource("1_ut")
+include_subfolders = true
+enable_test_logging = true

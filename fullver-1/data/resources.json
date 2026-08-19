@@ -1,0 +1,16 @@
+{
+  "_comment": "资源与经济参数（docs/00-design.md §12）。icon 指向 data/art_index.json 的逻辑 id。",
+  "resources": [
+    { "id": "gold",  "name_zh": "金币", "icon": "res_gold",  "production_per_city_level": 5 },
+    { "id": "food",  "name_zh": "粮食", "icon": "res_food",  "production_per_city_level": 6 },
+    { "id": "wood",  "name_zh": "木材", "icon": "res_wood",  "production_per_city_level": 3 },
+    { "id": "horse", "name_zh": "马匹", "icon": "res_horse", "production_per_city_level": 1 }
+  ],
+  "economy": {
+    "army_upkeep":       { "gold": 2, "food": 2 },
+    "city_upgrade_cost": { "gold": 50, "wood": 30 },
+    "recruit_cost":      { "gold": 30, "food": 20, "horse": 5 },
+    "max_city_level": 5,
+    "city_level_production_multiplier": 1.0
+  }
+}

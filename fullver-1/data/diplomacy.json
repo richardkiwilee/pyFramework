@@ -1,0 +1,33 @@
+{
+  "_comment": "外交参数（docs/00-design.md §11）。规则数值口径迁移自 diplomacy 项目并数据化——修正其'规则数字散落三处'的缺陷。",
+  "relationship": {
+    "min": -100.0,
+    "max": 100.0,
+    "decay_per_turn": 0.1,
+    "war_penalty": 60.0,
+    "war_floor": -40.0
+  },
+  "thresholds": {
+    "hostile_below": 0.0,
+    "friendly": 40.0,
+    "alliance": 60.0
+  },
+  "friendship_bonus": 10.0,
+  "alliance_bonus": 10.0,
+  "tribute": {
+    "military_ratio_required": 3,
+    "relation_floor": 0.0,
+    "amounts": { "gold": 10, "food": 10, "wood": 5, "horse": 3 },
+    "relation_penalty": 20.0
+  },
+  "trade": {
+    "deficit_fill_gain": 1,
+    "give_below_expectation_penalty": 2,
+    "give_above_expectation_penalty": 1,
+    "accept_threshold": 0
+  },
+  "treaties": {
+    "peace_rounds": 10,
+    "alliance_rounds": 20
+  }
+}

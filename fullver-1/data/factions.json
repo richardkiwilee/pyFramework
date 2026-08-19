@@ -1,0 +1,12 @@
+{
+  "_comment": "势力定义：玩家与 AI 同构（docs/00-design.md §6）。ai_strategy 为自定义 AI 策略脚本路径（res:// 开头），空字符串 = 内置 BasicAI。",
+  "starting_resources": { "gold": 100, "food": 120, "wood": 60, "horse": 20 },
+  "army_team_size": 6,
+  "army_move_points": 2,
+  "factions": [
+    { "id": "player",    "name_zh": "罗马",     "name_en": "Rome",     "is_player": true,  "ai_strategy": "", "color": "#4a90c2" },
+    { "id": "veneti",    "name_zh": "威尼斯",   "name_en": "Veneti",   "is_player": false, "ai_strategy": "", "color": "#c2553a" },
+    { "id": "byzantine", "name_zh": "拜占庭",   "name_en": "Byzantine","is_player": false, "ai_strategy": "", "color": "#7ab85a" },
+    { "id": "saracen",   "name_zh": "萨拉森",   "name_en": "Saracen",  "is_player": false, "ai_strategy": "", "color": "#9b59b6" }
+  ]
+}
