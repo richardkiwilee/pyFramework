@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- apple icon -->
+  <path d="M24 14 C 16 14, 11 20, 11 28 C 11 37, 17 42, 24 42 C 31 42, 37 37, 37 28 C 37 20, 32 14, 24 14 Z"
+        fill="#c0392b" stroke="#7d1f15" stroke-width="2"/>
+  <!-- indentation -->
+  <path d="M24 16 C 22 22, 22 26, 24 30" fill="none" stroke="#7d1f15" stroke-width="2" opacity="0.6"/>
+  <!-- stem -->
+  <path d="M24 14 C 24 9, 26 7, 29 7" fill="none" stroke="#5a3a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- leaf -->
+  <path d="M29 7 C 33 6, 36 9, 35 13 C 31 13, 29 10, 29 7 Z" fill="#4a8a3a" stroke="#2f5a24" stroke-width="1.5"/>
+  <!-- highlight -->
+  <ellipse cx="19" cy="24" rx="3" ry="5" fill="#e74c3c" opacity="0.6"/>
+</svg>

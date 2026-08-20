@@ -1,0 +1,32 @@
+; =====================================================================
+; Main.tscn — 主场景（游戏启动入口）
+; =====================================================================
+; .tscn 是 Godot 的场景文件（纯文本）。结构：先声明外部资源，再列节点树。
+;
+; ---- 字段速查 ----
+; [gd_scene load_steps=2 format=3]
+;     gd_scene   → 这是场景文件
+;     load_steps → 启动时需预加载的资源数（含脚本），用于显示加载进度
+;     format=3   → 文件格式版本
+; [ext_resource ... id="1_main"]
+;     外部资源引用：把 Main.gd 脚本挂进来，id 是本文件内的别名
+; [node name="Main" type="Control" ...]
+;     根节点：名为 Main，类型 Control（UI 控件基类）
+; layout_mode = 3        → 布局模式 3 = 锚点模式（用 anchors/preset 定位）
+; anchors_preset = 15    → 15 = FULL_RECT（四边锚点全 0/1，填满父节点）
+; anchor_right/bottom = 1.0 → 右、下锚点贴到父节点右下（配合 preset 填满）
+; grow_horizontal/vertical = 2 → 向右/下方向生长（窗口变大时跟着撑大）
+; script = ExtResource("1_main") → 把上面声明的 Main.gd 挂到这个节点上
+; =====================================================================
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Main.gd" id="1_main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")

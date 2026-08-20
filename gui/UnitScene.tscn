@@ -1,0 +1,20 @@
+; =====================================================================
+; UnitScene.tscn — 部队管理场景
+; =====================================================================
+; 复用 SubScene.gd 通用骨架，只改两个 @export 参数：title 与 bg_color。
+; 与 CityScene.tscn 结构完全相同，仅标题/背景色不同。
+; =====================================================================
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://SubScene.gd" id="1_sub"]
+
+[node name="UnitScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_sub")
+title = "部队管理"
+bg_color = Color(0.30, 0.22, 0.26, 1)

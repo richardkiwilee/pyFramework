@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <!-- Ocean background -->
+  <rect width="1600" height="1000" fill="#2a4d6e"/>
+  <!-- subtle ocean texture lines -->
+  <g stroke="#35597d" stroke-width="2" fill="none" opacity="0.5">
+    <path d="M0 120 Q200 100 400 130 T800 120 T1200 130 T1600 120"/>
+    <path d="M0 250 Q300 230 600 260 T1200 250 T1600 240"/>
+    <path d="M0 760 Q300 780 600 750 T1200 770 T1600 760"/>
+    <path d="M0 900 Q250 880 500 910 T1000 900 T1600 910"/>
+  </g>
+
+  <!-- Landmass: main continent -->
+  <path d="M180 320
+           C 140 260, 220 200, 340 210
+           C 420 180, 520 200, 560 250
+           C 640 230, 740 250, 780 320
+           C 880 300, 980 340, 1000 420
+           C 1080 440, 1140 520, 1100 600
+           C 1140 680, 1080 760, 980 770
+           C 900 820, 780 800, 720 740
+           C 620 770, 500 740, 460 660
+           C 360 680, 260 640, 240 560
+           C 160 540, 120 460, 180 380
+           C 140 360, 150 340, 180 320 Z"
+        fill="#6f8f5a" stroke="#4f6b3f" stroke-width="3"/>
+  <!-- coastal beach ring -->
+  <path d="M180 320 C 140 260, 220 200, 340 210 C 420 180, 520 200, 560 250 C 640 230, 740 250, 780 320 C 880 300, 980 340, 1000 420 C 1080 440, 1140 520, 1100 600 C 1140 680, 1080 760, 980 770 C 900 820, 780 800, 720 740 C 620 770, 500 740, 460 660 C 360 680, 260 640, 240 560 C 160 540, 120 460, 180 380 C 140 360, 150 340, 180 320 Z"
+        fill="none" stroke="#cdb98a" stroke-width="6" opacity="0.6"/>
+
+  <!-- Smaller island -->
+  <path d="M1180 200 C 1240 170, 1340 190, 1360 250 C 1420 240, 1480 300, 1450 360 C 1480 410, 1420 460, 1340 440 C 1280 470, 1200 440, 1180 380 C 1140 360, 1130 300, 1180 200 Z"
+        fill="#6f8f5a" stroke="#4f6b3f" stroke-width="3"/>
+
+  <!-- Forests: clusters of circles -->
+  <g fill="#3f5a2e" opacity="0.85">
+    <!-- forest A -->
+    <circle cx="320" cy="380" r="22"/><circle cx="350" cy="365" r="20"/><circle cx="360" cy="395" r="22"/>
+    <circle cx="300" cy="410" r="20"/><circle cx="340" cy="420" r="20"/><circle cx="380" cy="410" r="18"/>
+    <!-- forest B -->
+    <circle cx="820" cy="560" r="24"/><circle cx="855" cy="545" r="22"/><circle cx="860" cy="580" r="24"/>
+    <circle cx="800" cy="595" r="22"/><circle cx="840" cy="610" r="22"/><circle cx="890" cy="600" r="20"/>
+    <!-- forest on island -->
+    <circle cx="1300" cy="300" r="20"/><circle cx="1330" cy="290" r="18"/><circle cx="1340" cy="320" r="20"/>
+  </g>
+
+  <!-- Mountains: triangles -->
+  <g fill="#8a8a8a" stroke="#5a5a5a" stroke-width="2">
+    <polygon points="560,300 600,250 640,300"/>
+    <polygon points="600,300 650,240 700,300"/>
+    <polygon points="640,300 690,255 740,300"/>
+    <polygon points="480,520 520,470 560,520"/>
+    <polygon points="520,520 570,460 620,520"/>
+    <polygon points="1300,360 1340,310 1380,360"/>
+  </g>
+  <!-- snow caps -->
+  <g fill="#f0f0f0">
+    <polygon points="600,255 615,275 585,275"/>
+    <polygon points="650,245 668,268 632,268"/>
+    <polygon points="570,465 585,485 555,485"/>
+    <polygon points="1340,315 1352,333 1328,333"/>
+  </g>
+
+  <!-- Rivers -->
+  <g fill="none" stroke="#7fb0d8" stroke-width="5" stroke-linecap="round">
+    <path d="M640 300 C 600 380, 560 440, 500 520 C 470 560, 440 600, 420 660"/>
+    <path d="M700 300 C 720 360, 760 420, 800 480"/>
+  </g>
+
+  <!-- Roads: dashed -->
+  <g fill="none" stroke="#c9a14a" stroke-width="4" stroke-dasharray="10 8" opacity="0.8">
+    <path d="M260 560 C 380 540, 520 500, 640 460 C 760 420, 880 480, 1000 520"/>
+    <path d="M640 460 C 700 420, 760 380, 820 360 C 900 360, 980 380, 1060 460"/>
+  </g>
+
+  <!-- City markers: small towers -->
+  <g>
+    <!-- capital -->
+    <circle cx="640" cy="460" r="10" fill="#1a1410" stroke="#c9a14a" stroke-width="3"/>
+    <circle cx="640" cy="460" r="4" fill="#c9a14a"/>
+    <!-- towns -->
+    <circle cx="260" cy="560" r="7" fill="#1a1410" stroke="#c9a14a" stroke-width="2"/>
+    <circle cx="1000" cy="520" r="7" fill="#1a1410" stroke="#c9a14a" stroke-width="2"/>
+    <circle cx="820" cy="360" r="7" fill="#1a1410" stroke="#c9a14a" stroke-width="2"/>
+    <circle cx="1300" cy="300" r="7" fill="#1a1410" stroke="#c9a14a" stroke-width="2"/>
+  </g>
+
+  <!-- Region labels -->
+  <g fill="#1a1410" font-family="Georgia, serif" font-size="26" font-style="italic" opacity="0.85">
+    <text x="700" y="700" text-anchor="middle">Heartlands</text>
+    <text x="300" y="480" text-anchor="middle">Northwood</text>
+    <text x="1310" y="400" text-anchor="middle">Isle of Ash</text>
+  </g>
+
+  <!-- Compass rose, top-right -->
+  <g transform="translate(1500,90)">
+    <circle r="34" fill="#1a1410" opacity="0.55" stroke="#c9a14a" stroke-width="2"/>
+    <polygon points="0,-30 8,0 0,30 -8,0" fill="#c9a14a"/>
+    <polygon points="0,-30 8,0 0,0" fill="#e8c97a"/>
+    <text x="0" y="-40" fill="#e8c97a" font-family="Georgia, serif" font-size="18" text-anchor="middle">N</text>
+  </g>
+
+  <!-- Decorative border -->
+  <rect x="10" y="10" width="1580" height="980" fill="none" stroke="#c9a14a" stroke-width="4" opacity="0.5"/>
+  <rect x="20" y="20" width="1560" height="960" fill="none" stroke="#c9a14a" stroke-width="1" opacity="0.3"/>
+</svg>

@@ -1,0 +1,23 @@
+; =====================================================================
+; CityScene.tscn — 城市管理场景
+; =====================================================================
+; 复用 SubScene.gd 通用骨架，只改两个 @export 参数：title 与 bg_color。
+; （@export 变量可在场景文件里直接赋值，见 SubScene.gd 的 @export 声明）
+;
+; 这就是"一份脚本 + 多场景数据驱动"的用法：
+;   CityScene 与 UnitScene 共用 SubScene.gd，仅标题/背景色不同。
+; =====================================================================
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://SubScene.gd" id="1_sub"]
+
+[node name="CityScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_sub")
+title = "城市管理"
+bg_color = Color(0.22, 0.30, 0.36, 1)

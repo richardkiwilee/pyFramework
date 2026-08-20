@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="framebg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2018"/>
+      <stop offset="1" stop-color="#15100b"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded dark frame with gold border -->
+  <rect x="6" y="6" width="168" height="168" rx="24" fill="url(#framebg)" stroke="#c9a14a" stroke-width="4"/>
+  <rect x="14" y="14" width="152" height="152" rx="18" fill="none" stroke="#7a5e2c" stroke-width="2"/>
+  <!-- corner ornaments -->
+  <g fill="#e8c97a">
+    <circle cx="22" cy="22" r="3"/>
+    <circle cx="158" cy="22" r="3"/>
+    <circle cx="22" cy="158" r="3"/>
+    <circle cx="158" cy="158" r="3"/>
+  </g>
+</svg>

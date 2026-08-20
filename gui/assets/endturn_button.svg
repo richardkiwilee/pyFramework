@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <radialGradient id="ball" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#fbe89a"/>
+      <stop offset="0.55" stop-color="#e8b54a"/>
+      <stop offset="1" stop-color="#9c6e1f"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c97a"/>
+      <stop offset="1" stop-color="#7a5a1a"/>
+    </linearGradient>
+  </defs>
+  <!-- golden ball -->
+  <circle cx="60" cy="60" r="50" fill="url(#ball)" stroke="url(#rim)" stroke-width="4"/>
+  <!-- inner ring -->
+  <circle cx="60" cy="60" r="42" fill="none" stroke="#c9a14a" stroke-width="1.5" opacity="0.6"/>
+  <!-- check mark -->
+  <path d="M40 62 L54 76 L82 44" fill="none" stroke="#3a2a10" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M40 62 L54 76 L82 44" fill="none" stroke="#7a5a1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- highlight -->
+  <ellipse cx="42" cy="40" rx="10" ry="16" fill="#fff6c8" opacity="0.55"/>
+</svg>
