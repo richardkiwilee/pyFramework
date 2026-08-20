@@ -1,0 +1,64 @@
+{
+  "_comment": "编队规则表 —— gui 项目自有数据，不是 fullver-1 的原始数据。",
+  "_comment_2": "规模(size)与领导力(leadership)是 readme 新引入的概念，三个参考项目都没有。",
+  "_comment_3": "把规则放在这里，调数值不用改任何一行代码。",
+
+  "_comment_size": [
+    "规模：单位属性。不管规模多大，在九宫格里永远只占 1 格。",
+    "匹配方式：拿 character.classes[0].class_type 转小写，按下面的顺序做子串匹配，",
+    "第一个命中的 keyword 生效；都不命中就用 default。",
+    "为什么用子串而不是精确分词：class_type 是自由文本且空格不规范，",
+    "真实数据里有 'Bow/ Infantry /Archer'、'Ax / Shield / Cavalry' 这种写法。",
+    "校准：剑士 'Sword / Infantry' 不命中 -> 20；射手 'Bow/ Infantry /Archer' 命中 archer -> 15。"
+  ],
+  "size": {
+    "default": 20,
+    "by_class_keyword": [
+      { "keyword": "cavalry", "value": 35 },
+      { "keyword": "flying",  "value": 30 },
+      { "keyword": "armor",   "value": 30 },
+      { "keyword": "archer",  "value": 15 },
+      { "keyword": "bow",     "value": 15 },
+      { "keyword": "caster",  "value": 15 },
+      { "keyword": "staff",   "value": 15 }
+    ]
+  },
+
+  "_comment_leadership": [
+    "领导力：只有队长的领导力有意义。合法条件是 sum(全队规模) <= 队长领导力。",
+    "公式 = base_by_class_keyword（同样是 class_type 子串匹配，不命中用 base_default）",
+    "        + per_level * 单位等级。",
+    "领导力随等级成长，因为 readme 要求成员行显示等级，等级理应有实际作用。",
+    "校准：Lv.20 领主 = 90 + 2*20 = 130，可以带 6 个剑兵（6*20=120）。"
+  ],
+  "leadership": {
+    "base_default": 60,
+    "per_level": 2,
+    "base_by_class_keyword": [
+      { "keyword": "lord",    "value": 90 },
+      { "keyword": "royal",   "value": 90 },
+      { "keyword": "cavalry", "value": 70 }
+    ]
+  },
+
+  "_comment_ap_pp": [
+    "AP/PP：优先读 classes.json 的 base_ap / base_pp。",
+    "但 64 个职业里有 39 个完全没有这两个键（是键缺失，不是值为 null），",
+    "所以要按转职状态兜底：promotes_from 非空的转职职业给 2/2，基础职业给 1/1。",
+    "这不是拍脑袋——25 个有值的职业里，22 个转职职业正好都是 2/2，3 个基础职业正好都是 1/1。",
+    "如果连职业都查不到（有 17/70 个角色的 class_zh 不在 classes.json 里），用这里的 fallback。"
+  ],
+  "ap_pp_fallback": { "ap": 1, "pp": 1 },
+  "ap_pp_promoted": { "ap": 2, "pp": 2 },
+
+  "_comment_roster": [
+    "开局花名册：从 characters.json 里取前 N 个角色建成单位，随机分配等级。",
+    "initial_teams 决定开局有几支队伍、每队几个人（从花名册里顺序取）。"
+  ],
+  "roster": {
+    "unit_count": 16,
+    "level_min": 8,
+    "level_max": 22,
+    "initial_teams": [3, 2]
+  }
+}

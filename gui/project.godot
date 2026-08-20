@@ -18,6 +18,14 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://GameState.gd"
+FormationData="*res://formation/FormationData.gd"
+
+[display]
+
+; 编队界面右侧要放 9 行「头像 : 信息 : 装备 = 1:4:2」的成员栏位，
+; 默认的 1152x648 高度不够用，这里放大到 1280x800。
+window/size/viewport_width=1280
+window/size/viewport_height=800
 
 [physics]
 

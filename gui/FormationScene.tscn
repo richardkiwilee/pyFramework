@@ -1,0 +1,24 @@
+; =====================================================================
+; FormationScene.tscn — 编队界面场景
+; =====================================================================
+; 只是一个空壳：根节点是填满窗口的 Control，挂上 FormationScreen.gd。
+; 所有控件都由脚本在运行时创建（和本项目 Main.tscn 的做法一致），
+; 这样界面结构在代码里一眼可见，不用在编辑器和文件之间来回对照。
+;
+; ---- 字段速查 ----
+; layout_mode = 3        → 锚点模式
+; anchors_preset = 15    → FULL_RECT，填满父节点（这里就是窗口）
+; grow_horizontal/vertical = 2 → 窗口变大时跟着撑大
+; =====================================================================
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://formation/FormationScreen.gd" id="1_formation"]
+
+[node name="FormationScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_formation")

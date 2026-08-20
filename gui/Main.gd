@@ -309,5 +309,8 @@ func _on_city() -> void:
 
 func _on_unit() -> void:
 	GameState.add_log("打开部队管理")
-	get_tree().change_scene_to_file("res://UnitScene.tscn")
+	# 编队界面（见 formation/ 目录与 readme 第 9-35 行的详细说明）。
+	# 原来这里跳的是 UnitScene.tscn 那个 SubScene 占位场景；
+	# UnitScene.tscn 保留未删，因为 CityScene.tscn 还在共用同一个 SubScene.gd。
+	get_tree().change_scene_to_file("res://FormationScene.tscn")
 	pass
