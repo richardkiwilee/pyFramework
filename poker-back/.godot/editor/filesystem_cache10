@@ -1,0 +1,12 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1787849997
+card.gd::GDScript::4543101697248433003::1787849982::0::1::::PokerCard<>Control<><>0<>0<><>::
+icon.svg::CompressedTexture2D::2302869580212351493::1787763189::1787846492::1::::<><><>0<>0<>033f2d3ff1ff5e935697e3c798d33b0f<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+main.gd::GDScript::6549756667953352238::1787849987::0::1::::<>Control<><>0<>0<><>::
+main.tscn::PackedScene::-1::1787846467::0::1::::<><><>0<>0<><>::res://main.gd
+pile_area.gd::GDScript::4122605236399583891::1787846442::0::1::::PileArea<>Control<><>0<>0<><>::
+readme.md::TextFile::-1::1787763640::0::1::::<><><>0<>0<><>::
+rule.png::CompressedTexture2D::6618406078345078337::1787764398::1787846492::1::::<><><>0<>0<>41b60795d607a64423e22fcd2549fc95<>res://.godot/imported/rule.png-2a50e4cb80005a208fdbcfdc0b9ea4a8.ctex::
+test_driver.gd::GDScript::3945500204564158696::1787849996::0::1::::<>Node<><>0<>0<><>::
+::res://assets/::1787849937
+card_backs.png::CompressedTexture2D::1006579718801174198::1787849937::1787850006::1::::<><><>0<>0<>20539770d1a34559e68deeb4abbd4c6c<>res://.godot/imported/card_backs.png-5090486a9e45427f1a5d1f0e62f07786.ctex::
