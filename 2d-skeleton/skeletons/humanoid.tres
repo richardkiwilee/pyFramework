@@ -1,0 +1,217 @@
+[gd_resource type="Resource" script_class="BoneDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/bone_spec.gd" id="1_85mdi"]
+[ext_resource type="Script" path="res://scripts/bone_def.gd" id="2_kgl5w"]
+
+[sub_resource type="Resource" id="Resource_ircvv"]
+script = ExtResource("1_85mdi")
+name = "hip"
+sprite_offset = Vector2(0, 11)
+tex_size = Vector2(68, 60)
+shape = "round_rect"
+shape_w = 26.0
+shape_h = 22.0
+shape_r = 8.0
+
+[sub_resource type="Resource" id="Resource_s6uuv"]
+script = ExtResource("1_85mdi")
+name = "torso"
+parent = "hip"
+local_pos = Vector2(0, -56)
+sprite_offset = Vector2(0, 28)
+tex_size = Vector2(76, 128)
+shape = "round_rect"
+shape_w = 30.0
+shape_h = 56.0
+shape_r = 10.0
+
+[sub_resource type="Resource" id="Resource_n8qjj"]
+script = ExtResource("1_85mdi")
+name = "head"
+parent = "torso"
+local_pos = Vector2(0, -8)
+sprite_offset = Vector2(0, 7)
+tex_size = Vector2(44, 44)
+shape = "circle"
+shape_w = 14.0
+shape_h = 14.0
+shape_r = 14.0
+
+[sub_resource type="Resource" id="Resource_g5hcw"]
+script = ExtResource("1_85mdi")
+name = "upper_arm_R"
+parent = "torso"
+local_pos = Vector2(14, -50)
+local_rot = 0.0872664625997166
+sprite_offset = Vector2(0, 18)
+tex_size = Vector2(40, 88)
+z_index = 1
+shape = "round_rect"
+shape_w = 12.0
+shape_h = 36.0
+shape_r = 6.0
+
+[sub_resource type="Resource" id="Resource_7q75m"]
+script = ExtResource("1_85mdi")
+name = "fore_arm_R"
+parent = "upper_arm_R"
+local_pos = Vector2(0, 36)
+sprite_offset = Vector2(0, 17)
+tex_size = Vector2(36, 84)
+z_index = 1
+shape = "round_rect"
+shape_w = 10.0
+shape_h = 34.0
+shape_r = 5.0
+
+[sub_resource type="Resource" id="Resource_4fd31"]
+script = ExtResource("1_85mdi")
+name = "hand_R"
+parent = "fore_arm_R"
+local_pos = Vector2(0, 34)
+sprite_offset = Vector2(0, 5)
+tex_size = Vector2(40, 36)
+z_index = 1
+shape = "round_rect"
+shape_w = 12.0
+shape_h = 10.0
+shape_r = 5.0
+
+[sub_resource type="Resource" id="Resource_y3swy"]
+script = ExtResource("1_85mdi")
+name = "sword"
+parent = "hand_R"
+local_pos = Vector2(0, 12)
+local_rot = -0.0872664625997166
+sprite_offset = Vector2(0, 35)
+tex_size = Vector2(156, 32)
+z_index = 2
+shape = "sword"
+shape_w = 8.0
+shape_h = 70.0
+
+[sub_resource type="Resource" id="Resource_ewe3q"]
+script = ExtResource("1_85mdi")
+name = "upper_arm_L"
+parent = "torso"
+local_pos = Vector2(-14, -50)
+local_rot = -0.08726646259971638
+sprite_offset = Vector2(0, 18)
+tex_size = Vector2(40, 88)
+z_index = -1
+shape = "round_rect"
+shape_w = 12.0
+shape_h = 36.0
+shape_r = 6.0
+
+[sub_resource type="Resource" id="Resource_17tp1"]
+script = ExtResource("1_85mdi")
+name = "fore_arm_L"
+parent = "upper_arm_L"
+local_pos = Vector2(0, 36)
+sprite_offset = Vector2(0, 17)
+tex_size = Vector2(36, 84)
+z_index = -1
+shape = "round_rect"
+shape_w = 10.0
+shape_h = 34.0
+shape_r = 5.0
+
+[sub_resource type="Resource" id="Resource_hjkik"]
+script = ExtResource("1_85mdi")
+name = "hand_L"
+parent = "fore_arm_L"
+local_pos = Vector2(0, 34)
+sprite_offset = Vector2(0, 5)
+tex_size = Vector2(40, 36)
+z_index = -1
+shape = "round_rect"
+shape_w = 12.0
+shape_h = 10.0
+shape_r = 5.0
+
+[sub_resource type="Resource" id="Resource_8g7r3"]
+script = ExtResource("1_85mdi")
+name = "thigh_R"
+parent = "hip"
+local_pos = Vector2(7, 10)
+sprite_offset = Vector2(0, 23)
+tex_size = Vector2(44, 108)
+z_index = 1
+shape = "round_rect"
+shape_w = 14.0
+shape_h = 46.0
+shape_r = 7.0
+
+[sub_resource type="Resource" id="Resource_3cb0t"]
+script = ExtResource("1_85mdi")
+name = "shin_R"
+parent = "thigh_R"
+local_pos = Vector2(0, 46)
+sprite_offset = Vector2(0, 22)
+tex_size = Vector2(40, 104)
+z_index = 1
+shape = "round_rect"
+shape_w = 12.0
+shape_h = 44.0
+shape_r = 6.0
+
+[sub_resource type="Resource" id="Resource_o6gxo"]
+script = ExtResource("1_85mdi")
+name = "foot_R"
+parent = "shin_R"
+local_pos = Vector2(0, 44)
+local_rot = 0.2617993877991496
+sprite_offset = Vector2(0, 5)
+tex_size = Vector2(60, 36)
+z_index = 1
+shape = "round_rect"
+shape_w = 22.0
+shape_h = 10.0
+shape_r = 5.0
+
+[sub_resource type="Resource" id="Resource_e851n"]
+script = ExtResource("1_85mdi")
+name = "thigh_L"
+parent = "hip"
+local_pos = Vector2(-7, 10)
+sprite_offset = Vector2(0, 23)
+tex_size = Vector2(44, 108)
+z_index = -1
+shape = "round_rect"
+shape_w = 14.0
+shape_h = 46.0
+shape_r = 7.0
+
+[sub_resource type="Resource" id="Resource_0uq3x"]
+script = ExtResource("1_85mdi")
+name = "shin_L"
+parent = "thigh_L"
+local_pos = Vector2(0, 46)
+sprite_offset = Vector2(0, 22)
+tex_size = Vector2(40, 104)
+z_index = -1
+shape = "round_rect"
+shape_w = 12.0
+shape_h = 44.0
+shape_r = 6.0
+
+[sub_resource type="Resource" id="Resource_vmng0"]
+script = ExtResource("1_85mdi")
+name = "foot_L"
+parent = "shin_L"
+local_pos = Vector2(0, 44)
+local_rot = 0.2617993877991496
+sprite_offset = Vector2(0, 5)
+tex_size = Vector2(60, 36)
+z_index = -1
+shape = "round_rect"
+shape_w = 22.0
+shape_h = 10.0
+shape_r = 5.0
+
+[resource]
+script = ExtResource("2_kgl5w")
+skeleton_key = "humanoid"
+label = "持剑人形"
+bones = Array[ExtResource("1_85mdi")]([SubResource("Resource_ircvv"), SubResource("Resource_s6uuv"), SubResource("Resource_n8qjj"), SubResource("Resource_g5hcw"), SubResource("Resource_7q75m"), SubResource("Resource_4fd31"), SubResource("Resource_y3swy"), SubResource("Resource_ewe3q"), SubResource("Resource_17tp1"), SubResource("Resource_hjkik"), SubResource("Resource_8g7r3"), SubResource("Resource_3cb0t"), SubResource("Resource_o6gxo"), SubResource("Resource_e851n"), SubResource("Resource_0uq3x"), SubResource("Resource_vmng0")])

@@ -1,0 +1,84 @@
+[gd_scene load_steps=4 format=3 uid="uid://b2dskelmain0001"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[sub_resource type="StyleBoxEmpty" id="style_empty"]
+
+[sub_resource type="StyleBoxFlat" id="style_bar"]
+bg_color = Color(0.12, 0.12, 0.14, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Bar" type="Panel" parent="CanvasLayer"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("style_bar")
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = -16.0
+offset_bottom = 68.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="SkeletonLbl" type="Label" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(40, 0)
+size_flags_vertical = 4
+text = "骨骼"
+vertical_alignment = 1
+
+[node name="SkeletonOpt" type="OptionButton" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(180, 60)
+size_flags_vertical = 3
+custom_preset = false
+
+[node name="AnimLbl" type="Label" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(40, 0)
+size_flags_vertical = 4
+text = "动作"
+vertical_alignment = 1
+
+[node name="AnimOpt" type="OptionButton" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(180, 60)
+size_flags_vertical = 3
+custom_preset = false
+
+[node name="ArtLbl" type="Label" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(40, 0)
+size_flags_vertical = 4
+text = "美术"
+vertical_alignment = 1
+
+[node name="ArtOpt" type="OptionButton" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(180, 60)
+size_flags_vertical = 3
+custom_preset = false
+
+[node name="ApplyBtn" type="Button" parent="CanvasLayer/HBox"]
+custom_minimum_size = Vector2(180, 60)
+size_flags_vertical = 3
+text = "应用"
+
+[node name="Stage" type="Node2D" parent="."]
+position = Vector2(576, 380)
