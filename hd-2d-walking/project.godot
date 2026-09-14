@@ -1,0 +1,35 @@
+; HD-2D 大世界行走 Demo
+; 分辨率：内部 640x360，窗口 1280x720（整数倍缩放）
+; 渲染：Forward+ / 最近邻采样 / 2D 像素对齐
+
+config_version=5
+
+[application]
+
+config/name="HD-2D Walking"
+config/description="八方旅人式伪立体大世界：平原、上下坡、村庄、森林、昼夜光照"
+run/main_scene="res://scenes/stub.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Main="*res://scenes/main.tscn"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/vsync/vsync_mode=1
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+textures/canvas_textures/default_texture_filter=0
+2d/snap/snap_2d_vertices_to_pixel=false
+anti_aliasing/quality/msaa_2d=0
+environment/defaults/default_clear_color=Color(0.09, 0.11, 0.16, 1)
